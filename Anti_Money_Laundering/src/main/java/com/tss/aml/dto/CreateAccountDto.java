@@ -16,5 +16,5 @@ public class CreateAccountDto {
     private String currency;
     
     @DecimalMin(value = "0.0", inclusive = true, message = "Initial balance must be non-negative")
-    private BigDecimal initialBalance = BigDecimal.ZERO;
+    private BigDecimal initialBalance; // No default value - will be null if not provided
 }

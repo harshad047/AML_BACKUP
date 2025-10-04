@@ -28,17 +28,20 @@ public class RegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final ReCaptchaService reCaptchaService;
     private final UserRepository userRepo;
+    private final AuditLogService auditLogService;
 
     @Autowired
     public RegistrationService(CustomerRepository customerRepo, DocumentRepository docRepo, 
                              OtpService otpService, PasswordEncoder passwordEncoder, 
-                             ReCaptchaService reCaptchaService, UserRepository userRepo) {
+                             ReCaptchaService reCaptchaService, UserRepository userRepo,
+                             AuditLogService auditLogService) {
         this.customerRepo = customerRepo;
         this.docRepo = docRepo;
         this.otpService = otpService;
         this.passwordEncoder = passwordEncoder;
         this.reCaptchaService = reCaptchaService;
         this.userRepo = userRepo;
+        this.auditLogService = auditLogService;
     }
 
     public void initiateEmailOtp(String email) {
@@ -98,6 +101,11 @@ public class RegistrationService {
                 .build();
 
         userRepo.save(user);
+
+        // Log user registration
+        auditLogService.logUserAction(username, "USER_REGISTERED", 
+            String.format("New customer registered: %s %s (%s)", 
+                req.getFirstName(), req.getLastName(), req.getEmail()));
 
         return savedCustomer;
     }

@@ -37,6 +37,12 @@ public class AuthService {
 	
 	@Autowired
 	private ModelMapper modelMapper;
+	
+	@Autowired
+	private EmailService emailService;
+	
+	@Autowired
+	private AuditLogService auditLogService;
 
 	public AuthResponse login(LoginDto loginDto) {
 		Authentication authentication = authenticationManager
@@ -65,6 +71,26 @@ public class AuthService {
 			token = jwtUtil.generateToken(userDetails.getUsername(), role, userId);
 		} else {
 			token = jwtUtil.generateToken(userDetails.getUsername(), role);
+		}
+
+		// Log the login action
+		auditLogService.logLogin(userDetails.getUsername(), "127.0.0.1"); // You can get real IP from request
+		
+		// Send login success email
+		try {
+			// Get user email - assuming username is email or we need to fetch user
+			String userEmail = userDetails.getUsername();
+			if (!userEmail.contains("@")) {
+				// If username is not email, fetch user to get email
+				User user = userRepository.findByUsername(userEmail).orElse(null);
+				if (user != null) {
+					userEmail = user.getEmail();
+				}
+			}
+			emailService.sendLoginSuccessEmailHtml(userEmail);
+		} catch (Exception e) {
+			// Log error but don't fail login
+			System.err.println("Failed to send login email: " + e.getMessage());
 		}
 
 		return new AuthResponse(token, "Bearer", userDetails.getUsername(), "ROLE_" + role, userId);

@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/compliance")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyAuthority('OFFICER', 'ADMIN')")
+@PreAuthorize("hasAnyAuthority('OFFICER', 'ADMIN','ROLE_OFFICER')")
 public class ComplianceController {
 
     private final ComplianceService complianceService;

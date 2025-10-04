@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
@@ -22,7 +23,9 @@ import com.tss.aml.dto.CreateUserDto;
 import com.tss.aml.dto.RuleDto;
 import com.tss.aml.dto.SuspiciousKeywordDto;
 import com.tss.aml.dto.UserDto;
+import com.tss.aml.entity.AuditLog;
 import com.tss.aml.service.AdminService;
+import com.tss.aml.service.AuditLogService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AuditLogService auditLogService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDto>> getAllUsers() {
@@ -113,5 +117,66 @@ public class AdminController {
             "principal", authentication.getPrincipal().getClass().getSimpleName(),
             "authenticated", authentication.isAuthenticated()
         ));
+    }
+    
+    // Compliance Officer Management Endpoints
+    
+    @PostMapping("/compliance-officers")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDto> createComplianceOfficer(@RequestBody CreateUserDto createUserDto) {
+        return ResponseEntity.ok(adminService.createComplianceOfficer(createUserDto));
+    }
+    
+    @PostMapping("/compliance-officers/{userId}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDto> addComplianceOfficer(@PathVariable Long userId) {
+        return ResponseEntity.ok(adminService.addComplianceOfficer(userId));
+    }
+    
+    @PostMapping("/compliance-officers/{userId}/remove")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDto> removeComplianceOfficer(@PathVariable Long userId) {
+        return ResponseEntity.ok(adminService.removeComplianceOfficer(userId));
+    }
+    
+    @GetMapping("/compliance-officers")
+    public ResponseEntity<List<UserDto>> getComplianceOfficers() {
+        return ResponseEntity.ok(adminService.getComplianceOfficers());
+    }
+    
+    // Customer Blocking Endpoints
+    
+    @PostMapping("/customers/{userId}/block")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDto> blockCustomer(@PathVariable Long userId, @RequestParam(required = false) String reason) {
+        return ResponseEntity.ok(adminService.blockCustomer(userId, reason));
+    }
+    
+    @PostMapping("/customers/{userId}/unblock")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<UserDto> unblockCustomer(@PathVariable Long userId) {
+        return ResponseEntity.ok(adminService.unblockCustomer(userId));
+    }
+    
+    @GetMapping("/customers/blocked")
+    public ResponseEntity<List<UserDto>> getBlockedCustomers() {
+        return ResponseEntity.ok(adminService.getBlockedCustomers());
+    }
+    
+    // Audit Log Endpoints
+    
+    @GetMapping("/audit-logs")
+    public ResponseEntity<List<AuditLog>> getAllAuditLogs() {
+        return ResponseEntity.ok(auditLogService.getAllAuditLogs());
+    }
+    
+    @GetMapping("/audit-logs/user/{username}")
+    public ResponseEntity<List<AuditLog>> getAuditLogsByUsername(@PathVariable String username) {
+        return ResponseEntity.ok(auditLogService.getAuditLogsByUsername(username));
+    }
+    
+    @GetMapping("/audit-logs/action/{action}")
+    public ResponseEntity<List<AuditLog>> getAuditLogsByAction(@PathVariable String action) {
+        return ResponseEntity.ok(auditLogService.getAuditLogsByAction(action));
     }
 }
