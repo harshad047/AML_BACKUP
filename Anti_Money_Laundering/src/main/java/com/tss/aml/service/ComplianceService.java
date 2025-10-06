@@ -25,15 +25,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ComplianceService {
 
-	@Autowired
     private final AlertRepository alertRepository;
-	@Autowired
     private final CaseRepository caseRepository;
-    @Autowired
     private final TransactionRepository transactionRepository;
-	
-	
-    private final ModelMapper modelMapper = new ModelMapper();
+    private final ModelMapper modelMapper;
 
     public List<AlertDto> getAllOpenAlerts() {
         return alertRepository.findAll().stream()

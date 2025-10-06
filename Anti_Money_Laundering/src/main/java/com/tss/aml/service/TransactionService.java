@@ -23,6 +23,8 @@ import com.tss.aml.entity.Case;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Transaction;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.ApprovalStatus;
 import com.tss.aml.exception.AmlApiException;
 import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.AlertRepository;
@@ -54,8 +56,12 @@ public class TransactionService {
         BankAccount toAccount = bankAccountRepo.findByAccountNumber(depositDto.getToAccountNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", depositDto.getToAccountNumber()));
 
-        if (toAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (toAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not approved for transactions.");
+        }
+        
+        if (toAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not active for transactions.");
         }
 
         // STEP 1: Pre-transaction risk assessment (NO money movement yet)
@@ -84,8 +90,12 @@ public class TransactionService {
         BankAccount fromAccount = bankAccountRepo.findByAccountNumber(withdrawalDto.getFromAccountNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", withdrawalDto.getFromAccountNumber()));
 
-        if (fromAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (fromAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not approved for transactions.");
+        }
+        
+        if (fromAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not active for transactions.");
         }
 
         if (fromAccount.getBalance().compareTo(withdrawalDto.getAmount()) < 0) {
@@ -120,8 +130,12 @@ public class TransactionService {
         BankAccount toAccount = bankAccountRepo.findByAccountNumber(transferDto.getToAccountNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", transferDto.getToAccountNumber()));
 
-        if (fromAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED || toAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (fromAccount.getApprovalStatus() != ApprovalStatus.APPROVED || toAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not approved for transactions.");
+        }
+        
+        if (fromAccount.getStatus() != AccountStatus.ACTIVE || toAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not active for transactions.");
         }
 
         if (fromAccount.getBalance().compareTo(transferDto.getAmount()) < 0) {

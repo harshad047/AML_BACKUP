@@ -3,32 +3,37 @@ package com.tss.aml.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.tss.aml.dto.*;
-import com.tss.aml.entity.*;
-import com.tss.aml.repository.*;
-import com.tss.aml.exception.AmlApiException;
-import com.tss.aml.exception.ResourceNotFoundException;
-
-import lombok.RequiredArgsConstructor;
+import com.tss.aml.dto.BankAccountDto;
+import com.tss.aml.dto.CreateUserDto;
+import com.tss.aml.dto.RuleDto;
+import com.tss.aml.dto.SuspiciousKeywordDto;
+import com.tss.aml.dto.UserDto;
+import com.tss.aml.entity.BankAccount;
+import com.tss.aml.entity.Role;
+import com.tss.aml.entity.Rule;
+import com.tss.aml.entity.SuspiciousKeyword;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.ApprovalStatus;
 import com.tss.aml.exception.AmlApiException;
 import com.tss.aml.exception.ResourceNotFoundException;
+import com.tss.aml.repository.AlertRepository;
 import com.tss.aml.repository.BankAccountRepository;
+import com.tss.aml.repository.CountryRiskRepository;
+import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.RuleRepository;
 import com.tss.aml.repository.SuspiciousKeywordRepository;
+import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 
 @Service
@@ -99,7 +104,7 @@ public class AdminService {
     }
 
     public List<BankAccountDto> getPendingAccounts() {
-        return bankAccountRepository.findByApprovalStatus(BankAccount.ApprovalStatus.PENDING).stream()
+        return bankAccountRepository.findByApprovalStatus(ApprovalStatus.PENDING).stream()
                 .map(account -> modelMapper.map(account, BankAccountDto.class))
                 .collect(Collectors.toList());
     }
@@ -108,12 +113,12 @@ public class AdminService {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("BankAccount", "id", accountId));
 
-        if (account.getApprovalStatus() != BankAccount.ApprovalStatus.PENDING) {
+        if (account.getApprovalStatus() != ApprovalStatus.PENDING) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not in a pending state.");
         }
 
-        account.setApprovalStatus(BankAccount.ApprovalStatus.APPROVED);
-        account.setStatus(BankAccount.AccountStatus.ACTIVE); // Activate the account
+        account.setApprovalStatus(ApprovalStatus.APPROVED);
+        account.setStatus(AccountStatus.ACTIVE); // Activate the account
         account.setApprovedAt(LocalDateTime.now());
         
         // Account balance is already set during creation, no need to process deposits
@@ -137,12 +142,12 @@ public class AdminService {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("BankAccount", "id", accountId));
 
-        if (account.getApprovalStatus() != BankAccount.ApprovalStatus.PENDING) {
+        if (account.getApprovalStatus() != ApprovalStatus.PENDING) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not in a pending state.");
         }
 
-        account.setApprovalStatus(BankAccount.ApprovalStatus.REJECTED);
-        account.setStatus(BankAccount.AccountStatus.SUSPENDED); // Deactivate the account
+        account.setApprovalStatus(ApprovalStatus.REJECTED);
+        account.setStatus(AccountStatus.SUSPENDED); // Deactivate the account
         account.setRejectedAt(LocalDateTime.now());
         
         // Reset balance to zero for rejected accounts
@@ -188,11 +193,11 @@ public class AdminService {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("BankAccount", "id", accountId));
         
-        if (account.getStatus() == BankAccount.AccountStatus.SUSPENDED) {
+        if (account.getStatus() == AccountStatus.SUSPENDED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is already suspended.");
         }
         
-        account.setStatus(BankAccount.AccountStatus.SUSPENDED);
+        account.setStatus(AccountStatus.SUSPENDED);
         account.setSuspendedAt(LocalDateTime.now());
         BankAccount updatedAccount = bankAccountRepository.save(account);
         
@@ -214,15 +219,15 @@ public class AdminService {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("BankAccount", "id", accountId));
         
-        if (account.getStatus() == BankAccount.AccountStatus.ACTIVE) {
+        if (account.getStatus() == AccountStatus.ACTIVE) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is already active.");
         }
         
-        if (account.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (account.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account must be approved before activation.");
         }
         
-        account.setStatus(BankAccount.AccountStatus.ACTIVE);
+        account.setStatus(AccountStatus.ACTIVE);
         account.setActivatedAt(LocalDateTime.now());
         BankAccount updatedAccount = bankAccountRepository.save(account);
         
@@ -310,8 +315,8 @@ public class AdminService {
         // Also suspend all user's bank accounts
         List<BankAccount> userAccounts = bankAccountRepository.findByUser(user);
         for (BankAccount account : userAccounts) {
-            if (account.getStatus() != BankAccount.AccountStatus.SUSPENDED) {
-                account.setStatus(BankAccount.AccountStatus.SUSPENDED);
+            if (account.getStatus() != AccountStatus.SUSPENDED) {
+                account.setStatus(AccountStatus.SUSPENDED);
                 account.setSuspendedAt(LocalDateTime.now());
                 bankAccountRepository.save(account);
             }

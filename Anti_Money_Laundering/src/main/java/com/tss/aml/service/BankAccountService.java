@@ -11,14 +11,13 @@ import org.springframework.stereotype.Service;
 import com.tss.aml.dto.BankAccountDto;
 import com.tss.aml.dto.CreateAccountDto;
 import com.tss.aml.entity.BankAccount;
-import com.tss.aml.entity.Transaction;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.ApprovalStatus;
 import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.BankAccountRepository;
 import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 public class BankAccountService {
@@ -54,8 +53,8 @@ public class BankAccountService {
         BigDecimal initialBalance = createAccountDto.getInitialBalance();
         BigDecimal balanceToSet = initialBalance != null ? initialBalance : BigDecimal.ZERO;
         newAccount.setBalance(balanceToSet);
-        
-        newAccount.setApprovalStatus(BankAccount.ApprovalStatus.PENDING);
+        newAccount.setStatus(AccountStatus.PENDING);       
+        newAccount.setApprovalStatus(ApprovalStatus.PENDING);
         newAccount.generateAccountNumber(); // Generate account number only once
 
         BankAccount savedAccount = bankAccountRepository.save(newAccount);

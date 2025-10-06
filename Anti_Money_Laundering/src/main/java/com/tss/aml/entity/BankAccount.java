@@ -1,14 +1,29 @@
 package com.tss.aml.entity;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.AccountType;
+import com.tss.aml.entity.Enums.ApprovalStatus;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -35,10 +50,10 @@ public class BankAccount {
     private AccountType accountType;
 
     @Enumerated(EnumType.STRING)
-    private AccountStatus status = AccountStatus.ACTIVE;
+    private AccountStatus status;
 
     @Enumerated(EnumType.STRING)
-    private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
+    private ApprovalStatus approvalStatus;
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = true, updatable = false)
@@ -59,18 +74,6 @@ public class BankAccount {
     
     @Column(name = "activated_at")
     private LocalDateTime activatedAt;
-
-    public enum AccountType {
-        CURRENT, SAVINGS, BUSINESS
-    }
-
-    public enum AccountStatus {
-        ACTIVE, CLOSED, SUSPENDED
-    }
-
-    public enum ApprovalStatus {
-        PENDING, APPROVED, REJECTED
-    }
 
     public void generateAccountNumber() {
         if (this.accountNumber == null) {
