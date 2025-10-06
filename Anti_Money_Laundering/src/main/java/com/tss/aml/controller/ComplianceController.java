@@ -3,7 +3,9 @@ package com.tss.aml.controller;
 import com.tss.aml.dto.AlertDto;
 import com.tss.aml.dto.CaseDto;
 import com.tss.aml.dto.NoteDto;
+import com.tss.aml.dto.TransactionDto;
 import com.tss.aml.service.ComplianceService;
+import com.tss.aml.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +21,7 @@ import java.util.List;
 public class ComplianceController {
 
     private final ComplianceService complianceService;
+    private final TransactionService transactionService;
 
     @GetMapping("/alerts")
     public ResponseEntity<List<AlertDto>> getAllOpenAlerts() {
@@ -40,5 +43,68 @@ public class ComplianceController {
     public ResponseEntity<CaseDto> addNoteToCase(@PathVariable Long id, @RequestBody NoteDto noteDto, Authentication authentication) {
         String username = authentication.getName();
         return ResponseEntity.ok(complianceService.addNoteToCase(id, username, noteDto.getContent()));
+    }
+
+    // Transaction Approval/Rejection Endpoints
+    
+    @PostMapping("/transactions/{transactionId}/approve")
+    public ResponseEntity<TransactionDto> approveTransaction(@PathVariable Long transactionId, Authentication authentication) {
+        String officerEmail = authentication.getName();
+        TransactionDto approvedTransaction = transactionService.approveTransaction(transactionId, officerEmail);
+        return ResponseEntity.ok(approvedTransaction);
+    }
+    
+    @PostMapping("/transactions/{transactionId}/reject")
+    public ResponseEntity<TransactionDto> rejectTransaction(
+            @PathVariable Long transactionId, 
+            @RequestParam(required = false, defaultValue = "Rejected by compliance officer") String reason,
+            Authentication authentication) {
+        String officerEmail = authentication.getName();
+        TransactionDto rejectedTransaction = transactionService.rejectTransaction(transactionId, officerEmail, reason);
+        return ResponseEntity.ok(rejectedTransaction);
+    }
+    
+    @GetMapping("/transactions/flagged")
+    public ResponseEntity<List<TransactionDto>> getFlaggedTransactions() {
+        List<TransactionDto> flaggedTransactions = complianceService.getFlaggedTransactions();
+        return ResponseEntity.ok(flaggedTransactions);
+    }
+    
+    @GetMapping("/transactions/blocked")
+    public ResponseEntity<List<TransactionDto>> getBlockedTransactions() {
+        List<TransactionDto> blockedTransactions = complianceService.getBlockedTransactions();
+        return ResponseEntity.ok(blockedTransactions);
+    }
+    
+    @GetMapping("/transactions/review")
+    public ResponseEntity<List<TransactionDto>> getTransactionsForReview() {
+        List<TransactionDto> transactionsForReview = complianceService.getTransactionsForReview();
+        return ResponseEntity.ok(transactionsForReview);
+    }
+    
+    @GetMapping("/transactions/{transactionId}")
+    public ResponseEntity<TransactionDto> getTransactionDetails(@PathVariable Long transactionId) {
+        TransactionDto transaction = complianceService.getTransactionById(transactionId);
+        return ResponseEntity.ok(transaction);
+    }
+    
+    // Case Management Endpoints
+    
+    @GetMapping("/cases/under-investigation")
+    public ResponseEntity<List<CaseDto>> getCasesUnderInvestigation() {
+        List<CaseDto> cases = complianceService.getCasesUnderInvestigation();
+        return ResponseEntity.ok(cases);
+    }
+    
+    @GetMapping("/cases/resolved")
+    public ResponseEntity<List<CaseDto>> getResolvedCases() {
+        List<CaseDto> cases = complianceService.getResolvedCases();
+        return ResponseEntity.ok(cases);
+    }
+    
+    @GetMapping("/cases/{caseId}")
+    public ResponseEntity<CaseDto> getCaseById(@PathVariable Long caseId) {
+        CaseDto caseDto = complianceService.getCaseById(caseId);
+        return ResponseEntity.ok(caseDto);
     }
 }
