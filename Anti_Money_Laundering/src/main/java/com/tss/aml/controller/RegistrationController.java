@@ -36,6 +36,13 @@ public class RegistrationController {
     @Autowired private JwtUtil jwtUtil;
     @Autowired private EmailService emailService;
 
+    // 1. send OTP
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestParam String email) {
+        regService.initiateEmailOtp(email);
+        return ResponseEntity.ok(Map.of("sent", true));
+    }
+
   
 
     // 2. verify OTP

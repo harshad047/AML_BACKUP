@@ -1,10 +1,13 @@
 package com.tss.aml.dto;
 
-import com.tss.aml.entity.BankAccount;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.AccountType;
+import com.tss.aml.entity.Enums.ApprovalStatus;
+
+import lombok.Data;
 
 @Data
 public class BankAccountDto {
@@ -12,9 +15,9 @@ public class BankAccountDto {
     private String accountNumber;
     private BigDecimal balance;
     private String currency;
-    private BankAccount.AccountType accountType;
-    private BankAccount.AccountStatus status;
-    private BankAccount.ApprovalStatus approvalStatus;
+    private AccountType accountType;
+    private AccountStatus status;
+    private ApprovalStatus approvalStatus;
     private UserDto user;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;

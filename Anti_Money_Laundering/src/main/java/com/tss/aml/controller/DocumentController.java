@@ -5,6 +5,7 @@ import com.tss.aml.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/documents")
 @CrossOrigin(origins = "http://127.0.0.1:5500") // Adjust to your frontend URL
+@PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER','CUSTOMER')")
 public class DocumentController {
 
     @Autowired
@@ -42,5 +44,11 @@ public class DocumentController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<?> getMyDocuments(Authentication authentication) {
+        String userEmail = authentication.getName();
+        return ResponseEntity.ok(documentService.getDocumentsForUserEmail(userEmail));
     }
 }

@@ -1,16 +1,17 @@
 package com.tss.aml.dto;
 
-import com.tss.aml.entity.BankAccount;
-import lombok.Data;
+import java.math.BigDecimal;
+
+import com.tss.aml.entity.Enums.AccountType;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
-
-import java.math.BigDecimal;
+import lombok.Data;
 
 @Data
 public class CreateAccountDto {
     @NotNull(message = "Account type is required")
-    private BankAccount.AccountType accountType;
+    private AccountType accountType;
     
     @NotNull(message = "Currency is required")
     private String currency;

@@ -1,29 +1,40 @@
 package com.tss.aml.service;
 
-import com.tss.aml.dto.*;
-import com.tss.aml.entity.Alert;
-import com.tss.aml.entity.BankAccount;
-import com.tss.aml.entity.Customer;
-import com.tss.aml.entity.Transaction;
-import com.tss.aml.entity.User;
-import com.tss.aml.exception.AmlApiException;
-import com.tss.aml.exception.ResourceNotFoundException;
-import com.tss.aml.repository.AlertRepository;
-import com.tss.aml.repository.BankAccountRepository;
-import com.tss.aml.repository.CustomerRepository;
-import com.tss.aml.repository.TransactionRepository;
-import com.tss.aml.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.tss.aml.dto.BalanceDto;
+import com.tss.aml.dto.DepositDto;
+import com.tss.aml.dto.EvaluationResultDto;
+import com.tss.aml.dto.TransactionDto;
+import com.tss.aml.dto.TransactionInputDto;
+import com.tss.aml.dto.TransferDto;
+import com.tss.aml.dto.WithdrawalDto;
+import com.tss.aml.entity.Alert;
+import com.tss.aml.entity.BankAccount;
+import com.tss.aml.entity.Case;
+import com.tss.aml.entity.Customer;
+import com.tss.aml.entity.Transaction;
+import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.ApprovalStatus;
+import com.tss.aml.exception.AmlApiException;
+import com.tss.aml.exception.ResourceNotFoundException;
+import com.tss.aml.repository.AlertRepository;
+import com.tss.aml.repository.BankAccountRepository;
+import com.tss.aml.repository.CaseRepository;
+import com.tss.aml.repository.CustomerRepository;
+import com.tss.aml.repository.TransactionRepository;
+import com.tss.aml.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +42,7 @@ public class TransactionService {
 
     private final TransactionRepository txRepo;
     private final AlertRepository alertRepo;
+    private final CaseRepository caseRepo;
     private final BankAccountRepository bankAccountRepo;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
@@ -44,8 +56,12 @@ public class TransactionService {
         BankAccount toAccount = bankAccountRepo.findByAccountNumber(depositDto.getToAccountNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", depositDto.getToAccountNumber()));
 
-        if (toAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (toAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not approved for transactions.");
+        }
+        
+        if (toAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not active for transactions.");
         }
 
         // STEP 1: Pre-transaction risk assessment (NO money movement yet)
@@ -53,7 +69,9 @@ public class TransactionService {
         
         // STEP 2: Handle based on risk assessment result
         if ("BLOCKED".equals(riskAssessment.getStatus())) {
-            throw new AmlApiException(HttpStatus.FORBIDDEN, "Transaction blocked due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            // Transaction is saved but BLOCKED - no money movement
+            System.out.println("DEPOSIT BLOCKED: Transaction saved but money not deposited due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            return riskAssessment;
         } else if ("FLAGGED".equals(riskAssessment.getStatus())) {
             // Transaction is saved but money is NOT moved - awaiting manual approval
             System.out.println("DEPOSIT FLAGGED: Transaction saved but money not deposited. Awaiting manual approval.");
@@ -72,8 +90,12 @@ public class TransactionService {
         BankAccount fromAccount = bankAccountRepo.findByAccountNumber(withdrawalDto.getFromAccountNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", withdrawalDto.getFromAccountNumber()));
 
-        if (fromAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (fromAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not approved for transactions.");
+        }
+        
+        if (fromAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Account is not active for transactions.");
         }
 
         if (fromAccount.getBalance().compareTo(withdrawalDto.getAmount()) < 0) {
@@ -85,7 +107,9 @@ public class TransactionService {
         
         // STEP 2: Handle based on risk assessment result
         if ("BLOCKED".equals(riskAssessment.getStatus())) {
-            throw new AmlApiException(HttpStatus.FORBIDDEN, "Transaction blocked due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            // Transaction is saved but BLOCKED - no money movement
+            System.out.println("WITHDRAWAL BLOCKED: Transaction saved but money not withdrawn due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            return riskAssessment;
         } else if ("FLAGGED".equals(riskAssessment.getStatus())) {
             // Transaction is saved but money is NOT withdrawn - awaiting manual approval
             System.out.println("WITHDRAWAL FLAGGED: Transaction saved but money not withdrawn. Awaiting manual approval.");
@@ -106,8 +130,12 @@ public class TransactionService {
         BankAccount toAccount = bankAccountRepo.findByAccountNumber(transferDto.getToAccountNumber())
                 .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", transferDto.getToAccountNumber()));
 
-        if (fromAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED || toAccount.getApprovalStatus() != BankAccount.ApprovalStatus.APPROVED) {
+        if (fromAccount.getApprovalStatus() != ApprovalStatus.APPROVED || toAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not approved for transactions.");
+        }
+        
+        if (fromAccount.getStatus() != AccountStatus.ACTIVE || toAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not active for transactions.");
         }
 
         if (fromAccount.getBalance().compareTo(transferDto.getAmount()) < 0) {
@@ -119,7 +147,9 @@ public class TransactionService {
         
         // STEP 2: Handle based on risk assessment result
         if ("BLOCKED".equals(riskAssessment.getStatus())) {
-            throw new AmlApiException(HttpStatus.FORBIDDEN, "Transaction blocked due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            // Transaction is saved but BLOCKED - no money movement
+            System.out.println("TRANSFER BLOCKED: Transaction saved but money not transferred due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            return riskAssessment;
         } else if ("FLAGGED".equals(riskAssessment.getStatus())) {
             // Transaction is saved but money is NOT transferred - awaiting manual approval
             System.out.println("TRANSFER FLAGGED: Transaction saved but money not transferred. Awaiting manual approval.");
@@ -234,15 +264,15 @@ public class TransactionService {
     }
     
     /**
-     * Officer approval method for flagged transactions
+     * Officer approval method for flagged and blocked transactions
      */
     @Transactional
     public TransactionDto approveTransaction(Long transactionId, String officerEmail) {
         Transaction transaction = txRepo.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
         
-        if (!"FLAGGED".equals(transaction.getStatus())) {
-            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Only FLAGGED transactions can be approved. Current status: " + transaction.getStatus());
+        if (!"FLAGGED".equals(transaction.getStatus()) && !"BLOCKED".equals(transaction.getStatus())) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Only FLAGGED or BLOCKED transactions can be approved. Current status: " + transaction.getStatus());
         }
         
         // Update transaction status
@@ -252,7 +282,7 @@ public class TransactionService {
         // Execute the actual money movement
         executeMoneyMovement(transaction);
         
-        // Close the alert
+        // Close the alert and associated case
         if (transaction.getAlertId() != null) {
             Alert alert = alertRepo.findById(Long.parseLong(transaction.getAlertId()))
                     .orElse(null);
@@ -261,6 +291,15 @@ public class TransactionService {
                 alert.setResolvedBy(officerEmail);
                 alert.setResolvedAt(java.time.LocalDateTime.now());
                 alertRepo.save(alert);
+                
+                // Close associated case if exists
+                Case associatedCase = caseRepo.findByAlertId(alert.getId()).orElse(null);
+                if (associatedCase != null) {
+                    associatedCase.setStatus(Case.CaseStatus.RESOLVED);
+                    associatedCase.setUpdatedAt(java.time.LocalDateTime.now());
+                    caseRepo.save(associatedCase);
+                    System.out.println("Case " + associatedCase.getId() + " resolved due to transaction approval by: " + officerEmail);
+                }
             }
         }
         
@@ -269,22 +308,22 @@ public class TransactionService {
     }
     
     /**
-     * Officer rejection method for flagged transactions
+     * Officer rejection method for flagged and blocked transactions
      */
     @Transactional
     public TransactionDto rejectTransaction(Long transactionId, String officerEmail, String reason) {
         Transaction transaction = txRepo.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
         
-        if (!"FLAGGED".equals(transaction.getStatus())) {
-            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Only FLAGGED transactions can be rejected. Current status: " + transaction.getStatus());
+        if (!"FLAGGED".equals(transaction.getStatus()) && !"BLOCKED".equals(transaction.getStatus())) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Only FLAGGED or BLOCKED transactions can be rejected. Current status: " + transaction.getStatus());
         }
         
         // Update transaction status
         transaction.setStatus("REJECTED");
         Transaction savedTx = txRepo.save(transaction);
         
-        // Close the alert
+        // Close the alert and associated case
         if (transaction.getAlertId() != null) {
             Alert alert = alertRepo.findById(Long.parseLong(transaction.getAlertId()))
                     .orElse(null);
@@ -294,6 +333,15 @@ public class TransactionService {
                 alert.setResolvedAt(java.time.LocalDateTime.now());
                 alert.setReason(alert.getReason() + " | Rejected: " + reason);
                 alertRepo.save(alert);
+                
+                // Close associated case if exists
+                Case associatedCase = caseRepo.findByAlertId(alert.getId()).orElse(null);
+                if (associatedCase != null) {
+                    associatedCase.setStatus(Case.CaseStatus.RESOLVED);
+                    associatedCase.setUpdatedAt(java.time.LocalDateTime.now());
+                    caseRepo.save(associatedCase);
+                    System.out.println("Case " + associatedCase.getId() + " resolved due to transaction rejection by: " + officerEmail + ". Reason: " + reason);
+                }
             }
         }
         

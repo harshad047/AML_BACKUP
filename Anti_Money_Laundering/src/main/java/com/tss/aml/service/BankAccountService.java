@@ -6,56 +6,67 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.tss.aml.dto.BankAccountDto;
 import com.tss.aml.dto.CreateAccountDto;
 import com.tss.aml.entity.BankAccount;
-import com.tss.aml.entity.Transaction;
+import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.AccountStatus;
+import com.tss.aml.entity.Enums.ApprovalStatus;
+import com.tss.aml.entity.Enums.KycStatus;
+import com.tss.aml.exception.AmlApiException;
 import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.BankAccountRepository;
 import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
-
-import lombok.RequiredArgsConstructor;
+import com.tss.aml.repository.CustomerRepository;
 
 @Service
 public class BankAccountService {
 
-	private final BankAccountRepository bankAccountRepository;
-	private final UserRepository userRepository;
-	private final TransactionRepository transactionRepository;
-	private final ModelMapper modelMapper;
-	private final AuditLogService auditLogService;
-	private final EmailService emailService;
+    private final BankAccountRepository bankAccountRepository;
+    private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
+    private final ModelMapper modelMapper;
+    private final AuditLogService auditLogService;
+    private final EmailService emailService;
+    private final CustomerRepository customerRepository;
 
 	@Autowired
-	public BankAccountService(BankAccountRepository bankAccountRepository, UserRepository userRepository,
-			TransactionRepository transactionRepository, ModelMapper modelMapper, AuditLogService auditLogService,
-			EmailService emailService) {
-		this.bankAccountRepository = bankAccountRepository;
-		this.userRepository = userRepository;
-		this.transactionRepository = transactionRepository;
-		this.modelMapper = modelMapper;
-		this.auditLogService = auditLogService;
-		this.emailService = emailService;
-	}
+	    public BankAccountService(BankAccountRepository bankAccountRepository, UserRepository userRepository,
+            TransactionRepository transactionRepository, ModelMapper modelMapper, AuditLogService auditLogService,
+            EmailService emailService, CustomerRepository customerRepository) {
+        this.bankAccountRepository = bankAccountRepository;
+        this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
+        this.modelMapper = modelMapper;
+        this.auditLogService = auditLogService;
+        this.emailService = emailService;
+        this.customerRepository = customerRepository;
+    }
 
-	public BankAccountDto createAccount(String usernameOrEmail, CreateAccountDto createAccountDto) {
+	    public BankAccountDto createAccount(String usernameOrEmail, CreateAccountDto createAccountDto) {
         User user = findUserByUsernameOrEmail(usernameOrEmail);
 
+        // Enforce KYC approval before allowing account creation
+        Customer customer = customerRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "email", user.getEmail()));
+        if (customer.getKycStatus() != KycStatus.APPROVED) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "KYC is not approved. Please complete and get your KYC approved by admin before creating an account.");
+        }
         BankAccount newAccount = new BankAccount();
         newAccount.setUser(user);
         newAccount.setAccountType(createAccountDto.getAccountType());
         newAccount.setCurrency(createAccountDto.getCurrency());
         
-        // Set balance directly to initial balance (or ZERO if null)
         BigDecimal initialBalance = createAccountDto.getInitialBalance();
         BigDecimal balanceToSet = initialBalance != null ? initialBalance : BigDecimal.ZERO;
         newAccount.setBalance(balanceToSet);
-        
-        newAccount.setApprovalStatus(BankAccount.ApprovalStatus.PENDING);
+        newAccount.setStatus(AccountStatus.PENDING);       
+        newAccount.setApprovalStatus(ApprovalStatus.PENDING);
         newAccount.generateAccountNumber(); // Generate account number only once
 
         BankAccount savedAccount = bankAccountRepository.save(newAccount);
