@@ -76,3 +76,17 @@ public class DocumentService {
         }
         return saved;
     }
+
+	public Document rejectDocument(Long documentId) {
+        Document doc = documentRepository.findById(documentId)
+                .orElseThrow(() -> new EntityNotFoundException("Document not found: " + documentId));
+        doc.setStatus(DocumentStatus.VERIFIED);
+        Document saved = documentRepository.save(doc);
+        Customer customer = saved.getCustomer();
+        if (customer != null) {
+            customer.setKycStatus(KycStatus.REJECTED);
+            customerRepository.save(customer);
+        }
+        return saved;
+	}
+}

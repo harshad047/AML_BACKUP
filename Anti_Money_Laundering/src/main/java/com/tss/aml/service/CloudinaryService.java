@@ -14,17 +14,27 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+
 public class CloudinaryService {
 
-	@Autowired
     private final Cloudinary cloudinary;
 
     public String uploadFile(MultipartFile file, String folderName) throws IOException {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap(
                         "folder", "kyc_docs/" + folderName,
-                        "resource_type", "auto" 
+                        "resource_type", "auto"
                 ));
-        return (String) uploadResult.get("secure_url"); 
+
+        if (uploadResult == null || uploadResult.get("secure_url") == null) {
+            throw new IOException("Cloudinary upload failed, no URL returned");
+        }
+
+        return uploadResult.get("secure_url").toString();
     }
+
 }
