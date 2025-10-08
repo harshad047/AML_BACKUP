@@ -26,14 +26,14 @@ public class DocumentController {
                                             @RequestParam("docType") String docType,
                                             Authentication authentication) {
         // Get the authenticated user's email from the security context
-        String userEmail = authentication.getName();
+        String username = authentication.getName();
 
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "File is empty."));
         }
 
         try {
-            Document savedDocument = documentService.uploadAndSaveDocument(userEmail, file, docType);
+            Document savedDocument = documentService.uploadAndSaveDocument(username, file, docType);
             return ResponseEntity.ok(Map.of(
                     "message", docType + " uploaded successfully!",
                     "documentId", savedDocument.getId(),
@@ -48,7 +48,7 @@ public class DocumentController {
 
     @GetMapping("/my")
     public ResponseEntity<?> getMyDocuments(Authentication authentication) {
-        String userEmail = authentication.getName();
-        return ResponseEntity.ok(documentService.getDocumentsForUserEmail(userEmail));
+        String username = authentication.getName();
+        return ResponseEntity.ok(documentService.getDocumentsForUserEmail(username));
     }
 }

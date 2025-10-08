@@ -31,16 +31,16 @@ public class CustomerController {
 
     @GetMapping("/profile")
     public ResponseEntity<Customer> getProfile(Authentication authentication) {
-        String email = authentication.getName();
-        Customer customer = customerRepository.findByEmail(email)
+        String username = authentication.getName();
+        Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
         return ResponseEntity.ok(customer);
     }
 
     @GetMapping("/kyc-status")
     public ResponseEntity<?> getKycStatus(Authentication authentication) {
-        String email = authentication.getName();
-        Customer customer = customerRepository.findByEmail(email)
+        String username = authentication.getName();
+        Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
         
         KycStatusResponse response = new KycStatusResponse(
@@ -52,8 +52,8 @@ public class CustomerController {
     
     @PutMapping("/profile")
     public ResponseEntity<Customer> updateProfile(@RequestBody ProfileUpdateRequest req, Authentication authentication) {
-        String email = authentication.getName();
-        Customer customer = customerRepository.findByEmail(email)
+        String username = authentication.getName();
+        Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         if (req.firstName != null) customer.setFirstName(req.firstName);
@@ -80,8 +80,8 @@ public class CustomerController {
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest req, Authentication authentication) {
-        String email = authentication.getName();
-        Customer customer = customerRepository.findByEmail(email)
+        String username = authentication.getName();
+        Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         if (req == null || req.oldPassword == null || req.newPassword == null) {
@@ -96,6 +96,8 @@ public class CustomerController {
         customerRepository.save(customer);
         return ResponseEntity.ok(java.util.Map.of("message", "Password changed successfully"));
     }
+    
+    
     
     public static class KycStatusResponse {
         public final String kycStatus;

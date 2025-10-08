@@ -52,7 +52,7 @@ public class BankAccountService {
         User user = findUserByUsernameOrEmail(usernameOrEmail);
 
         // Enforce KYC approval before allowing account creation
-        Customer customer = customerRepository.findByEmail(user.getEmail())
+        Customer customer = customerRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", "email", user.getEmail()));
         if (customer.getKycStatus() != KycStatus.APPROVED) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "KYC is not approved. Please complete and get your KYC approved by admin before creating an account.");
@@ -61,13 +61,12 @@ public class BankAccountService {
         newAccount.setUser(user);
         newAccount.setAccountType(createAccountDto.getAccountType());
         newAccount.setCurrency(createAccountDto.getCurrency());
-        
         BigDecimal initialBalance = createAccountDto.getInitialBalance();
         BigDecimal balanceToSet = initialBalance != null ? initialBalance : BigDecimal.ZERO;
         newAccount.setBalance(balanceToSet);
         newAccount.setStatus(AccountStatus.PENDING);       
         newAccount.setApprovalStatus(ApprovalStatus.PENDING);
-        newAccount.generateAccountNumber(); // Generate account number only once
+        newAccount.generateAccountNumber(); 
 
         BankAccount savedAccount = bankAccountRepository.save(newAccount);
         

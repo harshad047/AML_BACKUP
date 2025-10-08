@@ -1,38 +1,38 @@
 package com.tss.aml.controller;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
-import java.util.Map;
-
 import com.tss.aml.dto.BankAccountDto;
-import com.tss.aml.dto.CreateUserDto;
-import com.tss.aml.dto.RuleDto;
 import com.tss.aml.dto.CountryRiskDto;
-import com.tss.aml.dto.TransactionDto;
+import com.tss.aml.dto.CreateUserDto;
+import com.tss.aml.dto.DocumentDTO;
+import com.tss.aml.dto.RuleDto;
 import com.tss.aml.dto.SuspiciousKeywordDto;
+import com.tss.aml.dto.TransactionDto;
 import com.tss.aml.dto.UserDto;
 import com.tss.aml.entity.AuditLog;
-import com.tss.aml.service.AdminService;
-import com.tss.aml.service.DocumentService;
 import com.tss.aml.entity.Document;
 import com.tss.aml.entity.Enums.DocumentStatus;
+import com.tss.aml.service.AdminService;
 import com.tss.aml.service.AuditLogService;
+import com.tss.aml.service.DocumentService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -229,17 +229,17 @@ public class AdminController {
 
     // KYC Document Verification Endpoints
     @GetMapping("/kyc/documents/pending")
-    public ResponseEntity<List<Document>> getPendingKycDocuments() {
+    public ResponseEntity<List<DocumentDTO>> getPendingKycDocuments() {
         return ResponseEntity.ok(documentService.getDocumentsByStatus(DocumentStatus.UPLOADED));
     }
 
     @PostMapping("/kyc/documents/{documentId}/verify")
-    public ResponseEntity<Document> verifyKycDocument(@PathVariable Long documentId) {
+    public ResponseEntity<DocumentDTO> verifyKycDocument(@PathVariable Long documentId) {
         return ResponseEntity.ok(documentService.verifyDocument(documentId));
     }
 
     @PostMapping("/kyc/documents/{documentId}/reject")
-    public ResponseEntity<Document> rejectKycDocument(@PathVariable Long documentId) {
+    public ResponseEntity<DocumentDTO> rejectKycDocument(@PathVariable Long documentId) {
         return ResponseEntity.ok(documentService.rejectDocument(documentId));
     }
 }
