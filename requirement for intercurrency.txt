@@ -1,0 +1,10 @@
+Analyze My Full Project THis Project is Having Normal Transfer Functionality working do not make any changes in it
+
+columns: 
+id, base_charge_percentage, created_at, effective_from, effective_until, exchange_rate, fixed_charge, from_currency, is_active, last_updated_by, maximum_charge, minimum_charge, rate_source, to_currency, updated_at  
+
+this given are columns name in db table name is currency_exchange all rules are there and i want to implement intercurrency transfer in my project 
+
+eg. if converting inr to usd than conversion should be done that way. 
+
+for this i want to do like senders's account currency type and country code and receiver's for same would be automatically fetch from account number so i don't have to manually enter this in details 
