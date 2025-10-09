@@ -6,15 +6,19 @@ import org.springframework.stereotype.Component;
 
 import com.tss.aml.dto.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class KeywordMatchEvaluator implements RuleEvaluator {
+
+    private static final Logger log = LoggerFactory.getLogger(KeywordMatchEvaluator.class);
 
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
         String cleanText = input.getText() != null ? cleanForMatching(input.getText()) : "";
         if (cleanText.isEmpty()) {
-            System.out.println("    KeywordMatchEvaluator: Empty text, returning false");
+            log.debug("KeywordMatchEvaluator: Empty text, returning false");
             return false;
         }
         
@@ -35,7 +39,7 @@ public class KeywordMatchEvaluator implements RuleEvaluator {
             result = containsWholeWord(cleanText, keyword);
         }
         
-        System.out.println("    KeywordMatchEvaluator: '" + cleanText + "' " + operator + " '" + keyword + "' = " + result);
+        log.debug("KeywordMatchEvaluator: '{}' {} '{}' = {}", cleanText, operator, keyword, result);
         return result;
     }
 

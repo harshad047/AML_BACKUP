@@ -221,14 +221,17 @@ public class TransactionService {
                 .countryCode(countryCode)
                 .nlpScore(nlp)
                 .text(desc)
+                .transactionType(type)
+                .fromAccountNumber(from != null ? from.getAccountNumber() : null)
+                .toAccountNumber(to != null ? to.getAccountNumber() : null)
                 .build();
         
         System.out.println("Calling rule engine with input: " + input.getCustomerId() + ", Amount: " + input.getAmount() + ", Country: " + countryCode);
         EvaluationResultDto ruleResult = ruleEngine.evaluate(input);
         System.out.println("Rule engine result - Total Risk Score: " + ruleResult.getTotalRiskScore());
 
-        int combined = Math.min((nlp + ruleResult.getTotalRiskScore()) / 2, 100);
-        System.out.println("Combined Risk Score: " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
+        int combined = Math.max(nlp, ruleResult.getTotalRiskScore());
+        System.out.println("Combined Risk Score (max of NLP and Rule): " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
 
         String status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
         boolean exceeds = combined >= 60;

@@ -73,6 +73,8 @@ public class RegistrationService {
         c.setEmail(req.getEmail());
         c.setPhone(req.getPhone());
         c.setPassword(passwordEncoder.encode(req.getPassword()));
+        c.setDob(req.getDob());
+        
         
         // Auto-generate username as firstname_lastname
         String username = generateUsername(req.getFirstName(), req.getLastName());

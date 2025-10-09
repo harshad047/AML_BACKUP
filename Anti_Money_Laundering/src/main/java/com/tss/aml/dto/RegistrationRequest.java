@@ -14,7 +14,7 @@ public class RegistrationRequest {
 
     @NotBlank @Email private String email;
     @Size(max=20) private String phone;
-
+    @Size(max=20) private String dob;
 
     @NotBlank
     @Size(min=8, max=100)

@@ -8,22 +8,25 @@ import com.tss.aml.entity.RuleCondition;
 import com.tss.aml.repository.CountryRiskRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 @RequiredArgsConstructor
 public class CountryRiskEvaluator implements RuleEvaluator {
 
     private final CountryRiskRepository countryRepo;
+    private static final Logger log = LoggerFactory.getLogger(CountryRiskEvaluator.class);
 
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
         CountryRisk cr = countryRepo.findByCountryCodeIgnoreCase(input.getCountryCode());
         if (cr == null) {
-            System.out.println("    CountryRiskEvaluator: No country risk data for " + input.getCountryCode() + ", returning false");
+            log.debug("CountryRiskEvaluator: No country risk data for {}, returning false", input.getCountryCode());
             return false;
         }
         boolean result = compareNumber(cr.getRiskScore(), condition.getOperator(), condition.getValue());
-        System.out.println("    CountryRiskEvaluator: " + input.getCountryCode() + " risk=" + cr.getRiskScore() + " " + condition.getOperator() + " " + condition.getValue() + " = " + result);
+        log.debug("CountryRiskEvaluator: {} risk={} {} {} = {}", input.getCountryCode(), cr.getRiskScore(), condition.getOperator(), condition.getValue(), result);
         return result;
     }
 

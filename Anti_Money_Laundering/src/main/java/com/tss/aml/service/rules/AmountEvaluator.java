@@ -4,14 +4,18 @@ import org.springframework.stereotype.Component;
 
 import com.tss.aml.dto.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class AmountEvaluator implements RuleEvaluator {
 
+    private static final Logger log = LoggerFactory.getLogger(AmountEvaluator.class);
+
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
         boolean result = compareNumber(input.getAmount(), condition.getOperator(), condition.getValue());
-        System.out.println("    AmountEvaluator: " + input.getAmount() + " " + condition.getOperator() + " " + condition.getValue() + " = " + result);
+        log.debug("AmountEvaluator: {} {} {} = {}", input.getAmount(), condition.getOperator(), condition.getValue(), result);
         return result;
     }
 
