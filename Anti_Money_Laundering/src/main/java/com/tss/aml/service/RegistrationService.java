@@ -73,6 +73,8 @@ public class RegistrationService {
         c.setEmail(req.getEmail());
         c.setPhone(req.getPhone());
         c.setPassword(passwordEncoder.encode(req.getPassword()));
+        c.setDob(req.getDob());
+        
         
         // Auto-generate username as firstname_lastname
         String username = generateUsername(req.getFirstName(), req.getLastName());
@@ -111,17 +113,26 @@ public class RegistrationService {
     }
 
 
+    @Transactional
     public Document saveDocument(Long customerId, String docType, String storagePath) {
-        Customer c = customerRepo.findById(customerId).orElseThrow();
+        Customer c = customerRepo.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found with ID: " + customerId));
+
         Document d = new Document();
         d.setDocType(docType);
         d.setStoragePath(storagePath);
         d.setCustomer(c);
         d.setStatus(DocumentStatus.UPLOADED);
         d.setUploadedAt(Instant.now());
-        c.addDocument(d);
+
+        // Save document directly to generate ID
+        Document savedDoc = docRepo.save(d);
+
+        // Optional: maintain bi-directional relationship
+        c.addDocument(savedDoc);
         customerRepo.save(c);
-        return d;
+
+        return savedDoc;
     }
     
     /**

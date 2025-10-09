@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import com.tss.aml.entity.Transaction;
 
 @Data
 @Builder
@@ -14,4 +15,7 @@ public class TransactionInputDto {
     private String countryCode;
     private int nlpScore;
     private String text;
+    private Transaction.TransactionType transactionType;
+    private String fromAccountNumber;
+    private String toAccountNumber;
 }

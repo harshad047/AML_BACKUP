@@ -14,7 +14,7 @@ public class RegistrationRequest {
 
     @NotBlank @Email private String email;
     @Size(max=20) private String phone;
-
+    @Size(max=20) private String dob;
 
     @NotBlank
     @Size(min=8, max=100)
@@ -28,5 +28,5 @@ public class RegistrationRequest {
     @Size(max=100) private String country;
     @Size(max=20) private String postalCode;
 
-    private String recaptchaToken; // Optional for testing - reCAPTCHA validation is disabled 
+    private String recaptchaToken; 
 }

@@ -29,12 +29,20 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/register")
-@CrossOrigin(origins = "http://127.0.0.1:5500") // Allow requests from your Live Server origin
+@CrossOrigin(origins = "*") // Allow requests from all origins
 public class RegistrationController {
 
     @Autowired private RegistrationService regService;
     @Autowired private JwtUtil jwtUtil;
     @Autowired private EmailService emailService;
+    @Autowired private CloudinaryService cloudinaryService;
+
+    // 1. send OTP
+    @PostMapping("/send-otp")
+    public ResponseEntity<?> sendOtp(@RequestParam String email) {
+        regService.initiateEmailOtp(email);
+        return ResponseEntity.ok(Map.of("sent", true));
+    }
 
   
 
@@ -74,20 +82,34 @@ public class RegistrationController {
         }
     }
 
-    @Autowired
-    private CloudinaryService cloudinaryService;
 
     @PostMapping(path="/{customerId}/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadDocuments(
             @PathVariable Long customerId,
             @RequestParam("file") MultipartFile file,
-            @RequestParam("docType") String docType) throws IOException, java.io.IOException {
+            @RequestParam("docType") String docType) {
 
-        String folder = "customer_" + customerId;
-        String cloudUrl = cloudinaryService.uploadFile(file, folder);
+        try {
+            String folder = "customer_" + customerId;
+            String cloudUrl = cloudinaryService.uploadFile(file, folder);
 
-        Document d = regService.saveDocument(customerId, docType, cloudUrl);
-        return ResponseEntity.ok(Map.of("documentId", d.getId(), "url", cloudUrl));
+            Document d = regService.saveDocument(customerId, docType, cloudUrl);
+
+            // Null-safe response
+            Long docId = (d != null && d.getId() != null) ? d.getId() : -1L;
+
+            return ResponseEntity.ok(Map.of(
+                    "documentId", docId,
+                    "url", cloudUrl
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                    "error", e.getClass().getSimpleName(),
+                    "message", e.getMessage()
+            ));
+        }
     }
 
 }

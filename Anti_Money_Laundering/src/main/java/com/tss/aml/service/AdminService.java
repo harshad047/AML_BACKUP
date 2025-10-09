@@ -13,15 +13,20 @@ import org.springframework.stereotype.Service;
 import com.tss.aml.dto.BankAccountDto;
 import com.tss.aml.dto.CreateUserDto;
 import com.tss.aml.dto.RuleDto;
+import com.tss.aml.dto.CountryRiskDto;
+import com.tss.aml.dto.TransactionDto;
 import com.tss.aml.dto.SuspiciousKeywordDto;
 import com.tss.aml.dto.UserDto;
 import com.tss.aml.entity.BankAccount;
 import com.tss.aml.entity.Role;
 import com.tss.aml.entity.Rule;
+import com.tss.aml.entity.CountryRisk;
 import com.tss.aml.entity.SuspiciousKeyword;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Enums.AccountStatus;
 import com.tss.aml.entity.Enums.ApprovalStatus;
+import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.exception.AmlApiException;
 import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.AlertRepository;
@@ -91,6 +96,24 @@ public class AdminService {
         return modelMapper.map(savedRule, RuleDto.class);
     }
 
+    public RuleDto updateRule(Long id, RuleDto ruleDto) {
+        Rule existing = ruleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
+        existing.setName(ruleDto.getName());
+        existing.setDescription(ruleDto.getDescription());
+        existing.setActive(ruleDto.isActive());
+        Rule saved = ruleRepository.save(existing);
+        auditLogService.logRuleCreation("ADMIN", "Updated: " + saved.getName());
+        return modelMapper.map(saved, RuleDto.class);
+    }
+
+    public void deleteRule(Long id) {
+        Rule existing = ruleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
+        ruleRepository.delete(existing);
+        auditLogService.logRuleCreation("ADMIN", "Deleted: " + existing.getName());
+    }
+
     public List<SuspiciousKeywordDto> getAllKeywords() {
         return suspiciousKeywordRepository.findAll().stream()
                 .map(keyword -> modelMapper.map(keyword, SuspiciousKeywordDto.class))
@@ -136,6 +159,46 @@ public class AdminService {
         }
         
         return modelMapper.map(updatedAccount, BankAccountDto.class);
+    }
+
+    // Country Risk Management
+    public List<CountryRiskDto> getAllCountryRisks() {
+        return countryRiskRepository.findAll().stream()
+                .map(cr -> modelMapper.map(cr, CountryRiskDto.class))
+                .collect(Collectors.toList());
+    }
+
+    public CountryRiskDto createCountryRisk(CountryRiskDto dto) {
+        CountryRisk entity = modelMapper.map(dto, CountryRisk.class);
+        CountryRisk saved = countryRiskRepository.save(entity);
+        return modelMapper.map(saved, CountryRiskDto.class);
+    }
+
+    public CountryRiskDto updateCountryRisk(Long id, CountryRiskDto dto) {
+        CountryRisk existing = countryRiskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CountryRisk", "id", id));
+        existing.setCountryCode(dto.getCountryCode());
+        existing.setCountryName(dto.getCountryName());
+        existing.setRiskScore(dto.getRiskScore());
+        existing.setNotes(dto.getNotes());
+        existing.setActive(dto.isActive());
+        CountryRisk saved = countryRiskRepository.save(existing);
+        return modelMapper.map(saved, CountryRiskDto.class);
+    }
+
+    public void deleteCountryRisk(Long id) {
+        CountryRisk existing = countryRiskRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("CountryRisk", "id", id));
+        countryRiskRepository.delete(existing);
+    }
+
+    // Admin view transactions by account number
+    public List<TransactionDto> getTransactionsByAccountNumber(String accountNumber) {
+        return transactionRepository
+                .findByFromAccountNumberOrToAccountNumberOrderByCreatedAtDesc(accountNumber, accountNumber)
+                .stream()
+                .map(tx -> modelMapper.map(tx, TransactionDto.class))
+                .collect(Collectors.toList());
     }
 
     public BankAccountDto rejectAccount(Long accountId) {

@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/compliance")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyAuthority('OFFICER', 'ADMIN','ROLE_OFFICER')")
+@PreAuthorize("hasAnyAuthority('OFFICER', 'ROLE_OFFICER', 'ADMIN', 'SUPER_ADMIN', 'ROLE_SUPER_ADMIN')")
 public class ComplianceController {
 
     private final ComplianceService complianceService;
@@ -70,6 +70,15 @@ public class ComplianceController {
         return ResponseEntity.ok(flaggedTransactions);
     }
     
+<<<<<<< HEAD
+=======
+    @GetMapping("/transactions/all")
+    public ResponseEntity<List<TransactionDto>> getAllTransactions() {
+        List<TransactionDto> all = complianceService.getAllTransactions();
+        return ResponseEntity.ok(all);
+    }
+    
+>>>>>>> 882ef8427c70f48e98053975f1bbe164479cd520
     @GetMapping("/transactions/blocked")
     public ResponseEntity<List<TransactionDto>> getBlockedTransactions() {
         List<TransactionDto> blockedTransactions = complianceService.getBlockedTransactions();

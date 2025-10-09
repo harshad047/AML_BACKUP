@@ -89,6 +89,15 @@ public class ComplianceService {
     }
     
     /**
+     * Get all transactions with risk details for compliance visibility
+     */
+    public List<TransactionDto> getAllTransactions() {
+        return transactionRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(tx -> modelMapper.map(tx, TransactionDto.class))
+                .collect(Collectors.toList());
+    }
+    
+    /**
      * Get all transactions requiring review (FLAGGED + BLOCKED)
      */
     public List<TransactionDto> getTransactionsForReview() {

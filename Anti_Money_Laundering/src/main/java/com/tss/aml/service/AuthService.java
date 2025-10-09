@@ -64,11 +64,14 @@ public class AuthService {
 		} else if (userDetails instanceof com.tss.aml.security.CustomerUserDetails) {
             userId = ((com.tss.aml.security.CustomerUserDetails) userDetails).getId();
         }
+		
+		
 
 		// Generate token with enhanced JWT util including userId and role
 		String token;
+		String email = loginDto.getEmail();
 		if (userId != null) {
-			token = jwtUtil.generateToken(userDetails.getUsername(), role, userId);
+			token = jwtUtil.generateToken(userDetails.getUsername(), role, userId , email);
 		} else {
 			token = jwtUtil.generateToken(userDetails.getUsername(), role);
 		}
@@ -93,6 +96,6 @@ public class AuthService {
 			System.err.println("Failed to send login email: " + e.getMessage());
 		}
 
-		return new AuthResponse(token, "Bearer", userDetails.getUsername(), "ROLE_" + role, userId);
+		return new AuthResponse(token, "Bearer", userDetails.getUsername(), "ROLE_" + role, userId );
 	}
 }

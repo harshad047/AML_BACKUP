@@ -4,14 +4,18 @@ import org.springframework.stereotype.Component;
 
 import com.tss.aml.dto.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class NlpScoreEvaluator implements RuleEvaluator {
 
+    private static final Logger log = LoggerFactory.getLogger(NlpScoreEvaluator.class);
+
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
         boolean result = compareNumber(input.getNlpScore(), condition.getOperator(), condition.getValue());
-        System.out.println("    NlpScoreEvaluator: " + input.getNlpScore() + " " + condition.getOperator() + " " + condition.getValue() + " = " + result);
+        log.debug("NlpScoreEvaluator: {} {} {} = {}", input.getNlpScore(), condition.getOperator(), condition.getValue(), result);
         return result;
     }
 

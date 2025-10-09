@@ -43,6 +43,10 @@ public class Customer {
     @NotBlank @Size(max=100)
     @Column(name="first_name", nullable=false)
     private String firstName;
+    
+    @NotBlank @Size(max=20)
+    @Column(name="dob", nullable=false)
+    private String dob;
 
     @Size(max=100)
     @Column(name="middle_name")

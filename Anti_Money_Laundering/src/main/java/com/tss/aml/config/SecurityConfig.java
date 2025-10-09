@@ -54,10 +54,15 @@ public class SecurityConfig {
                 .requestMatchers("/api/register/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                // admin and compliance
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/compliance/**").hasAnyRole("ADMIN", "OFFICER", "SUPER_ADMIN")
-                .requestMatchers("/api/transactions/**").hasAnyRole("CUSTOMER", "ADMIN")
-                .requestMatchers("/api/customers/**").hasAnyRole("CUSTOMER", "ADMIN", "OFFICER")
+                // customer specific
+                .requestMatchers("/api/transactions/**").hasRole("CUSTOMER")
+                .requestMatchers("/api/accounts/**").hasRole("CUSTOMER")
+                .requestMatchers("/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN", "OFFICER")
+                .requestMatchers("/api/customer/alerts/**").hasRole("CUSTOMER")
+                // other protected areas
                 .requestMatchers("/api/alerts/**").hasAnyRole("ADMIN", "OFFICER", "SUPER_ADMIN")
                 .requestMatchers("/api/cases/**").hasAnyRole("ADMIN", "OFFICER", "SUPER_ADMIN")
                 .requestMatchers("/api/reports/**").hasAnyRole("ADMIN", "OFFICER", "SUPER_ADMIN")
