@@ -66,11 +66,7 @@ public class BankAccountService {
         newAccount.setBalance(balanceToSet);
         newAccount.setStatus(AccountStatus.PENDING);       
         newAccount.setApprovalStatus(ApprovalStatus.PENDING);
-<<<<<<< HEAD
         newAccount.generateAccountNumber(); // Generate account number only once
-=======
-        newAccount.generateAccountNumber(); 
->>>>>>> 882ef8427c70f48e98053975f1bbe164479cd520
 
         BankAccount savedAccount = bankAccountRepository.save(newAccount);
         

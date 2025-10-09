@@ -69,16 +69,13 @@ public class ComplianceController {
         List<TransactionDto> flaggedTransactions = complianceService.getFlaggedTransactions();
         return ResponseEntity.ok(flaggedTransactions);
     }
-    
-<<<<<<< HEAD
-=======
+
     @GetMapping("/transactions/all")
     public ResponseEntity<List<TransactionDto>> getAllTransactions() {
         List<TransactionDto> all = complianceService.getAllTransactions();
         return ResponseEntity.ok(all);
     }
     
->>>>>>> 882ef8427c70f48e98053975f1bbe164479cd520
     @GetMapping("/transactions/blocked")
     public ResponseEntity<List<TransactionDto>> getBlockedTransactions() {
         List<TransactionDto> blockedTransactions = complianceService.getBlockedTransactions();
