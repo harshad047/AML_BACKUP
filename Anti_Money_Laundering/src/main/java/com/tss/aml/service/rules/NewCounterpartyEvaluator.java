@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.tss.aml.dto.TransactionInputDto;
+import com.tss.aml.dto.transaction.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
 import com.tss.aml.entity.Transaction;
 import com.tss.aml.repository.TransactionRepository;
@@ -81,3 +81,4 @@ public class NewCounterpartyEvaluator implements RuleEvaluator {
         }
     }
 }
+

@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tss.aml.dto.RegistrationRequest;
+import com.tss.aml.dto.Auth.RegistrationRequest;
 import com.tss.aml.entity.Address;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;

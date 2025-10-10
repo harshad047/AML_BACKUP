@@ -1,7 +1,7 @@
 package com.tss.aml.service;
 
-import com.tss.aml.dto.AlertDto;
-import com.tss.aml.dto.TransactionDto;
+import com.tss.aml.dto.compliance.AlertDto;
+import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.entity.Alert;
 import com.tss.aml.entity.BankAccount;
 import com.tss.aml.entity.Transaction;

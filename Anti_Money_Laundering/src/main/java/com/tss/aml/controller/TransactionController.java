@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tss.aml.dto.BalanceDto;
-import com.tss.aml.dto.CurrencyConversionDto;
-import com.tss.aml.dto.DepositDto;
-import com.tss.aml.dto.IntercurrencyTransferDto;
-import com.tss.aml.dto.TransactionDto;
-import com.tss.aml.dto.TransferDto;
-import com.tss.aml.dto.WithdrawalDto;
+import com.tss.aml.dto.transaction.BalanceDto;
+import com.tss.aml.dto.transaction.CurrencyConversionDto;
+import com.tss.aml.dto.transaction.DepositDto;
+import com.tss.aml.dto.transaction.IntercurrencyTransferDto;
+import com.tss.aml.dto.transaction.TransactionDto;
+import com.tss.aml.dto.transaction.TransferDto;
+import com.tss.aml.dto.transaction.WithdrawalDto;
 import com.tss.aml.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;

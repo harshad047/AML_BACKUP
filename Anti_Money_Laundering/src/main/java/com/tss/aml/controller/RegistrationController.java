@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tss.aml.dto.RegistrationRequest;
+import com.tss.aml.dto.Auth.RegistrationRequest;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
 import com.tss.aml.repository.CustomerRepository;
@@ -45,7 +45,6 @@ public class RegistrationController {
         return ResponseEntity.ok(Map.of("sent", true));
     }
     
-    // Check registration status
     @PostMapping("/check-status")
     public ResponseEntity<?> checkRegistrationStatus(@RequestParam String email) {
         boolean hasPending = regService.hasPendingRegistration(email);

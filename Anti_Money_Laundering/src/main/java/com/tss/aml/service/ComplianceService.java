@@ -4,14 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.tss.aml.dto.AlertDto;
-import com.tss.aml.dto.BaseTransactionDto;
-import com.tss.aml.dto.CaseDto;
-import com.tss.aml.dto.TransactionDto;
-import com.tss.aml.dto.TransactionDtoFactory;
+import com.tss.aml.dto.compliance.AlertDto;
+import com.tss.aml.dto.compliance.CaseDto;
+import com.tss.aml.dto.transaction.BaseTransactionDto;
+import com.tss.aml.dto.transaction.TransactionDto;
+import com.tss.aml.dto.transaction.TransactionDtoFactory;
 import com.tss.aml.entity.Alert;
 import com.tss.aml.entity.Case;
 import com.tss.aml.entity.InvestigationNote;
@@ -265,3 +264,4 @@ public class ComplianceService {
         return alertDto;
     }
 }
+

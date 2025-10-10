@@ -1,10 +1,10 @@
 package com.tss.aml.controller;
 
-import com.tss.aml.dto.AlertDto;
-import com.tss.aml.dto.BaseTransactionDto;
-import com.tss.aml.dto.CaseDto;
-import com.tss.aml.dto.NoteDto;
-import com.tss.aml.dto.TransactionDto;
+import com.tss.aml.dto.transaction.BaseTransactionDto;
+import com.tss.aml.dto.compliance.AlertDto;
+import com.tss.aml.dto.compliance.CaseDto;
+import com.tss.aml.dto.compliance.NoteDto;
+import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.service.ComplianceService;
 import com.tss.aml.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -153,3 +153,4 @@ public class ComplianceController {
         return ResponseEntity.ok(transactions);
     }
 }
+

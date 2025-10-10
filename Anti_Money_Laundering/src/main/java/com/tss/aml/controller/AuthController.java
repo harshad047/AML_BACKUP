@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tss.aml.dto.AuthResponse;
-import com.tss.aml.dto.LoginDto;
+import com.tss.aml.dto.Auth.AuthResponse;
+import com.tss.aml.dto.Auth.LoginDto;
 import com.tss.aml.service.AuthService;
 
 @RestController

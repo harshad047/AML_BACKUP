@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Component;
 
-import com.tss.aml.dto.TransactionInputDto;
+import com.tss.aml.dto.transaction.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
 import com.tss.aml.entity.Transaction;
 import com.tss.aml.entity.BankAccount;
@@ -75,3 +75,4 @@ public class BalanceRatioEvaluator implements RuleEvaluator {
         };
     }
 }
+
