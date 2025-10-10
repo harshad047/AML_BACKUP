@@ -2,6 +2,7 @@ package com.tss.aml.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RuleEngineService {
+
     private final RuleRepository ruleRepo;
     private final RuleEvaluatorFactory ruleEvaluatorFactory;
     private final RuleExecutionLogRepository ruleExecutionLogRepository;
@@ -32,16 +34,19 @@ public class RuleEngineService {
     public EvaluationResultDto evaluate(TransactionInputDto input) {
         List<Rule> rules = ruleRepo.findByIsActiveTrueOrderByPriorityAsc();
         log.debug("Rule Engine - Found {} active rules", rules.size());
-        
+
         List<RuleExecutionLog> logs = new ArrayList<>();
-        double survivalProb = 1.0; 
-        boolean blockTriggered = false;
-        List<RuleMatchDto> matched = new ArrayList<>();
+        List<RuleMatchDto> flaggedRules = new ArrayList<>();
+        List<RuleMatchDto> blockedRules = new ArrayList<>();
+        double combinedRiskScore = 0.0;
 
         for (Rule rule : rules) {
-            log.debug("Evaluating rule: {} (Weight: {}, Action: {}, Priority: {})", rule.getName(), rule.getRiskWeight(), rule.getAction(), rule.getPriority());
-            boolean match = true;
-            
+            log.debug("Evaluating rule: {} (Weight: {}, Action: {}, Priority: {})",
+                    rule.getName(), rule.getRiskWeight(), rule.getAction(), rule.getPriority());
+
+            boolean ruleMatched = true;
+            List<String> conditionResults = new ArrayList<>();
+
             for (RuleCondition cond : rule.getConditions()) {
                 if (!cond.isActive()) {
                     log.trace("  Condition inactive: {}", cond.getType());
@@ -49,26 +54,30 @@ public class RuleEngineService {
                 }
 
                 RuleEvaluator evaluator = ruleEvaluatorFactory.getEvaluator(cond.getType());
-                log.trace("  Evaluating condition: {} with evaluator: {}", cond.getType(), (evaluator != null ? evaluator.getClass().getSimpleName() : "NULL"));
-
-                if (evaluator == null || !evaluator.evaluate(input, cond)) {
-                    log.trace("  Condition failed: {}", cond.getType());
-                    match = false;
+                if (evaluator == null) {
+                    log.warn("No evaluator found for condition type: {}", cond.getType());
+                    ruleMatched = false;
                     break;
-                } else {
-                    log.trace("  Condition passed: {}", cond.getType());
+                }
+
+                boolean condResult = evaluator.evaluate(input, cond);
+                conditionResults.add(cond.getType() + " " + cond.getOperator() + " " + cond.getValue() + " => " + condResult);
+
+                if (!condResult) {
+                    ruleMatched = false;
+                    break; // AND logic: one false condition fails the rule
                 }
             }
 
-            if (match) {
-                log.debug("  Rule MATCHED: {}", rule.getName());
-                // Convert rule weight (0–100) → probability (0.0–1.0)
-                double ruleProb = Math.min(1.0, Math.max(0.0, rule.getRiskWeight() / 100.0));
-                survivalProb *= (1.0 - ruleProb); // Multiply survival probabilities
+            if (ruleMatched) {
+                log.info("  Rule MATCHED: {}", rule.getName());
 
-                String condSummary = rule.getConditions().stream()
-                        .map(c -> c.getType() + " " + c.getOperator() + " " + c.getValue())
-                        .reduce((a,b) -> a + "; " + b).orElse("");
+                // Convert risk weight to probability (0.0 - 1.0)
+                double ruleProb = Math.min(1.0, Math.max(0.0, rule.getRiskWeight() / 100.0));
+
+                // Aggregate using weighted sum approach capped at 100
+                combinedRiskScore += ruleProb * 100.0;
+                combinedRiskScore = Math.min(combinedRiskScore, 100);
 
                 RuleExecutionLog entry = RuleExecutionLog.builder()
                         .rule(rule)
@@ -78,41 +87,47 @@ public class RuleEngineService {
                                  " | action=" + rule.getAction() +
                                  " | weight=" + rule.getRiskWeight() +
                                  " | priority=" + rule.getPriority() +
-                                 (condSummary.isEmpty() ? "" : " | conditions=[" + condSummary + "]"))
+                                 " | conditions=" + String.join("; ", conditionResults))
                         .evaluatedAt(java.time.LocalDateTime.now())
                         .build();
                 logs.add(entry);
                 try { ruleExecutionLogRepository.save(entry); } catch (Exception e) { log.warn("Failed to persist RuleExecutionLog: {}", e.getMessage()); }
 
-                matched.add(new RuleMatchDto(rule.getId(), rule.getName(), rule.getAction(), rule.getRiskWeight(), rule.getPriority()));
+                RuleMatchDto matchDto = new RuleMatchDto(
+                        rule.getId(),
+                        rule.getName(),
+                        rule.getAction(),
+                        rule.getRiskWeight(),
+                        rule.getPriority()
+                );
 
-                log.info("Matched: {} action={} weight={} priority={}{}",
-                        rule.getName(), rule.getAction(), rule.getRiskWeight(), rule.getPriority(),
-                        condSummary.isEmpty() ? "" : " | " + condSummary);
-
-                // Short-circuit if action is BLOCK
                 if ("BLOCK".equalsIgnoreCase(rule.getAction())) {
-                    blockTriggered = true;
-                    log.info("  BLOCK action triggered by rule: {}. Short-circuiting further evaluation.", rule.getName());
-                    break;
+                    blockedRules.add(matchDto);
+                    log.info("  BLOCK action triggered. Short-circuiting further evaluation.");
+                    break; // Stop evaluating further rules
+                } else {
+                    flaggedRules.add(matchDto);
                 }
+
             } else {
                 log.trace("  Rule NOT matched: {}", rule.getName());
             }
         }
 
-        // Final risk probability
-        double combinedProb = 1.0 - survivalProb;
-        int ruleEngineScore = (int) Math.round(combinedProb * 100);
-        
-        log.debug("Rule Engine Final Score: {} (Combined Prob: {})", ruleEngineScore, combinedProb);
-        if (!matched.isEmpty()) {
-            String summary = matched.stream().map(m -> m.getRuleName() + "[" + m.getAction() + ", w=" + m.getRiskWeight() + ", p=" + m.getPriority() + "]").reduce((a,b) -> a+", "+b).orElse("");
-            log.info("Matched rules: {}", summary);
+        log.info("Rule Engine Final Score: {}", combinedRiskScore);
+        if (!flaggedRules.isEmpty() || !blockedRules.isEmpty()) {
+            String summary = flaggedRules.stream().map(r -> r.getRuleName() + "[FLAG]").collect(Collectors.joining(", "));
+            String blockSummary = blockedRules.stream().map(r -> r.getRuleName() + "[BLOCK]").collect(Collectors.joining(", "));
+            log.info("Matched FLAG rules: {}", summary);
+            log.info("Matched BLOCK rules: {}", blockSummary);
         } else {
             log.info("No rules matched.");
         }
-        return new EvaluationResultDto(ruleEngineScore, logs, matched);
+
+        List<RuleMatchDto> allMatches = new ArrayList<>();
+        allMatches.addAll(flaggedRules);
+        allMatches.addAll(blockedRules);
+
+        return new EvaluationResultDto((int) Math.round(combinedRiskScore), logs, allMatches);
     }
 }
-

@@ -263,7 +263,7 @@ public class TransactionService {
         EvaluationResultDto ruleResult = ruleEngine.evaluate(input);
         System.out.println("Rule engine result - Total Risk Score: " + ruleResult.getTotalRiskScore());
 
-        int combined = Math.max(nlp, ruleResult.getTotalRiskScore());
+        int combined = (int) (0.6*ruleResult.getTotalRiskScore() + 0.4*nlp);        
         System.out.println("Combined Risk Score (max of NLP and Rule): " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
 
         String status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
@@ -815,7 +815,7 @@ public class TransactionService {
 
         EvaluationResultDto result = ruleEngine.evaluate(input);
         int ruleScore = result.getTotalRiskScore();
-        int combinedScore = (nlp + ruleScore) / 2;
+        int combinedScore = (int) (0.6*result.getTotalRiskScore() + 0.4*nlp);
 
         System.out.println("Intercurrency Risk Assessment - NLP: " + nlp + ", Rule Engine: " + ruleScore + ", Combined: " + combinedScore);
 
