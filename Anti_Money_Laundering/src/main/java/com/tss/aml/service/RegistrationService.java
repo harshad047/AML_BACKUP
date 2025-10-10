@@ -1,6 +1,8 @@
 package com.tss.aml.service;
 
 import java.time.Instant;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +24,9 @@ import com.tss.aml.repository.UserRepository;
 @Service
 public class RegistrationService {
 
+    // Temporary storage for pending registrations (in production, use Redis or database)
+    private final Map<String, RegistrationRequest> pendingRegistrations = new ConcurrentHashMap<>();
+    
     private final CustomerRepository customerRepo;
     private final DocumentRepository docRepo;
     private final OtpService otpService;
@@ -51,6 +56,48 @@ public class RegistrationService {
 
     public boolean verifyOtp(String email, String otp) {
         return otpService.verifyOtp(email, otp);
+    }
+    
+    /**
+     * Store registration data temporarily (before email verification)
+     */
+    public void storePendingRegistration(RegistrationRequest req) {
+        // Verify reCaptcha (Temporarily Disabled for Testing)
+        /* if (!reCaptchaService.verifyRecaptcha(req.getRecaptchaToken())) {
+            throw new IllegalArgumentException("reCaptcha verification failed");
+        } */
+
+        // Check uniqueness in Customer and User tables
+        if (customerRepo.existsByEmail(req.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        
+        // Store temporarily until email verification
+        pendingRegistrations.put(req.getEmail(), req);
+    }
+    
+    /**
+     * Complete registration after email verification
+     */
+    @Transactional
+    public Customer completeRegistrationAfterVerification(String email) {
+        RegistrationRequest req = pendingRegistrations.get(email);
+        if (req == null) {
+            throw new IllegalArgumentException("No pending registration found for email: " + email);
+        }
+        
+        try {
+            // Now actually save to database
+            Customer savedCustomer = registerCustomer(req);
+            
+            // Remove from temporary storage
+            pendingRegistrations.remove(email);
+            
+            return savedCustomer;
+        } catch (Exception e) {
+            // Keep in temporary storage if registration fails
+            throw e;
+        }
     }
 
     @Transactional
@@ -150,5 +197,19 @@ public class RegistrationService {
         }
         
         return username;
+    }
+    
+    /**
+     * Check if there's a pending registration for an email
+     */
+    public boolean hasPendingRegistration(String email) {
+        return pendingRegistrations.containsKey(email);
+    }
+    
+    /**
+     * Get pending registration count (for monitoring)
+     */
+    public int getPendingRegistrationCount() {
+        return pendingRegistrations.size();
     }
 }

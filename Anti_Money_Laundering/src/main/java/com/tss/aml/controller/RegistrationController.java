@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tss.aml.dto.RegistrationRequest;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
+import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.service.CloudinaryService;
 import com.tss.aml.service.EmailService;
 import com.tss.aml.service.RegistrationService;
@@ -35,6 +36,7 @@ public class RegistrationController {
     @Autowired private JwtUtil jwtUtil;
     @Autowired private EmailService emailService;
     @Autowired private CloudinaryService cloudinaryService;
+    @Autowired private CustomerRepository customerRepository;
 
     // 1. send OTP
     @PostMapping("/send-otp")
@@ -42,17 +44,58 @@ public class RegistrationController {
         regService.initiateEmailOtp(email);
         return ResponseEntity.ok(Map.of("sent", true));
     }
+    
+    // Check registration status
+    @PostMapping("/check-status")
+    public ResponseEntity<?> checkRegistrationStatus(@RequestParam String email) {
+        boolean hasPending = regService.hasPendingRegistration(email);
+        boolean existsInDb = customerRepository.existsByEmail(email);
+        
+        if (existsInDb) {
+            return ResponseEntity.ok(Map.of(
+                "status", "COMPLETED",
+                "message", "Registration already completed"
+            ));
+        } else if (hasPending) {
+            return ResponseEntity.ok(Map.of(
+                "status", "PENDING_VERIFICATION",
+                "message", "Registration pending email verification"
+            ));
+        } else {
+            return ResponseEntity.ok(Map.of(
+                "status", "NOT_FOUND",
+                "message", "No registration found for this email"
+            ));
+        }
+    }
 
   
 
-    // 2. verify OTP
+    // 2. verify OTP and complete registration
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestParam String email, @RequestParam String otp) {
-        boolean ok = regService.verifyOtp(email, otp);
-        if (ok) { 
-        	// 3. SEND THE REGISTRATION SUCCESS EMAIL
-            emailService.sendRegistrationSuccessEmail(email);
-        	return ResponseEntity.ok(Map.of("verified", true));
+        boolean otpValid = regService.verifyOtp(email, otp);
+        if (otpValid) { 
+            try {
+                // Complete registration after successful OTP verification
+                Customer customer = regService.completeRegistrationAfterVerification(email);
+                
+                // Send registration success email
+                emailService.sendRegistrationSuccessEmail(email);
+                
+                return ResponseEntity.ok(Map.of(
+                    "verified", true,
+                    "customerId", customer.getId(),
+                    "email", customer.getEmail(),
+                    "name", customer.getFirstName() + " " + customer.getLastName(),
+                    "message", "Registration completed successfully!"
+                ));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "verified", false,
+                    "error", e.getMessage()
+                ));
+            }
         }
         else return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("verified", false));
     }
@@ -64,17 +107,17 @@ public class RegistrationController {
         }
         
         try {
-            // This creates the customer in the database
-            Customer created = regService.registerCustomer(req);
-            regService.initiateEmailOtp(created.getEmail());
-
+            // Store registration data temporarily (NOT in database yet)
+            regService.storePendingRegistration(req);
             
+            // Send OTP for email verification
+            regService.initiateEmailOtp(req.getEmail());
 
             return ResponseEntity.ok(Map.of(
-                "customerId", created.getId(),
-                "email", created.getEmail(),
-                "name", created.getFirstName() + " " + created.getLastName(),
-                "message", "Registration successful. Please check your email."
+                "email", req.getEmail(),
+                "name", req.getFirstName() + " " + req.getLastName(),
+                "message", "Registration data received. Please verify your email to complete registration.",
+                "nextStep", "Please check your email and verify OTP to complete registration."
             ));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
