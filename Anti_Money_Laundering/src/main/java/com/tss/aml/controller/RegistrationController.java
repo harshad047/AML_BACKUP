@@ -24,7 +24,6 @@ import com.tss.aml.service.EmailService;
 import com.tss.aml.service.RegistrationService;
 import com.tss.aml.util.JwtUtil;
 
-import io.jsonwebtoken.io.IOException;
 import jakarta.validation.Valid;
 
 @RestController

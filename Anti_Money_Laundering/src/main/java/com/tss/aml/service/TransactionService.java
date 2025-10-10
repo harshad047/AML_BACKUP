@@ -282,6 +282,7 @@ public class TransactionService {
                 .combinedRiskScore(combined)
                 .thresholdExceeded(exceeds)
                 .status(status)
+                .transactionReference(generateTransactionReference(type))
                 .build();
         Transaction savedTx = txRepo.save(tx);
 
@@ -847,7 +848,7 @@ public class TransactionService {
                 .combinedRiskScore(combinedScore)
                 .thresholdExceeded(combinedScore > 70)
                 .alertId(alertId)
-                .transactionReference("ICT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .transactionReference(generateTransactionReference(Transaction.TransactionType.INTERCURRENCY_TRANSFER))
                 // Intercurrency specific fields
                 .originalAmount(conversionResult.getOriginalAmount())
                 .originalCurrency(conversionResult.getOriginalCurrency())
@@ -882,5 +883,30 @@ public class TransactionService {
         transactionDto.setChargeBreakdown(conversionResult.getChargeBreakdown());
 
         return transactionDto;
+    }
+    
+    /**
+     * Generate transaction reference based on transaction type
+     */
+    private String generateTransactionReference(Transaction.TransactionType type) {
+        String prefix;
+        switch (type) {
+            case DEPOSIT:
+                prefix = "DEP";
+                break;
+            case WITHDRAWAL:
+                prefix = "WDL";
+                break;
+            case TRANSFER:
+                prefix = "TRF";
+                break;
+            case INTERCURRENCY_TRANSFER:
+                prefix = "ICT";
+                break;
+            default:
+                prefix = "TXN";
+                break;
+        }
+        return prefix + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }
