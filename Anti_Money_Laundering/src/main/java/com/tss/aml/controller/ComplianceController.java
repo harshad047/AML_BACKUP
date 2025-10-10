@@ -45,7 +45,6 @@ public class ComplianceController {
         return ResponseEntity.ok(complianceService.addNoteToCase(id, username, noteDto.getContent()));
     }
 
-    // Transaction Approval/Rejection Endpoints
     
     @PostMapping("/transactions/{transactionId}/approve")
     public ResponseEntity<TransactionDto> approveTransaction(@PathVariable Long transactionId, Authentication authentication) {
