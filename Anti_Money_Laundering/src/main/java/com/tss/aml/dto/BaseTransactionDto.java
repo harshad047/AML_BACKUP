@@ -1,6 +1,7 @@
 package com.tss.aml.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.tss.aml.entity.Transaction;
 import lombok.Data;
 
@@ -8,8 +9,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class TransactionDto {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "transactionType")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = RegularTransactionDto.class, name = "DEPOSIT"),
+    @JsonSubTypes.Type(value = RegularTransactionDto.class, name = "WITHDRAWAL"),
+    @JsonSubTypes.Type(value = RegularTransactionDto.class, name = "TRANSFER"),
+    @JsonSubTypes.Type(value = IntercurrencyTransactionDto.class, name = "INTERCURRENCY_TRANSFER")
+})
+public abstract class BaseTransactionDto {
     private Long id;
     private Transaction.TransactionType transactionType;
     private String fromAccountNumber;
@@ -27,14 +34,4 @@ public class TransactionDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String transactionReference;
-    
-    // Intercurrency exchange specific fields
-    private BigDecimal originalAmount;
-    private String originalCurrency;
-    private BigDecimal convertedAmount;
-    private String convertedCurrency;
-    private BigDecimal exchangeRate;
-    private BigDecimal conversionCharges;
-    private BigDecimal totalDebitAmount;
-    private String chargeBreakdown;
 }

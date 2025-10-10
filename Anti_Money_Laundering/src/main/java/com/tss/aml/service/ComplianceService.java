@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tss.aml.dto.AlertDto;
+import com.tss.aml.dto.BaseTransactionDto;
 import com.tss.aml.dto.CaseDto;
 import com.tss.aml.dto.TransactionDto;
+import com.tss.aml.dto.TransactionDtoFactory;
 import com.tss.aml.entity.Alert;
 import com.tss.aml.entity.Case;
 import com.tss.aml.entity.InvestigationNote;
@@ -29,6 +31,7 @@ public class ComplianceService {
     private final CaseRepository caseRepository;
     private final TransactionRepository transactionRepository;
     private final ModelMapper modelMapper;
+    private final TransactionDtoFactory transactionDtoFactory;
 
     public List<AlertDto> getAllOpenAlerts() {
         return alertRepository.findAll().stream()
@@ -81,11 +84,29 @@ public class ComplianceService {
     }
     
     /**
+     * Get all flagged transactions with appropriate DTO types (no null fields)
+     */
+    public List<BaseTransactionDto> getFlaggedTransactionsOptimized() {
+        return transactionRepository.findByStatusOrderByCreatedAtDesc("FLAGGED").stream()
+                .map(transactionDtoFactory::createTransactionDto)
+                .collect(Collectors.toList());
+    }
+    
+    /**
      * Get all blocked transactions for compliance officer review
      */
     public List<TransactionDto> getBlockedTransactions() {
         return transactionRepository.findByStatusOrderByCreatedAtDesc("BLOCKED").stream()
                 .map(transaction -> modelMapper.map(transaction, TransactionDto.class))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get all blocked transactions with appropriate DTO types (no null fields)
+     */
+    public List<BaseTransactionDto> getBlockedTransactionsOptimized() {
+        return transactionRepository.findByStatusOrderByCreatedAtDesc("BLOCKED").stream()
+                .map(transactionDtoFactory::createTransactionDto)
                 .collect(Collectors.toList());
     }
     
@@ -224,13 +245,16 @@ public class ComplianceService {
     private AlertDto mapAlertWithTransaction(Alert alert) {
         AlertDto alertDto = modelMapper.map(alert, AlertDto.class);
         
-        // Manually fetch and set transaction details
+        // Manually fetch and set transaction details using the factory
         if (alert.getTransactionId() != null) {
             try {
                 Transaction transaction = transactionRepository.findById(alert.getTransactionId()).orElse(null);
                 if (transaction != null) {
-                    TransactionDto transactionDto = modelMapper.map(transaction, TransactionDto.class);
-                    alertDto.setTransaction(transactionDto);
+                    BaseTransactionDto transactionDto = transactionDtoFactory.createTransactionDto(transaction);
+                    // Note: AlertDto.transaction field needs to be updated to BaseTransactionDto
+                    // For now, we'll keep the old mapping to maintain compatibility
+                    TransactionDto legacyDto = modelMapper.map(transaction, TransactionDto.class);
+                    alertDto.setTransaction(legacyDto);
                 }
             } catch (Exception e) {
                 // Log error but don't fail the entire operation

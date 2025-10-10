@@ -461,6 +461,40 @@
               "path": ["api", "compliance", "cases", "under-investigation"]
             }
           }
+        },
+        {
+          "name": "Get Flagged Transactions (Optimized)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/compliance/transactions/flagged/optimized",
+              "host": ["{{base_url}}"],
+              "path": ["api", "compliance", "transactions", "flagged", "optimized"]
+            }
+          }
+        },
+        {
+          "name": "Get Blocked Transactions (Optimized)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/compliance/transactions/blocked/optimized",
+              "host": ["{{base_url}}"],
+              "path": ["api", "compliance", "transactions", "blocked", "optimized"]
+            }
+          }
         }
       ]
     }

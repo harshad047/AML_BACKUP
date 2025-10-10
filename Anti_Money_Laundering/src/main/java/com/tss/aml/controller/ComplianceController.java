@@ -1,6 +1,7 @@
 package com.tss.aml.controller;
 
 import com.tss.aml.dto.AlertDto;
+import com.tss.aml.dto.BaseTransactionDto;
 import com.tss.aml.dto.CaseDto;
 import com.tss.aml.dto.NoteDto;
 import com.tss.aml.dto.TransactionDto;
@@ -135,6 +136,20 @@ public class ComplianceController {
     @GetMapping("/transactions/flagged-with-alerts")
     public ResponseEntity<List<TransactionDto>> getFlaggedTransactionsWithAlerts() {
         List<TransactionDto> transactions = complianceService.getFlaggedTransactionsWithAlerts();
+        return ResponseEntity.ok(transactions);
+    }
+    
+    // Optimized endpoints with clean DTOs (no null fields)
+    
+    @GetMapping("/transactions/flagged/optimized")
+    public ResponseEntity<List<BaseTransactionDto>> getFlaggedTransactionsOptimized() {
+        List<BaseTransactionDto> transactions = complianceService.getFlaggedTransactionsOptimized();
+        return ResponseEntity.ok(transactions);
+    }
+    
+    @GetMapping("/transactions/blocked/optimized")
+    public ResponseEntity<List<BaseTransactionDto>> getBlockedTransactionsOptimized() {
+        List<BaseTransactionDto> transactions = complianceService.getBlockedTransactionsOptimized();
         return ResponseEntity.ok(transactions);
     }
 }
