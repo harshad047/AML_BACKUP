@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tss.aml.dto.DocumentDTO;
+import com.tss.aml.dto.document.DocumentDTO;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
 import com.tss.aml.entity.Enums.DocumentStatus;

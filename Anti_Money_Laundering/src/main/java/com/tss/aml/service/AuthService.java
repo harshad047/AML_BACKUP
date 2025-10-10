@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.tss.aml.dto.AuthResponse;
-import com.tss.aml.dto.LoginDto;
+import com.tss.aml.dto.Auth.AuthResponse;
+import com.tss.aml.dto.Auth.LoginDto;
 import com.tss.aml.entity.User;
 import com.tss.aml.repository.UserRepository;
 import com.tss.aml.security.JwtTokenProvider;

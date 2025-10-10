@@ -1,7 +1,7 @@
 package com.tss.aml.controller;
 
-import com.tss.aml.dto.BankAccountDto;
-import com.tss.aml.dto.CreateAccountDto;
+import com.tss.aml.dto.account.BankAccountDto;
+import com.tss.aml.dto.account.CreateAccountDto;
 import com.tss.aml.service.BankAccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,3 +34,4 @@ public class BankAccountController {
         return ResponseEntity.ok(bankAccountService.getAccountsForUser(username));
     }
 }
+

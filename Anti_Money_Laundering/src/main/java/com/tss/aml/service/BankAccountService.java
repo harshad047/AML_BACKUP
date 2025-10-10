@@ -9,8 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.tss.aml.dto.BankAccountDto;
-import com.tss.aml.dto.CreateAccountDto;
+import com.tss.aml.dto.account.BankAccountDto;
+import com.tss.aml.dto.account.CreateAccountDto;
 import com.tss.aml.entity.BankAccount;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.User;
@@ -103,3 +103,4 @@ public class BankAccountService {
 
 
 }
+

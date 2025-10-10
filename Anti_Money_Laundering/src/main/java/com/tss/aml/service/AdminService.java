@@ -10,13 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.tss.aml.dto.BankAccountDto;
-import com.tss.aml.dto.CreateUserDto;
-import com.tss.aml.dto.RuleDto;
-import com.tss.aml.dto.CountryRiskDto;
-import com.tss.aml.dto.TransactionDto;
-import com.tss.aml.dto.SuspiciousKeywordDto;
-import com.tss.aml.dto.UserDto;
+import com.tss.aml.dto.account.BankAccountDto;
+import com.tss.aml.dto.admin.CreateUserDto;
+import com.tss.aml.dto.compliance.RuleDto;
+import com.tss.aml.dto.compliance.CountryRiskDto;
+import com.tss.aml.dto.transaction.TransactionDto;
+import com.tss.aml.dto.compliance.SuspiciousKeywordDto;
+import com.tss.aml.dto.admin.UserDto;
 import com.tss.aml.entity.BankAccount;
 import com.tss.aml.entity.Role;
 import com.tss.aml.entity.Rule;
@@ -457,3 +457,4 @@ public class AdminService {
     }
     
 }
+

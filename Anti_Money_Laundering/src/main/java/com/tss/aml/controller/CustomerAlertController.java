@@ -1,6 +1,6 @@
 package com.tss.aml.controller;
 
-import com.tss.aml.dto.AlertDto;
+import com.tss.aml.dto.compliance.AlertDto;
 import com.tss.aml.service.AlertService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

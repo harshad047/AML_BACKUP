@@ -2,7 +2,7 @@ package com.tss.aml.service.rules;
 
 import org.springframework.stereotype.Component;
 
-import com.tss.aml.dto.TransactionInputDto;
+import com.tss.aml.dto.transaction.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,3 +37,4 @@ public class NlpScoreEvaluator implements RuleEvaluator {
         }
     }
 }
+

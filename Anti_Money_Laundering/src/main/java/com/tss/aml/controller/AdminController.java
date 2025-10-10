@@ -19,14 +19,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tss.aml.dto.BankAccountDto;
-import com.tss.aml.dto.CountryRiskDto;
-import com.tss.aml.dto.CreateUserDto;
-import com.tss.aml.dto.DocumentDTO;
-import com.tss.aml.dto.RuleDto;
-import com.tss.aml.dto.SuspiciousKeywordDto;
-import com.tss.aml.dto.TransactionDto;
-import com.tss.aml.dto.UserDto;
+import com.tss.aml.dto.account.BankAccountDto;
+import com.tss.aml.dto.compliance.CountryRiskDto;
+import com.tss.aml.dto.admin.CreateUserDto;
+import com.tss.aml.dto.document.DocumentDTO;
+import com.tss.aml.dto.compliance.RuleDto;
+import com.tss.aml.dto.compliance.SuspiciousKeywordDto;
+import com.tss.aml.dto.transaction.TransactionDto;
+import com.tss.aml.dto.admin.UserDto;
 import com.tss.aml.entity.AuditLog;
 import com.tss.aml.entity.Document;
 import com.tss.aml.entity.Enums.DocumentStatus;
@@ -243,3 +243,4 @@ public class AdminController {
         return ResponseEntity.ok(documentService.rejectDocument(documentId));
     }
 }
+

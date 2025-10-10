@@ -2,7 +2,7 @@ package com.tss.aml.service.rules;
 
 import org.springframework.stereotype.Component;
 
-import com.tss.aml.dto.TransactionInputDto;
+import com.tss.aml.dto.transaction.TransactionInputDto;
 import com.tss.aml.entity.CountryRisk;
 import com.tss.aml.entity.RuleCondition;
 import com.tss.aml.repository.CountryRiskRepository;
@@ -48,3 +48,4 @@ public class CountryRiskEvaluator implements RuleEvaluator {
         }
     }
 }
+

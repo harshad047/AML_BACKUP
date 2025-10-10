@@ -1,22 +1,24 @@
 package com.tss.aml.service;
 
-import com.tss.aml.dto.EvaluationResultDto;
-import com.tss.aml.dto.RuleMatchDto;
-import com.tss.aml.dto.TransactionInputDto;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.tss.aml.dto.compliance.EvaluationResultDto;
+import com.tss.aml.dto.compliance.RuleMatchDto;
+import com.tss.aml.dto.transaction.TransactionInputDto;
 import com.tss.aml.entity.Rule;
 import com.tss.aml.entity.RuleCondition;
 import com.tss.aml.entity.RuleExecutionLog;
-import com.tss.aml.repository.RuleRepository;
 import com.tss.aml.repository.RuleExecutionLogRepository;
+import com.tss.aml.repository.RuleRepository;
 import com.tss.aml.service.rules.RuleEvaluator;
 import com.tss.aml.service.rules.RuleEvaluatorFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -113,3 +115,4 @@ public class RuleEngineService {
         return new EvaluationResultDto(ruleEngineScore, logs, matched);
     }
 }
+

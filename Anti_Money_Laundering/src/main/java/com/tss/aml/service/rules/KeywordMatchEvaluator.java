@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.tss.aml.dto.TransactionInputDto;
+import com.tss.aml.dto.transaction.TransactionInputDto;
 import com.tss.aml.entity.RuleCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,3 +55,4 @@ public class KeywordMatchEvaluator implements RuleEvaluator {
         return Pattern.compile(pattern).matcher(text).find();
     }
 }
+

@@ -1,6 +1,6 @@
 package com.tss.aml.controller;
 
-import com.tss.aml.dto.CurrencyConversionDto;
+import com.tss.aml.dto.transaction.CurrencyConversionDto;
 import com.tss.aml.service.CurrencyExchangeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -68,3 +68,4 @@ public class CurrencyController {
         return ResponseEntity.ok(supported);
     }
 }
+
