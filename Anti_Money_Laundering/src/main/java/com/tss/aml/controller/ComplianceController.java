@@ -45,7 +45,6 @@ public class ComplianceController {
         return ResponseEntity.ok(complianceService.addNoteToCase(id, username, noteDto.getContent()));
     }
 
-    
     @PostMapping("/transactions/{transactionId}/approve")
     public ResponseEntity<TransactionDto> approveTransaction(@PathVariable Long transactionId, Authentication authentication) {
         String officerEmail = authentication.getName();
@@ -111,5 +110,31 @@ public class ComplianceController {
     public ResponseEntity<CaseDto> getCaseById(@PathVariable Long caseId) {
         CaseDto caseDto = complianceService.getCaseById(caseId);
         return ResponseEntity.ok(caseDto);
+    }
+    
+    // Enhanced Alert and Transaction Mapping Endpoints
+    
+    @GetMapping("/transactions/{transactionId}/alerts")
+    public ResponseEntity<List<AlertDto>> getAlertsForTransaction(@PathVariable Long transactionId) {
+        List<AlertDto> alerts = complianceService.getAlertsForTransaction(transactionId);
+        return ResponseEntity.ok(alerts);
+    }
+    
+    @GetMapping("/transactions/{transactionId}/with-alerts")
+    public ResponseEntity<TransactionDto> getTransactionWithAlerts(@PathVariable Long transactionId) {
+        TransactionDto transaction = complianceService.getTransactionWithAlerts(transactionId);
+        return ResponseEntity.ok(transaction);
+    }
+    
+    @GetMapping("/transactions/with-alerts")
+    public ResponseEntity<List<TransactionDto>> getTransactionsWithAlerts() {
+        List<TransactionDto> transactions = complianceService.getTransactionsWithAlerts();
+        return ResponseEntity.ok(transactions);
+    }
+    
+    @GetMapping("/transactions/flagged-with-alerts")
+    public ResponseEntity<List<TransactionDto>> getFlaggedTransactionsWithAlerts() {
+        List<TransactionDto> transactions = complianceService.getFlaggedTransactionsWithAlerts();
+        return ResponseEntity.ok(transactions);
     }
 }

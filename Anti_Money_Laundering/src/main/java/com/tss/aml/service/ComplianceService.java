@@ -33,14 +33,15 @@ public class ComplianceService {
     public List<AlertDto> getAllOpenAlerts() {
         return alertRepository.findAll().stream()
                 .filter(alert -> alert.getStatus() == Alert.AlertStatus.OPEN)
-                .map(alert -> modelMapper.map(alert, AlertDto.class))
+                .map(this::mapAlertWithTransaction)
                 .collect(Collectors.toList());
     }
 
     public AlertDto getAlertById(Long id) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Alert", "id", id));
-        return modelMapper.map(alert, AlertDto.class);
+        
+        return mapAlertWithTransaction(alert);
     }
 
     public CaseDto createCaseFromAlert(Long alertId, String assignedTo) {
@@ -150,5 +151,93 @@ public class ComplianceService {
         Case caseEntity = caseRepository.findById(caseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Case", "id", caseId));
         return modelMapper.map(caseEntity, CaseDto.class);
+    }
+    
+    /**
+     * Get all alerts for a specific transaction
+     */
+    public List<AlertDto> getAlertsForTransaction(Long transactionId) {
+        return alertRepository.findByTransactionId(transactionId).stream()
+                .map(this::mapAlertWithTransaction)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Get transaction with its associated alerts
+     */
+    public TransactionDto getTransactionWithAlerts(Long transactionId) {
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
+        
+        TransactionDto transactionDto = modelMapper.map(transaction, TransactionDto.class);
+        
+        // Get alerts for this transaction
+        List<AlertDto> alerts = getAlertsForTransaction(transactionId);
+        // Note: You may need to add alerts field to TransactionDto if not present
+        
+        return transactionDto;
+    }
+    
+    /**
+     * Get all transactions that have alerts
+     */
+    public List<TransactionDto> getTransactionsWithAlerts() {
+        // Get all alerts
+        List<Alert> allAlerts = alertRepository.findAll();
+        
+        // Get unique transaction IDs that have alerts
+        List<Long> transactionIds = allAlerts.stream()
+                .map(Alert::getTransactionId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // Fetch transactions and map to DTOs
+        return transactionIds.stream()
+                .map(transactionId -> {
+                    Transaction transaction = transactionRepository.findById(transactionId).orElse(null);
+                    if (transaction != null) {
+                        return modelMapper.map(transaction, TransactionDto.class);
+                    }
+                    return null;
+                })
+                .filter(dto -> dto != null)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Enhanced method to get flagged transactions with their alert information
+     */
+    public List<TransactionDto> getFlaggedTransactionsWithAlerts() {
+        return transactionRepository.findByStatusOrderByCreatedAtDesc("FLAGGED").stream()
+                .map(transaction -> {
+                    TransactionDto dto = modelMapper.map(transaction, TransactionDto.class);
+                    // You can add alert count or other alert-related info here if needed
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Helper method to create a properly mapped AlertDto with transaction details
+     */
+    private AlertDto mapAlertWithTransaction(Alert alert) {
+        AlertDto alertDto = modelMapper.map(alert, AlertDto.class);
+        
+        // Manually fetch and set transaction details
+        if (alert.getTransactionId() != null) {
+            try {
+                Transaction transaction = transactionRepository.findById(alert.getTransactionId()).orElse(null);
+                if (transaction != null) {
+                    TransactionDto transactionDto = modelMapper.map(transaction, TransactionDto.class);
+                    alertDto.setTransaction(transactionDto);
+                }
+            } catch (Exception e) {
+                // Log error but don't fail the entire operation
+                System.err.println("Error fetching transaction for alert " + alert.getId() + ": " + e.getMessage());
+            }
+        }
+        
+        return alertDto;
     }
 }

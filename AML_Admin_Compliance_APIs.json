@@ -1,0 +1,315 @@
+{
+  "info": {
+    "name": "AML Admin & Compliance APIs",
+    "description": "Admin and Compliance officer endpoints for AML Banking System",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "👨‍💼 Admin APIs",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/users", "host": ["{{base_url}}"], "path": ["api", "admin", "users"]}
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"roles\": [\"CUSTOMER\"]\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/admin/users", "host": ["{{base_url}}"], "path": ["api", "admin", "users"]}
+          }
+        },
+        {
+          "name": "Get Pending Accounts",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/accounts/pending", "host": ["{{base_url}}"], "path": ["api", "admin", "accounts", "pending"]}
+          }
+        },
+        {
+          "name": "Approve Account",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/accounts/1/approve", "host": ["{{base_url}}"], "path": ["api", "admin", "accounts", "1", "approve"]}
+          }
+        },
+        {
+          "name": "Reject Account",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/accounts/1/reject", "host": ["{{base_url}}"], "path": ["api", "admin", "accounts", "1", "reject"]}
+          }
+        },
+        {
+          "name": "Get All Rules",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/rules", "host": ["{{base_url}}"], "path": ["api", "admin", "rules"]}
+          }
+        },
+        {
+          "name": "Create Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"High Amount Transaction\",\n  \"description\": \"Flag transactions above $10,000\",\n  \"riskWeight\": 50,\n  \"action\": \"FLAG\",\n  \"priority\": 1,\n  \"isActive\": true,\n  \"conditions\": [\n    {\n      \"type\": \"AMOUNT_THRESHOLD\",\n      \"operator\": \"GREATER_THAN\",\n      \"value\": \"10000\",\n      \"isActive\": true\n    }\n  ]\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/admin/rules", "host": ["{{base_url}}"], "path": ["api", "admin", "rules"]}
+          }
+        },
+        {
+          "name": "Get Suspicious Keywords",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/keywords", "host": ["{{base_url}}"], "path": ["api", "admin", "keywords"]}
+          }
+        },
+        {
+          "name": "Add Suspicious Keyword",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keyword\": \"money laundering\",\n  \"riskScore\": 90,\n  \"category\": \"HIGH_RISK\",\n  \"isActive\": true\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/admin/keywords", "host": ["{{base_url}}"], "path": ["api", "admin", "keywords"]}
+          }
+        },
+        {
+          "name": "Get Country Risks",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/country-risks", "host": ["{{base_url}}"], "path": ["api", "admin", "country-risks"]}
+          }
+        },
+        {
+          "name": "Create Country Risk",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"countryCode\": \"AF\",\n  \"countryName\": \"Afghanistan\",\n  \"riskLevel\": \"HIGH\",\n  \"riskScore\": 85,\n  \"isActive\": true,\n  \"notes\": \"High-risk jurisdiction for AML purposes\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/admin/country-risks", "host": ["{{base_url}}"], "path": ["api", "admin", "country-risks"]}
+          }
+        },
+        {
+          "name": "Block Customer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/admin/customers/1/block?reason=Suspicious activity detected",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "customers", "1", "block"],
+              "query": [{"key": "reason", "value": "Suspicious activity detected"}]
+            }
+          }
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/audit-logs", "host": ["{{base_url}}"], "path": ["api", "admin", "audit-logs"]}
+          }
+        },
+        {
+          "name": "Get Pending KYC Documents",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/kyc/documents/pending", "host": ["{{base_url}}"], "path": ["api", "admin", "kyc", "documents", "pending"]}
+          }
+        },
+        {
+          "name": "Verify KYC Document",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/admin/kyc/documents/1/verify", "host": ["{{base_url}}"], "path": ["api", "admin", "kyc", "documents", "1", "verify"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Compliance APIs",
+      "item": [
+        {
+          "name": "Get All Open Alerts",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/alerts", "host": ["{{base_url}}"], "path": ["api", "compliance", "alerts"]}
+          }
+        },
+        {
+          "name": "Get Alert Details",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/alerts/1", "host": ["{{base_url}}"], "path": ["api", "compliance", "alerts", "1"]}
+          }
+        },
+        {
+          "name": "Create Case from Alert",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/alerts/1/case", "host": ["{{base_url}}"], "path": ["api", "compliance", "alerts", "1", "case"]}
+          }
+        },
+        {
+          "name": "Add Note to Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Reviewed transaction details. Requires further investigation.\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/compliance/cases/1/notes", "host": ["{{base_url}}"], "path": ["api", "compliance", "cases", "1", "notes"]}
+          }
+        },
+        {
+          "name": "Approve Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/transactions/1/approve", "host": ["{{base_url}}"], "path": ["api", "compliance", "transactions", "1", "approve"]}
+          }
+        },
+        {
+          "name": "Reject Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/compliance/transactions/1/reject?reason=Suspicious pattern detected",
+              "host": ["{{base_url}}"],
+              "path": ["api", "compliance", "transactions", "1", "reject"],
+              "query": [{"key": "reason", "value": "Suspicious pattern detected"}]
+            }
+          }
+        },
+        {
+          "name": "Get Flagged Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/transactions/flagged", "host": ["{{base_url}}"], "path": ["api", "compliance", "transactions", "flagged"]}
+          }
+        },
+        {
+          "name": "Get Blocked Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/transactions/blocked", "host": ["{{base_url}}"], "path": ["api", "compliance", "transactions", "blocked"]}
+          }
+        },
+        {
+          "name": "Get Cases Under Investigation",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/compliance/cases/under-investigation", "host": ["{{base_url}}"], "path": ["api", "compliance", "cases", "under-investigation"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "💱 Currency APIs",
+      "item": [
+        {
+          "name": "Get Supported Currency Pairs",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/currency/supported-pairs", "host": ["{{base_url}}"], "path": ["api", "currency", "supported-pairs"]}
+          }
+        },
+        {
+          "name": "Check Currency Pair Support",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {"raw": "{{base_url}}/api/currency/supported/USD/INR", "host": ["{{base_url}}"], "path": ["api", "currency", "supported", "USD", "INR"]}
+          }
+        },
+        {
+          "name": "Calculate Conversion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrency\": \"USD\",\n  \"toCurrency\": \"EUR\",\n  \"amount\": 1000.00\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/currency/conversion/calculate", "host": ["{{base_url}}"], "path": ["api", "currency", "conversion", "calculate"]}
+          }
+        }
+      ]
+    }
+  ]
+}
