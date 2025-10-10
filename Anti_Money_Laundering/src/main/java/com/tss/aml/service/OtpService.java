@@ -5,6 +5,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,6 +20,8 @@ public class OtpService {
     private final ConcurrentMap<String, OtpEntry> store = new ConcurrentHashMap<>();
     private final int EXPIRY_SECONDS = 300; // 5 minutes
 
+    private static final Logger log = LoggerFactory.getLogger(OtpService.class);
+
     @Autowired
     private JavaMailSender mailSender;
 
@@ -25,7 +29,11 @@ public class OtpService {
         try {
             String otp = String.format("%06d", ThreadLocalRandom.current().nextInt(0, 1_000_000));
             OtpEntry entry = new OtpEntry(otp, Instant.now().plusSeconds(EXPIRY_SECONDS));
-            store.put(email, entry);
+            String key = email == null ? null : email.trim().toLowerCase();
+            if (key != null) {
+                store.put(key, entry);
+            }
+            log.debug("OTP generated and stored for key={} expiresAt={} (masked otp endsWith={})", key, entry.expiresAt, otp.substring(4));
 
             String htmlContent = """
                 <html>
@@ -87,14 +95,29 @@ public class OtpService {
 
 
     public boolean verifyOtp(String email, String otp) {
-        OtpEntry e = store.get(email);
+        String key = email == null ? null : email.trim();
+        if (key == null) return false;
+        // Try exact key, then lowercase key for backward compatibility
+        OtpEntry e = store.get(key);
+        if (e == null) {
+            e = store.get(key.toLowerCase());
+        }
         if (e == null) return false;
         if (Instant.now().isAfter(e.expiresAt)) {
-            store.remove(email);
+            store.remove(key);
+            store.remove(key.toLowerCase());
+            log.debug("OTP expired for key={} at {}", key, e.expiresAt);
             return false;
         }
-        boolean ok = e.otp.equals(otp);
-        if (ok) store.remove(email);
+        if (otp == null) return false;
+        // Remove all whitespace from provided OTP and compare
+        String provided = otp.replaceAll("\\s+", "");
+        boolean ok = e.otp.equals(provided);
+        log.debug("Verifying OTP for key={} providedEndsWith={} storedEndsWith={} result={}", key, provided.length()>=2?provided.substring(provided.length()-2):provided, e.otp.substring(4), ok);
+        if (ok) {
+            store.remove(key);
+            store.remove(key.toLowerCase());
+        }
         return ok;
     }
 

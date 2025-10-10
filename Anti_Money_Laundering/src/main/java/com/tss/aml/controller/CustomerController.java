@@ -12,9 +12,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Address;
+
+import com.tss.aml.entity.Customer;
+import com.tss.aml.entity.User;
 import com.tss.aml.repository.CustomerRepository;
+import com.tss.aml.repository.UserRepository;
+import com.tss.aml.service.EmailService;
+import com.tss.aml.service.OtpService;
 
 import jakarta.validation.constraints.NotBlank;
 
@@ -28,6 +33,15 @@ public class CustomerController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private OtpService otpService;
+
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("/profile")
     public ResponseEntity<Customer> getProfile(Authentication authentication) {
@@ -83,30 +97,44 @@ public class CustomerController {
         String username = authentication.getName();
         Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if (req == null || req.oldPassword == null || req.newPassword == null) {
+        if (req == null || req.oldPassword == null || req.newPassword == null || req.otp == null) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
+        }
+
+        // Verify OTP sent to user's email before allowing password change
+        boolean otpValid = otpService.verifyOtp(user.getEmail(), req.otp);
+        if (!otpValid) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
 
         if (!passwordEncoder.matches(req.oldPassword, customer.getPassword())) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Current password is incorrect"));
         }
 
+        user.setPassword(passwordEncoder.encode(req.newPassword));
+        userRepository.save(user);
         customer.setPassword(passwordEncoder.encode(req.newPassword));
         customerRepository.save(customer);
+        // Send confirmation email
+        String fullName = (customer.getFirstName() != null ? customer.getFirstName() : "")
+                + (customer.getLastName() != null ? (" " + customer.getLastName()) : "");
+        emailService.sendPasswordChangeSuccessEmail(user.getEmail(), fullName.trim().isEmpty() ? null : fullName.trim());
         return ResponseEntity.ok(java.util.Map.of("message", "Password changed successfully"));
     }
-    
-    
-    
-    public static class KycStatusResponse {
-        public final String kycStatus;
-        public final String message;
-        
-        public KycStatusResponse(String kycStatus, String message) {
-            this.kycStatus = kycStatus;
-            this.message = message;
-        }
+
+    /**
+     * Send OTP to user's registered email for password change verification
+     */
+    @PostMapping("/change-password/send-otp")
+    public ResponseEntity<?> sendChangePasswordOtp(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        otpService.sendOtpToEmail(user.getEmail());
+        return ResponseEntity.ok(java.util.Map.of("sent", true, "message", "OTP sent to registered email."));
     }
 
     // Simple DTOs for requests
@@ -132,5 +160,17 @@ public class CustomerController {
         public String oldPassword;
         @NotBlank
         public String newPassword;
+        @NotBlank
+        public String otp;
+    }
+    
+    public static class KycStatusResponse {
+        public final String kycStatus;
+        public final String message;
+        
+        public KycStatusResponse(String kycStatus, String message) {
+            this.kycStatus = kycStatus;
+            this.message = message;
+        }
     }
 }

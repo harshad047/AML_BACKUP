@@ -455,4 +455,56 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send a password change success notification with a security-styled HTML template.
+     */
+    public void sendPasswordChangeSuccessEmail(String toEmail, String customerName) {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            String when = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String name = (customerName != null && !customerName.isBlank()) ? customerName : "Customer";
+
+            String htmlTemplate = """
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+                            .container { max-width: 520px; margin: auto; background: #ffffff; padding: 24px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.08); }
+                            h2 { color: #28a745; margin-bottom: 10px; }
+                            p { color: #444; line-height: 1.6; }
+                            .details { background-color: #f9f9f9; border-left: 4px solid #28a745; margin: 18px 0; padding: 12px 16px; }
+                            .security-note { font-size: 13px; color: #777; margin-top: 16px; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h2>Password Changed Successfully</h2>
+                            <p>Dear %s,</p>
+                            <p>This is a confirmation that your account password was changed successfully.</p>
+                            <div class="details">
+                                <strong>Date &amp; Time:</strong> %s
+                            </div>
+                            <p class="security-note">If you did not perform this action, please reset your password immediately and contact our support team.</p>
+                        </div>
+                    </body>
+                </html>
+            """;
+
+            String htmlContent = String.format(htmlTemplate, name, when);
+
+            helper.setTo(toEmail);
+            helper.setSubject("Password Change Confirmation");
+            helper.setText(htmlContent, true);
+
+            mailSender.send(mimeMessage);
+            auditLogService.logEmailSent(toEmail, "PASSWORD_CHANGE_SUCCESS");
+            log.info("Password change success email sent to {}", toEmail);
+        } catch (MessagingException | MailException e) {
+            log.error("Failed to send password change success email to {}", toEmail, e);
+        }
+    }
+
+
 }
