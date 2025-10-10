@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tss.aml.dto.BalanceDto;
+import com.tss.aml.dto.CurrencyConversionDto;
 import com.tss.aml.dto.DepositDto;
 import com.tss.aml.dto.EvaluationResultDto;
+import com.tss.aml.dto.IntercurrencyTransferDto;
 import com.tss.aml.dto.TransactionDto;
 import com.tss.aml.dto.TransactionInputDto;
 import com.tss.aml.dto.TransferDto;
@@ -31,6 +33,7 @@ import com.tss.aml.repository.AlertRepository;
 import com.tss.aml.repository.BankAccountRepository;
 import com.tss.aml.repository.CaseRepository;
 import com.tss.aml.repository.CustomerRepository;
+import com.tss.aml.repository.CurrencyExchangeRepository;
 import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
 
@@ -50,6 +53,7 @@ public class TransactionService {
     private final RuleEngineService ruleEngine;
     private final ModelMapper modelMapper;
     private final SuspiciousKeywordService suspiciousKeywordService;
+    private final CurrencyExchangeService currencyExchangeService;
 
     @Transactional
     public TransactionDto deposit(DepositDto depositDto) {
@@ -138,12 +142,41 @@ public class TransactionService {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not active for transactions.");
         }
 
+        // AUTOMATIC CURRENCY DETECTION - Use sender's account currency if not provided
+        String detectedCurrency = (transferDto.getCurrency() != null && !transferDto.getCurrency().trim().isEmpty()) 
+                ? transferDto.getCurrency() 
+                : fromAccount.getCurrency();
+        
+        // AUTOMATIC RECEIVER COUNTRY CODE DETECTION - Get from receiver's account owner
+        String detectedReceiverCountryCode = transferDto.getReceiverCountryCode();
+        if (detectedReceiverCountryCode == null || detectedReceiverCountryCode.trim().isEmpty()) {
+            detectedReceiverCountryCode = getCountryCodeFromAccount(toAccount);
+        }
+        
+        System.out.println("AUTO-DETECTED: Currency=" + detectedCurrency + ", ReceiverCountry=" + detectedReceiverCountryCode);
+
+        // AUTOMATIC INTERCURRENCY DETECTION
+        if (currencyExchangeService.isIntercurrencyTransferRequired(fromAccount, toAccount)) {
+            System.out.println("INTERCURRENCY TRANSFER DETECTED: " + fromAccount.getCurrency() + " to " + toAccount.getCurrency());
+            
+            // Convert TransferDto to IntercurrencyTransferDto for processing
+            IntercurrencyTransferDto intercurrencyDto = new IntercurrencyTransferDto();
+            intercurrencyDto.setFromAccountNumber(transferDto.getFromAccountNumber());
+            intercurrencyDto.setToAccountNumber(transferDto.getToAccountNumber());
+            intercurrencyDto.setAmount(transferDto.getAmount());
+            intercurrencyDto.setDescription(transferDto.getDescription());
+            intercurrencyDto.setReceiverCountryCode(detectedReceiverCountryCode);
+            
+            return intercurrencyTransfer(intercurrencyDto);
+        }
+
+        // REGULAR SAME-CURRENCY TRANSFER
         if (fromAccount.getBalance().compareTo(transferDto.getAmount()) < 0) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Insufficient funds");
         }
 
         // STEP 1: Pre-transaction risk assessment (NO money movement yet)
-        TransactionDto riskAssessment = processTransaction(fromAccount, toAccount, transferDto.getAmount(), transferDto.getCurrency(), transferDto.getDescription(), transferDto.getReceiverCountryCode(), Transaction.TransactionType.TRANSFER);
+        TransactionDto riskAssessment = processTransaction(fromAccount, toAccount, transferDto.getAmount(), detectedCurrency, transferDto.getDescription(), detectedReceiverCountryCode, Transaction.TransactionType.TRANSFER);
         
         // STEP 2: Handle based on risk assessment result
         if ("BLOCKED".equals(riskAssessment.getStatus())) {
@@ -599,5 +632,255 @@ public class TransactionService {
                     userRepository.findByEmail(usernameOrEmail)
                         .orElseThrow(() -> new ResourceNotFoundException("User", "username/email", usernameOrEmail))
                 );
+    }
+
+    /**
+     * Get country code from bank account owner's address
+     */
+    private String getCountryCodeFromAccount(BankAccount account) {
+        try {
+            User user = account.getUser();
+            if (user != null) {
+                Customer customer = customerRepository.findByEmail(user.getEmail()).orElse(null);
+                if (customer != null && customer.getAddress() != null && customer.getAddress().getCountry() != null) {
+                    String country = customer.getAddress().getCountry().trim();
+                    // Convert country name to country code using existing method
+                    String countryCode = convertCountryNameToCode(country);
+                    return countryCode != null ? countryCode : "US"; // Fallback to US if not recognized
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error getting country code from account: " + e.getMessage());
+        }
+        return "US"; // Default fallback
+    }
+
+    /**
+     * INTERCURRENCY TRANSFER - Main method for currency conversion transfers
+     */
+    @Transactional
+    public TransactionDto intercurrencyTransfer(IntercurrencyTransferDto transferDto) {
+        BankAccount fromAccount = bankAccountRepo.findByAccountNumber(transferDto.getFromAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", transferDto.getFromAccountNumber()));
+        BankAccount toAccount = bankAccountRepo.findByAccountNumber(transferDto.getToAccountNumber())
+                .orElseThrow(() -> new ResourceNotFoundException("Bank Account", "accountNumber", transferDto.getToAccountNumber()));
+
+        // Validate account status
+        if (fromAccount.getApprovalStatus() != ApprovalStatus.APPROVED || toAccount.getApprovalStatus() != ApprovalStatus.APPROVED) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not approved for transactions.");
+        }
+        
+        if (fromAccount.getStatus() != AccountStatus.ACTIVE || toAccount.getStatus() != AccountStatus.ACTIVE) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "One or both accounts are not active for transactions.");
+        }
+
+        // Validate different currencies
+        if (!currencyExchangeService.isIntercurrencyTransferRequired(fromAccount, toAccount)) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, "Both accounts have the same currency. Use regular transfer instead.");
+        }
+
+        // Calculate conversion details
+        CurrencyExchangeService.CurrencyConversionResult conversionResult = 
+                currencyExchangeService.calculateConversion(
+                    fromAccount.getCurrency(), 
+                    toAccount.getCurrency(), 
+                    transferDto.getAmount()
+                );
+
+        // Validate sufficient funds (including conversion charges)
+        currencyExchangeService.validateSufficientFunds(fromAccount, conversionResult.getTotalDebitAmount());
+
+        // Enhanced description with conversion details
+        String enhancedDescription = String.format("%s | Conversion: %s %s → %s %s (Rate: %s, Charges: %s %s)", 
+                transferDto.getDescription() != null ? transferDto.getDescription() : "Intercurrency Transfer",
+                conversionResult.getOriginalAmount(), conversionResult.getOriginalCurrency(),
+                conversionResult.getConvertedAmount(), conversionResult.getConvertedCurrency(),
+                conversionResult.getExchangeRate(),
+                conversionResult.getConversionCharges(), conversionResult.getOriginalCurrency()
+        );
+
+        // STEP 1: Pre-transaction risk assessment (NO money movement yet)
+        TransactionDto riskAssessment = processIntercurrencyTransaction(
+                fromAccount, toAccount, conversionResult, enhancedDescription, transferDto.getReceiverCountryCode()
+        );
+        
+        // STEP 2: Handle based on risk assessment result
+        if ("BLOCKED".equals(riskAssessment.getStatus())) {
+            System.out.println("INTERCURRENCY TRANSFER BLOCKED: Transaction saved but money not transferred due to high risk score: " + riskAssessment.getCombinedRiskScore());
+            return riskAssessment;
+        } else if ("FLAGGED".equals(riskAssessment.getStatus())) {
+            System.out.println("INTERCURRENCY TRANSFER FLAGGED: Transaction saved but money not transferred. Awaiting manual approval.");
+            return riskAssessment;
+        } else {
+            // STEP 3: Only execute money movement if APPROVED
+            // Debit original amount + charges from sender
+            fromAccount.setBalance(fromAccount.getBalance().subtract(conversionResult.getTotalDebitAmount()));
+            // Credit converted amount to receiver
+            toAccount.setBalance(toAccount.getBalance().add(conversionResult.getConvertedAmount()));
+            
+            bankAccountRepo.save(fromAccount);
+            bankAccountRepo.save(toAccount);
+            
+            System.out.println("INTERCURRENCY TRANSFER APPROVED: Money transferred successfully with conversion.");
+            System.out.println("Debited: " + conversionResult.getTotalDebitAmount() + " " + conversionResult.getOriginalCurrency());
+            System.out.println("Credited: " + conversionResult.getConvertedAmount() + " " + conversionResult.getConvertedCurrency());
+            
+            return riskAssessment;
+        }
+    }
+
+    /**
+     * Currency conversion calculator - for preview purposes
+     */
+    public CurrencyConversionDto calculateCurrencyConversion(CurrencyConversionDto conversionDto) {
+        try {
+            CurrencyExchangeService.CurrencyConversionResult result = 
+                    currencyExchangeService.calculateConversion(
+                        conversionDto.getFromCurrency(), 
+                        conversionDto.getToCurrency(), 
+                        conversionDto.getAmount()
+                    );
+
+            // Map result to DTO
+            conversionDto.setOriginalAmount(result.getOriginalAmount());
+            conversionDto.setOriginalCurrency(result.getOriginalCurrency());
+            conversionDto.setConvertedAmount(result.getConvertedAmount());
+            conversionDto.setConvertedCurrency(result.getConvertedCurrency());
+            conversionDto.setExchangeRate(result.getExchangeRate());
+            conversionDto.setConversionCharges(result.getConversionCharges());
+            conversionDto.setTotalDebitAmount(result.getTotalDebitAmount());
+            conversionDto.setChargeBreakdown(result.getChargeBreakdown());
+            conversionDto.setSupported(true);
+
+            return conversionDto;
+        } catch (AmlApiException e) {
+            conversionDto.setSupported(false);
+            return conversionDto;
+        }
+    }
+
+    /**
+     * Process intercurrency transaction with enhanced risk assessment
+     */
+    private TransactionDto processIntercurrencyTransaction(
+            BankAccount fromAccount, 
+            BankAccount toAccount, 
+            CurrencyExchangeService.CurrencyConversionResult conversionResult,
+            String description, 
+            String receiverCountryCode) {
+        
+        // Use database-driven suspicious keyword analysis
+        int nlp = suspiciousKeywordService.calculateRiskScore(description);
+        System.out.println("Database-driven keyword risk score for intercurrency transfer: " + nlp);
+
+        // Find customer based on the account involved in the transaction
+        Customer customer = findCustomerFromAccount(fromAccount, toAccount);
+        
+        // Use receiver country code from request, with fallback to customer's country
+        String countryCode = (receiverCountryCode != null && !receiverCountryCode.trim().isEmpty()) 
+                ? receiverCountryCode.trim().toUpperCase() 
+                : getCountryCodeFromCustomer(customer);
+        
+        System.out.println("Intercurrency transfer - Customer: " + customer.getEmail() + ", Country: " + countryCode);
+        
+        return processIntercurrencyTransactionInternal(
+                fromAccount, toAccount, conversionResult, description, countryCode, nlp, customer
+        );
+    }
+
+    /**
+     * Internal method for intercurrency transaction processing with enhanced data storage
+     */
+    private TransactionDto processIntercurrencyTransactionInternal(
+            BankAccount fromAccount, 
+            BankAccount toAccount, 
+            CurrencyExchangeService.CurrencyConversionResult conversionResult,
+            String description, 
+            String countryCode, 
+            int nlp, 
+            Customer customer) {
+        
+        var input = TransactionInputDto.builder()
+                .txId("TEMP-" + UUID.randomUUID().toString())
+                .customerId(customer.getId().toString())
+                .amount(conversionResult.getOriginalAmount())
+                .countryCode(countryCode)
+                .nlpScore(nlp)
+                .text(description)
+                .transactionType(Transaction.TransactionType.INTERCURRENCY_TRANSFER)
+                .fromAccountNumber(fromAccount.getAccountNumber())
+                .toAccountNumber(toAccount.getAccountNumber())
+                .build();
+
+        EvaluationResultDto result = ruleEngine.evaluate(input);
+        int ruleScore = result.getTotalRiskScore();
+        int combinedScore = (nlp + ruleScore) / 2;
+
+        System.out.println("Intercurrency Risk Assessment - NLP: " + nlp + ", Rule Engine: " + ruleScore + ", Combined: " + combinedScore);
+
+        String status = (combinedScore >= 90) ? "BLOCKED" : (combinedScore >= 60) ? "FLAGGED" : "APPROVED";
+        String alertId = null;
+
+        if (combinedScore > 60) {
+            Alert alert = new Alert();
+            alert.setReason("HIGH_RISK_INTERCURRENCY_TRANSFER: Risk score of " + combinedScore + " exceeded threshold. " +
+                    "Conversion: " + conversionResult.getOriginalAmount() + " " + conversionResult.getOriginalCurrency() + 
+                    " → " + conversionResult.getConvertedAmount() + " " + conversionResult.getConvertedCurrency());
+            alert.setRiskScore(combinedScore);
+            alert.setStatus(Alert.AlertStatus.OPEN);
+            Alert savedAlert = alertRepo.save(alert);
+            alertId = savedAlert.getId().toString();
+        }
+
+        // Create transaction with intercurrency-specific data
+        Transaction transaction = Transaction.builder()
+                .transactionType(Transaction.TransactionType.INTERCURRENCY_TRANSFER)
+                .fromAccountNumber(fromAccount.getAccountNumber())
+                .toAccountNumber(toAccount.getAccountNumber())
+                .customerId(customer.getId())
+                .amount(conversionResult.getOriginalAmount())
+                .currency(conversionResult.getOriginalCurrency())
+                .description(description)
+                .status(status)
+                .nlpScore(nlp)
+                .ruleEngineScore(ruleScore)
+                .combinedRiskScore(combinedScore)
+                .thresholdExceeded(combinedScore > 70)
+                .alertId(alertId)
+                .transactionReference("ICT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                // Intercurrency specific fields
+                .originalAmount(conversionResult.getOriginalAmount())
+                .originalCurrency(conversionResult.getOriginalCurrency())
+                .convertedAmount(conversionResult.getConvertedAmount())
+                .convertedCurrency(conversionResult.getConvertedCurrency())
+                .exchangeRate(conversionResult.getExchangeRate())
+                .conversionCharges(conversionResult.getConversionCharges())
+                .totalDebitAmount(conversionResult.getTotalDebitAmount())
+                .build();
+
+        Transaction savedTransaction = txRepo.save(transaction);
+        
+        // Link alert to transaction if alert was created
+        if (alertId != null) {
+            Alert alert = alertRepo.findById(Long.parseLong(alertId)).orElse(null);
+            if (alert != null) {
+                alert.setTransactionId(savedTransaction.getId());
+                alertRepo.save(alert);
+            }
+        }
+        
+        TransactionDto transactionDto = modelMapper.map(savedTransaction, TransactionDto.class);
+        
+        // Add conversion details to response
+        transactionDto.setOriginalAmount(conversionResult.getOriginalAmount());
+        transactionDto.setOriginalCurrency(conversionResult.getOriginalCurrency());
+        transactionDto.setConvertedAmount(conversionResult.getConvertedAmount());
+        transactionDto.setConvertedCurrency(conversionResult.getConvertedCurrency());
+        transactionDto.setExchangeRate(conversionResult.getExchangeRate());
+        transactionDto.setConversionCharges(conversionResult.getConversionCharges());
+        transactionDto.setTotalDebitAmount(conversionResult.getTotalDebitAmount());
+        transactionDto.setChargeBreakdown(conversionResult.getChargeBreakdown());
+
+        return transactionDto;
     }
 }

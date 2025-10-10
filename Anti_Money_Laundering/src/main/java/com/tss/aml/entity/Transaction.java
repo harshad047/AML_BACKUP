@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Transaction {
 
     public enum TransactionType {
-        DEPOSIT, WITHDRAWAL, TRANSFER
+        DEPOSIT, WITHDRAWAL, TRANSFER, INTERCURRENCY_TRANSFER
     }
 
     @Id
@@ -62,6 +62,31 @@ public class Transaction {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    
+    @Column(name = "transaction_reference")
+    private String transactionReference;
+    
+    // Intercurrency exchange specific fields
+    @Column(name = "original_amount")
+    private BigDecimal originalAmount;
+    
+    @Column(name = "original_currency")
+    private String originalCurrency;
+    
+    @Column(name = "converted_amount")
+    private BigDecimal convertedAmount;
+    
+    @Column(name = "converted_currency")
+    private String convertedCurrency;
+    
+    @Column(name = "exchange_rate")
+    private BigDecimal exchangeRate;
+    
+    @Column(name = "conversion_charges")
+    private BigDecimal conversionCharges;
+    
+    @Column(name = "total_debit_amount")
+    private BigDecimal totalDebitAmount;
     
     @PrePersist
     protected void onCreate() {

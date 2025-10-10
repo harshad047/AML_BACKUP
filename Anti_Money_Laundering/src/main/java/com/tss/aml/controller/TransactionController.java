@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tss.aml.dto.BalanceDto;
+import com.tss.aml.dto.CurrencyConversionDto;
 import com.tss.aml.dto.DepositDto;
+import com.tss.aml.dto.IntercurrencyTransferDto;
 import com.tss.aml.dto.TransactionDto;
 import com.tss.aml.dto.TransferDto;
 import com.tss.aml.dto.WithdrawalDto;
@@ -42,6 +44,16 @@ public class TransactionController {
     @PostMapping("/transfer")
     public ResponseEntity<TransactionDto> transfer(@RequestBody TransferDto transferDto) {
         return ResponseEntity.ok(txService.transfer(transferDto));
+    }
+
+    @PostMapping("/intercurrency-transfer")
+    public ResponseEntity<TransactionDto> intercurrencyTransfer(@RequestBody IntercurrencyTransferDto transferDto) {
+        return ResponseEntity.ok(txService.intercurrencyTransfer(transferDto));
+    }
+
+    @PostMapping("/currency-conversion/calculate")
+    public ResponseEntity<CurrencyConversionDto> calculateCurrencyConversion(@RequestBody CurrencyConversionDto conversionDto) {
+        return ResponseEntity.ok(txService.calculateCurrencyConversion(conversionDto));
     }
     
     @GetMapping("/history")
