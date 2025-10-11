@@ -44,6 +44,24 @@ public class PasswordController {
     }
 
     /**
+     * Verify OTP for forgot password flow.
+     */
+    @PostMapping("/forgot-password/verify-otp")
+    public ResponseEntity<?> verifyForgotPasswordOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
+        String normalized = email == null ? null : email.trim();
+        if (normalized == null || normalized.isBlank() || otp == null || otp.isBlank()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email and OTP are required"));
+        }
+        
+        boolean otpValid = otpService.verifyOtp(normalized, otp);
+        if (!otpValid) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
+        }
+        
+        return ResponseEntity.ok(java.util.Map.of("verified", true, "message", "OTP verified successfully"));
+    }
+
+    /**
      * Reset password using email + OTP. Requires newPassword and confirmPassword to match.
      */
     @PostMapping("/forgot-password/reset")

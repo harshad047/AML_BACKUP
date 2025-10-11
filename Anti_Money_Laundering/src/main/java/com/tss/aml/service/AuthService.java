@@ -13,7 +13,11 @@ import org.springframework.stereotype.Service;
 import com.tss.aml.dto.Auth.AuthResponse;
 import com.tss.aml.dto.Auth.LoginDto;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Customer;
+import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.repository.UserRepository;
+import com.tss.aml.repository.CustomerRepository;
+import com.tss.aml.exception.AmlApiException;
 import com.tss.aml.security.JwtTokenProvider;
 import com.tss.aml.util.JwtUtil;
 
@@ -43,6 +47,9 @@ public class AuthService {
 	
 	@Autowired
 	private AuditLogService auditLogService;
+	
+	@Autowired
+	private CustomerRepository customerRepository;
 
 	public AuthResponse login(LoginDto loginDto) {
 		Authentication authentication = authenticationManager
@@ -57,6 +64,9 @@ public class AuthService {
 		if (role.startsWith("ROLE_")) {
 			role = role.substring(5);
 		}
+		
+		// Note: KYC validation removed - customers can login regardless of KYC status
+		// KYC status will be checked on dashboard and for specific banking operations
 
 		Long userId = null;
 		if (userDetails instanceof User) {
