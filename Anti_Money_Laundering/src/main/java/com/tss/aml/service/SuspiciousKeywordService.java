@@ -135,10 +135,10 @@ public class SuspiciousKeywordService {
      */
     public Map<String, Long> getKeywordStatistics() {
         return Map.of(
-            "CRITICAL", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.CRITICAL),
-            "HIGH", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.HIGH),
-            "MEDIUM", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.MEDIUM),
-            "LOW", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.LOW)
+            "CRITICAL", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.Critical),
+            "HIGH", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.High),
+            "MEDIUM", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.Medium),
+            "LOW", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.Low)
         );
     }
 
