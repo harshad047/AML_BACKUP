@@ -246,9 +246,21 @@ public class TransactionService {
     
     // Internal method that does the actual transaction processing
     private TransactionDto processTransactionInternal(BankAccount from, BankAccount to, BigDecimal amount, String currency, String desc, String countryCode, int nlp, Customer customer, Transaction.TransactionType type) {
-        
+        Transaction pendingTx = Transaction.builder()
+                .transactionType(type)
+                .fromAccountNumber(from != null ? from.getAccountNumber() : null)
+                .toAccountNumber(to != null ? to.getAccountNumber() : null)
+                .customerId(customer.getId())
+                .amount(amount)
+                .currency(currency)
+                .description(desc)
+                .status("PENDING")
+                .nlpScore(nlp)
+                .build();
+        Transaction savedTx = txRepo.save(pendingTx);
+
         var input = TransactionInputDto.builder()
-                .txId("TEMP-" + UUID.randomUUID().toString())
+                .txId(savedTx.getId().toString())
                 .customerId(customer.getId().toString())
                 .amount(amount)
                 .countryCode(countryCode)
@@ -258,33 +270,23 @@ public class TransactionService {
                 .fromAccountNumber(from != null ? from.getAccountNumber() : null)
                 .toAccountNumber(to != null ? to.getAccountNumber() : null)
                 .build();
-        
+
         System.out.println("Calling rule engine with input: " + input.getCustomerId() + ", Amount: " + input.getAmount() + ", Country: " + countryCode);
         EvaluationResultDto ruleResult = ruleEngine.evaluate(input);
         System.out.println("Rule engine result - Total Risk Score: " + ruleResult.getTotalRiskScore());
 
-        int combined = (int) (0.6*ruleResult.getTotalRiskScore() + 0.4*nlp);        
+        int combined = (int) (0.6*ruleResult.getTotalRiskScore() + 0.4*nlp);
         System.out.println("Combined Risk Score (max of NLP and Rule): " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
 
         String status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
         boolean exceeds = combined >= 60;
 
-        Transaction tx = Transaction.builder()
-                .transactionType(type)
-                .fromAccountNumber(from != null ? from.getAccountNumber() : null)
-                .toAccountNumber(to != null ? to.getAccountNumber() : null)
-                .customerId(customer.getId())
-                .amount(amount)
-                .currency(currency)
-                .description(desc)
-                .nlpScore(nlp)
-                .ruleEngineScore(ruleResult.getTotalRiskScore())
-                .combinedRiskScore(combined)
-                .thresholdExceeded(exceeds)
-                .status(status)
-                .transactionReference(generateTransactionReference(type))
-                .build();
-        Transaction savedTx = txRepo.save(tx);
+        savedTx.setRuleEngineScore(ruleResult.getTotalRiskScore());
+        savedTx.setCombinedRiskScore(combined);
+        savedTx.setThresholdExceeded(exceeds);
+        savedTx.setStatus(status);
+        savedTx.setTransactionReference(generateTransactionReference(type));
+        savedTx = txRepo.save(savedTx);
 
         if (exceeds) {
             Alert alert = new Alert();

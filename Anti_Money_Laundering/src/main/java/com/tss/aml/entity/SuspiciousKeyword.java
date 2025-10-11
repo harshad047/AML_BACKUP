@@ -69,10 +69,14 @@ public class SuspiciousKeyword {
     private LocalDateTime updatedAt;
 
     public enum RiskLevel {
-        LOW(1, 25),           // 1-25 points
+        LOW(1, 25),
+        Low(1, 25),
+        Medium(26,50),
         MEDIUM(26, 50),       // 26-50 points
-        HIGH(51, 75),         // 51-75 points
-        CRITICAL(76, 100);    // 76-100 points
+        HIGH(51, 75),
+        High(51, 75),// 51-75 points
+        CRITICAL(76, 100),
+    	Critical (76,100);// 76-100 points
 
         private final int minScore;
         private final int maxScore;
@@ -90,7 +94,7 @@ public class SuspiciousKeyword {
                 if (score >= level.minScore && score <= level.maxScore) {
                     return level;
                 }
-            }
+            } 
             return LOW; // Default fallback
         }
     }

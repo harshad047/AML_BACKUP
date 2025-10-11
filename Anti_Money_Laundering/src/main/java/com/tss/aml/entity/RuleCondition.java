@@ -24,8 +24,7 @@ public class RuleCondition {
     private String field;
     private String operator;
     private String value;
-    private boolean isActive = true;
-
+    private boolean isActive = true; 
     public enum ConditionType {
         AMOUNT, COUNTRY_RISK, NLP_SCORE, KEYWORD_MATCH, PAST_TRANSACTIONS, VELOCITY, STRUCTURING, BEHAVIORAL_DEVIATION,
         AMOUNT_BALANCE_RATIO, DAILY_TOTAL, NEW_COUNTERPARTY
