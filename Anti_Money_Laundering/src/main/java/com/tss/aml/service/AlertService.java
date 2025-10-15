@@ -1,7 +1,8 @@
 package com.tss.aml.service;
 
 import com.tss.aml.dto.compliance.AlertDto;
-import com.tss.aml.dto.transaction.TransactionDto;
+import com.tss.aml.dto.transaction.BaseTransactionDto;
+import com.tss.aml.dto.transaction.TransactionDtoFactory;
 import com.tss.aml.entity.Alert;
 import com.tss.aml.entity.BankAccount;
 import com.tss.aml.entity.Transaction;
@@ -13,7 +14,6 @@ import com.tss.aml.repository.BankAccountRepository;
 import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,17 +28,17 @@ public class AlertService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final BankAccountRepository bankAccountRepository;
-    private final ModelMapper modelMapper;
+    private final TransactionDtoFactory transactionDtoFactory;
 
     public List<AlertDto> getAlertsForCustomer(String usernameOrEmail) {
         User user = findUserByUsernameOrEmail(usernameOrEmail);
-        
+
         // Get user's account numbers
         List<BankAccount> userAccounts = bankAccountRepository.findByUserId(user.getId());
         List<String> userAccountNumbers = userAccounts.stream()
                 .map(BankAccount::getAccountNumber)
                 .collect(Collectors.toList());
-        
+
         // Get all transactions for this user's accounts
         List<Transaction> userTransactions = transactionRepository.findByFromAccountNumberInOrToAccountNumberInOrderByCreatedAtDesc(userAccountNumbers, userAccountNumbers);
 
@@ -49,14 +49,22 @@ public class AlertService {
 
         return alertRepository.findByTransactionIdIn(transactionIds).stream()
                 .map(alert -> {
-                    AlertDto dto = modelMapper.map(alert, AlertDto.class);
+                    // Create AlertDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+                    AlertDto dto = new AlertDto();
+                    dto.setId(alert.getId());
+                    dto.setTransactionId(alert.getTransactionId());
+                    dto.setReason(alert.getReason());
+                    dto.setRiskScore(alert.getRiskScore());
+                    dto.setStatus(alert.getStatus());
+                    dto.setCreatedAt(alert.getCreatedAt());
+
                     // Add transaction details
                     Transaction transaction = userTransactions.stream()
                             .filter(tx -> tx.getId().equals(alert.getTransactionId()))
                             .findFirst()
                             .orElse(null);
                     if (transaction != null) {
-                        TransactionDto txDto = modelMapper.map(transaction, TransactionDto.class);
+                        BaseTransactionDto txDto = transactionDtoFactory.createTransactionDto(transaction);
                         dto.setTransaction(txDto);
                     }
                     return dto;
@@ -91,8 +99,14 @@ public class AlertService {
             throw new AmlApiException(HttpStatus.FORBIDDEN, "Access denied to this alert");
         }
 
-        AlertDto dto = modelMapper.map(alert, AlertDto.class);
-        TransactionDto txDto = modelMapper.map(transaction, TransactionDto.class);
+        AlertDto dto = new AlertDto();
+        dto.setId(alert.getId());
+        dto.setTransactionId(alert.getTransactionId());
+        dto.setReason(alert.getReason());
+        dto.setRiskScore(alert.getRiskScore());
+        dto.setStatus(alert.getStatus());
+        dto.setCreatedAt(alert.getCreatedAt());
+        BaseTransactionDto txDto = transactionDtoFactory.createTransactionDto(transaction);
         dto.setTransaction(txDto);
         return dto;
     }
@@ -123,8 +137,15 @@ public class AlertService {
 
         return alertRepository.findByTransactionId(transactionId).stream()
                 .map(alert -> {
-                    AlertDto dto = modelMapper.map(alert, AlertDto.class);
-                    TransactionDto txDto = modelMapper.map(transaction, TransactionDto.class);
+                    // Create AlertDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+                    AlertDto dto = new AlertDto();
+                    dto.setId(alert.getId());
+                    dto.setTransactionId(alert.getTransactionId());
+                    dto.setReason(alert.getReason());
+                    dto.setRiskScore(alert.getRiskScore());
+                    dto.setStatus(alert.getStatus());
+                    dto.setCreatedAt(alert.getCreatedAt());
+                    BaseTransactionDto txDto = transactionDtoFactory.createTransactionDto(transaction);
                     dto.setTransaction(txDto);
                     return dto;
                 })
@@ -136,7 +157,7 @@ public class AlertService {
      */
     private User findUserByUsernameOrEmail(String usernameOrEmail) {
         return userRepository.findByUsername(usernameOrEmail)
-                .orElseGet(() -> 
+                .orElseGet(() ->
                     userRepository.findByEmail(usernameOrEmail)
                         .orElseThrow(() -> new ResourceNotFoundException("User", "username/email", usernameOrEmail))
                 );

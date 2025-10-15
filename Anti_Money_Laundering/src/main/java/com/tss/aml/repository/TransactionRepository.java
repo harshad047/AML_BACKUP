@@ -25,6 +25,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByCombinedRiskScoreGreaterThanEqualOrderByCreatedAtDesc(Integer riskScore);
     long countByStatus(String status);
     long countByCombinedRiskScoreGreaterThanEqual(Integer riskScore);
+    
+    List<Transaction> findTop20ByCustomerIdOrderByCreatedAtDesc(Long customerId);
 
     // Velocity and frequency: count high-value transactions in a time window for a customer and type
     long countByCustomerIdAndTransactionTypeAndAmountGreaterThanEqualAndCreatedAtAfter(
