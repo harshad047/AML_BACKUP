@@ -33,7 +33,6 @@ import com.tss.aml.repository.AlertRepository;
 import com.tss.aml.repository.BankAccountRepository;
 import com.tss.aml.repository.CaseRepository;
 import com.tss.aml.repository.CustomerRepository;
-import com.tss.aml.repository.CurrencyExchangeRepository;
 import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
 
@@ -228,10 +227,8 @@ public class TransactionService {
         int nlp = suspiciousKeywordService.calculateRiskScore(desc);
         System.out.println("Database-driven keyword risk score: " + nlp);
 
-        // Find customer based on the account involved in the transaction
         Customer customer = findCustomerFromAccount(from, to);
         
-        // Log customer info for debugging
         System.out.println("Transaction processing - Customer ID: " + customer.getId() + 
                           ", Email: " + customer.getEmail() + 
                           ", Name: " + customer.getFirstName() + " " + customer.getLastName());
@@ -277,8 +274,15 @@ public class TransactionService {
 
         int combined = (int) (0.6*ruleResult.getTotalRiskScore() + 0.4*nlp);
         System.out.println("Combined Risk Score (max of NLP and Rule): " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
-
-        String status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
+        String status;
+        if(nlp >= 60)
+        {
+        	status = "FLAGGED";
+        }
+        else
+        {
+         status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
+        }
         boolean exceeds = combined >= 60;
 
         savedTx.setRuleEngineScore(ruleResult.getTotalRiskScore());
@@ -288,7 +292,7 @@ public class TransactionService {
         savedTx.setTransactionReference(generateTransactionReference(type));
         savedTx = txRepo.save(savedTx);
 
-        if (exceeds) {
+        if (exceeds || nlp>=60) {
             Alert alert = new Alert();
             alert.setTransactionId(savedTx.getId());
             alert.setReason("Risk score of " + combined + " exceeded threshold.");
@@ -817,19 +821,27 @@ public class TransactionService {
 
         EvaluationResultDto result = ruleEngine.evaluate(input);
         int ruleScore = result.getTotalRiskScore();
-        int combinedScore = (int) (0.6*result.getTotalRiskScore() + 0.4*nlp);
+        int combined = (int) (0.6*result.getTotalRiskScore() + 0.4*nlp);
 
-        System.out.println("Intercurrency Risk Assessment - NLP: " + nlp + ", Rule Engine: " + ruleScore + ", Combined: " + combinedScore);
+        System.out.println("Intercurrency Risk Assessment - NLP: " + nlp + ", Rule Engine: " + ruleScore + ", Combined: " + combined);
 
-        String status = (combinedScore >= 90) ? "BLOCKED" : (combinedScore >= 60) ? "FLAGGED" : "APPROVED";
+        String status;
+        if(nlp >= 60)
+        {
+        	status = "FLAGGED";
+        }
+        else
+        {
+         status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
+        }
         String alertId = null;
 
-        if (combinedScore > 60) {
+        if (combined > 60) {
             Alert alert = new Alert();
-            alert.setReason("HIGH_RISK_INTERCURRENCY_TRANSFER: Risk score of " + combinedScore + " exceeded threshold. " +
+            alert.setReason("HIGH_RISK_INTERCURRENCY_TRANSFER: Risk score of " + combined + " exceeded threshold. " +
                     "Conversion: " + conversionResult.getOriginalAmount() + " " + conversionResult.getOriginalCurrency() + 
                     " → " + conversionResult.getConvertedAmount() + " " + conversionResult.getConvertedCurrency());
-            alert.setRiskScore(combinedScore);
+            alert.setRiskScore(combined);
             alert.setStatus(Alert.AlertStatus.OPEN);
             Alert savedAlert = alertRepo.save(alert);
             alertId = savedAlert.getId().toString();
@@ -847,8 +859,8 @@ public class TransactionService {
                 .status(status)
                 .nlpScore(nlp)
                 .ruleEngineScore(ruleScore)
-                .combinedRiskScore(combinedScore)
-                .thresholdExceeded(combinedScore > 70)
+                .combinedRiskScore(combined)
+                .thresholdExceeded(combined > 60)
                 .alertId(alertId)
                 .transactionReference(generateTransactionReference(Transaction.TransactionType.INTERCURRENCY_TRANSFER))
                 // Intercurrency specific fields
