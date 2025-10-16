@@ -26,14 +26,16 @@ public class KeywordMatchEvaluator implements RuleEvaluator {
         String operator = condition.getOperator();
         
         boolean result = false;
-        if ("CONTAINS".equalsIgnoreCase(operator)) {
+        if (">".equals(operator)) {
             result = containsWholeWord(cleanText, keyword);
-        } else if ("EQUALS".equalsIgnoreCase(operator)) {
+        } else if (">=".equals(operator)) {
+            result = cleanText.contains(keyword);
+        } else if ("==".equals(operator)) {
             result = cleanText.equals(keyword);
-        } else if ("STARTS_WITH".equalsIgnoreCase(operator)) {
-            result = cleanText.startsWith(keyword);
-        } else if ("ENDS_WITH".equalsIgnoreCase(operator)) {
-            result = cleanText.endsWith(keyword);
+        } else if ("<=".equals(operator)) {
+            result = cleanText.contains(keyword) || cleanText.startsWith(keyword) || cleanText.endsWith(keyword);
+        } else if ("<".equals(operator)) {
+            result = !cleanText.contains(keyword);
         } else {
             // Default to CONTAINS for backward compatibility
             result = containsWholeWord(cleanText, keyword);

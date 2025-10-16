@@ -836,7 +836,7 @@ public class TransactionService {
         }
         String alertId = null;
 
-        if (combined > 60) {
+        if (combined > 60 || nlp >=60) {
             Alert alert = new Alert();
             alert.setReason("HIGH_RISK_INTERCURRENCY_TRANSFER: Risk score of " + combined + " exceeded threshold. " +
                     "Conversion: " + conversionResult.getOriginalAmount() + " " + conversionResult.getOriginalCurrency() + 

@@ -1,11 +1,14 @@
 package com.tss.aml.dto.transaction;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tss.aml.dto.compliance.ObstructedRuleDto;
 import com.tss.aml.entity.Transaction;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -37,5 +40,9 @@ public class TransactionDto {
     private BigDecimal conversionCharges;
     private BigDecimal totalDebitAmount;
     private String chargeBreakdown;
+    
+    // Rules that obstructed this transaction
+    @JsonProperty("obstructedRules")
+    private List<ObstructedRuleDto> obstructedRules;
 }
 

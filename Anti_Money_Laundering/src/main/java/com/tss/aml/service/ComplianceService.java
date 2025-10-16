@@ -8,16 +8,20 @@ import org.springframework.stereotype.Service;
 
 import com.tss.aml.dto.compliance.AlertDto;
 import com.tss.aml.dto.compliance.CaseDto;
+import com.tss.aml.dto.compliance.NoteDto;
+import com.tss.aml.dto.compliance.ObstructedRuleDto;
 import com.tss.aml.dto.transaction.BaseTransactionDto;
 import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.dto.transaction.TransactionDtoFactory;
 import com.tss.aml.entity.Alert;
 import com.tss.aml.entity.Case;
 import com.tss.aml.entity.InvestigationNote;
+import com.tss.aml.entity.RuleExecutionLog;
 import com.tss.aml.entity.Transaction;
 import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.AlertRepository;
 import com.tss.aml.repository.CaseRepository;
+import com.tss.aml.repository.RuleExecutionLogRepository;
 import com.tss.aml.repository.TransactionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ public class ComplianceService {
     private final AlertRepository alertRepository;
     private final CaseRepository caseRepository;
     private final TransactionRepository transactionRepository;
+    private final RuleExecutionLogRepository ruleExecutionLogRepository;
     private final ModelMapper modelMapper;
     private final TransactionDtoFactory transactionDtoFactory;
 
@@ -56,7 +61,22 @@ public class ComplianceService {
         caseInstance.setAlert(alert);
         caseInstance.setAssignedTo(assignedTo);
         Case savedCase = caseRepository.save(caseInstance);
-        return modelMapper.map(savedCase, CaseDto.class);
+
+        // Create CaseDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+        CaseDto dto = new CaseDto();
+        dto.setId(savedCase.getId());
+        dto.setAssignedTo(savedCase.getAssignedTo());
+        dto.setStatus(savedCase.getStatus());
+        dto.setCreatedAt(savedCase.getCreatedAt());
+        dto.setUpdatedAt(savedCase.getUpdatedAt());
+
+        // Map alert manually
+        if (savedCase.getAlert() != null) {
+            AlertDto alertDto = mapAlertWithTransaction(savedCase.getAlert());
+            dto.setAlert(alertDto);
+        }
+
+        return dto;
     }
 
     public CaseDto addNoteToCase(Long caseId, String author, String content) {
@@ -70,7 +90,37 @@ public class ComplianceService {
 
         foundCase.getNotes().add(note);
         Case savedCase = caseRepository.save(foundCase);
-        return modelMapper.map(savedCase, CaseDto.class);
+
+        // Create CaseDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+        CaseDto dto = new CaseDto();
+        dto.setId(savedCase.getId());
+        dto.setAssignedTo(savedCase.getAssignedTo());
+        dto.setStatus(savedCase.getStatus());
+        dto.setCreatedAt(savedCase.getCreatedAt());
+        dto.setUpdatedAt(savedCase.getUpdatedAt());
+
+        // Map alert manually
+        if (savedCase.getAlert() != null) {
+            AlertDto alertDto = mapAlertWithTransaction(savedCase.getAlert());
+            dto.setAlert(alertDto);
+        }
+
+        // Map notes manually
+        if (savedCase.getNotes() != null) {
+            List<NoteDto> noteDtos = savedCase.getNotes().stream()
+                    .map(noteEntity -> {
+                        NoteDto noteDto = new NoteDto();
+                        noteDto.setId(noteEntity.getId());
+                        noteDto.setAuthor(noteEntity.getAuthor());
+                        noteDto.setContent(noteEntity.getContent());
+                        noteDto.setCreatedAt(noteEntity.getCreatedAt());
+                        return noteDto;
+                    })
+                    .collect(Collectors.toList());
+            dto.setNotes(noteDtos);
+        }
+
+        return dto;
     }
     
     /**
@@ -78,7 +128,11 @@ public class ComplianceService {
      */
     public List<TransactionDto> getFlaggedTransactions() {
         return transactionRepository.findByStatusOrderByCreatedAtDesc("FLAGGED").stream()
-                .map(transaction -> modelMapper.map(transaction, TransactionDto.class))
+                .map(transaction -> {
+                    TransactionDto dto = modelMapper.map(transaction, TransactionDto.class);
+                    populateObstructedRules(dto);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -87,7 +141,11 @@ public class ComplianceService {
      */
     public List<BaseTransactionDto> getFlaggedTransactionsOptimized() {
         return transactionRepository.findByStatusOrderByCreatedAtDesc("FLAGGED").stream()
-                .map(transactionDtoFactory::createTransactionDto)
+                .map(transaction -> {
+                    BaseTransactionDto dto = transactionDtoFactory.createTransactionDto(transaction);
+                    populateObstructedRules(dto);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -96,7 +154,11 @@ public class ComplianceService {
      */
     public List<TransactionDto> getBlockedTransactions() {
         return transactionRepository.findByStatusOrderByCreatedAtDesc("BLOCKED").stream()
-                .map(transaction -> modelMapper.map(transaction, TransactionDto.class))
+                .map(transaction -> {
+                    TransactionDto dto = modelMapper.map(transaction, TransactionDto.class);
+                    populateObstructedRules(dto);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -105,7 +167,11 @@ public class ComplianceService {
      */
     public List<BaseTransactionDto> getBlockedTransactionsOptimized() {
         return transactionRepository.findByStatusOrderByCreatedAtDesc("BLOCKED").stream()
-                .map(transactionDtoFactory::createTransactionDto)
+                .map(transaction -> {
+                    BaseTransactionDto dto = transactionDtoFactory.createTransactionDto(transaction);
+                    populateObstructedRules(dto);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -114,7 +180,11 @@ public class ComplianceService {
      */
     public List<TransactionDto> getAllTransactions() {
         return transactionRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(tx -> modelMapper.map(tx, TransactionDto.class))
+                .map(tx -> {
+                    TransactionDto dto = modelMapper.map(tx, TransactionDto.class);
+                    populateObstructedRules(dto);
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -141,7 +211,9 @@ public class ComplianceService {
     public TransactionDto getTransactionById(Long transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
-        return modelMapper.map(transaction, TransactionDto.class);
+        TransactionDto dto = modelMapper.map(transaction, TransactionDto.class);
+        populateObstructedRules(dto);
+        return dto;
     }
     
     /**
@@ -150,7 +222,38 @@ public class ComplianceService {
     public List<CaseDto> getCasesUnderInvestigation() {
         return caseRepository.findAll().stream()
                 .filter(caseEntity -> caseEntity.getStatus() == Case.CaseStatus.UNDER_INVESTIGATION)
-                .map(caseEntity -> modelMapper.map(caseEntity, CaseDto.class))
+                .map(caseEntity -> {
+                    // Create CaseDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+                    CaseDto dto = new CaseDto();
+                    dto.setId(caseEntity.getId());
+                    dto.setAssignedTo(caseEntity.getAssignedTo());
+                    dto.setStatus(caseEntity.getStatus());
+                    dto.setCreatedAt(caseEntity.getCreatedAt());
+                    dto.setUpdatedAt(caseEntity.getUpdatedAt());
+
+                    // Map alert manually
+                    if (caseEntity.getAlert() != null) {
+                        AlertDto alertDto = mapAlertWithTransaction(caseEntity.getAlert());
+                        dto.setAlert(alertDto);
+                    }
+
+                    // Map notes manually
+                    if (caseEntity.getNotes() != null) {
+                        List<NoteDto> noteDtos = caseEntity.getNotes().stream()
+                                .map(note -> {
+                                    NoteDto noteDto = new NoteDto();
+                                    noteDto.setId(note.getId());
+                                    noteDto.setAuthor(note.getAuthor());
+                                    noteDto.setContent(note.getContent());
+                                    noteDto.setCreatedAt(note.getCreatedAt());
+                                    return noteDto;
+                                })
+                                .collect(Collectors.toList());
+                        dto.setNotes(noteDtos);
+                    }
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -160,7 +263,38 @@ public class ComplianceService {
     public List<CaseDto> getResolvedCases() {
         return caseRepository.findAll().stream()
                 .filter(caseEntity -> caseEntity.getStatus() == Case.CaseStatus.RESOLVED)
-                .map(caseEntity -> modelMapper.map(caseEntity, CaseDto.class))
+                .map(caseEntity -> {
+                    // Create CaseDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+                    CaseDto dto = new CaseDto();
+                    dto.setId(caseEntity.getId());
+                    dto.setAssignedTo(caseEntity.getAssignedTo());
+                    dto.setStatus(caseEntity.getStatus());
+                    dto.setCreatedAt(caseEntity.getCreatedAt());
+                    dto.setUpdatedAt(caseEntity.getUpdatedAt());
+
+                    // Map alert manually
+                    if (caseEntity.getAlert() != null) {
+                        AlertDto alertDto = mapAlertWithTransaction(caseEntity.getAlert());
+                        dto.setAlert(alertDto);
+                    }
+
+                    // Map notes manually
+                    if (caseEntity.getNotes() != null) {
+                        List<NoteDto> noteDtos = caseEntity.getNotes().stream()
+                                .map(note -> {
+                                    NoteDto noteDto = new NoteDto();
+                                    noteDto.setId(note.getId());
+                                    noteDto.setAuthor(note.getAuthor());
+                                    noteDto.setContent(note.getContent());
+                                    noteDto.setCreatedAt(note.getCreatedAt());
+                                    return noteDto;
+                                })
+                                .collect(Collectors.toList());
+                        dto.setNotes(noteDtos);
+                    }
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
     
@@ -170,7 +304,37 @@ public class ComplianceService {
     public CaseDto getCaseById(Long caseId) {
         Case caseEntity = caseRepository.findById(caseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Case", "id", caseId));
-        return modelMapper.map(caseEntity, CaseDto.class);
+
+        // Create CaseDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+        CaseDto dto = new CaseDto();
+        dto.setId(caseEntity.getId());
+        dto.setAssignedTo(caseEntity.getAssignedTo());
+        dto.setStatus(caseEntity.getStatus());
+        dto.setCreatedAt(caseEntity.getCreatedAt());
+        dto.setUpdatedAt(caseEntity.getUpdatedAt());
+
+        // Map alert manually
+        if (caseEntity.getAlert() != null) {
+            AlertDto alertDto = mapAlertWithTransaction(caseEntity.getAlert());
+            dto.setAlert(alertDto);
+        }
+
+        // Map notes manually
+        if (caseEntity.getNotes() != null) {
+            List<NoteDto> noteDtos = caseEntity.getNotes().stream()
+                    .map(note -> {
+                        NoteDto noteDto = new NoteDto();
+                        noteDto.setId(note.getId());
+                        noteDto.setAuthor(note.getAuthor());
+                        noteDto.setContent(note.getContent());
+                        noteDto.setCreatedAt(note.getCreatedAt());
+                        return noteDto;
+                    })
+                    .collect(Collectors.toList());
+            dto.setNotes(noteDtos);
+        }
+
+        return dto;
     }
     
     /**
@@ -190,10 +354,11 @@ public class ComplianceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
         
         TransactionDto transactionDto = modelMapper.map(transaction, TransactionDto.class);
+        populateObstructedRules(transactionDto);
         
         // Get alerts for this transaction
         List<AlertDto> alerts = getAlertsForTransaction(transactionId);
-        // Note: You may need to add alerts field to TransactionDto if not present
+        // Note: You may need to add alerts field to BaseTransactionDto if not present
         
         return transactionDto;
     }
@@ -217,7 +382,9 @@ public class ComplianceService {
                 .map(transactionId -> {
                     Transaction transaction = transactionRepository.findById(transactionId).orElse(null);
                     if (transaction != null) {
-                        return modelMapper.map(transaction, TransactionDto.class);
+                        TransactionDto dto = modelMapper.map(transaction, TransactionDto.class);
+                        populateObstructedRules(dto);
+                        return dto;
                     }
                     return null;
                 })
@@ -232,6 +399,7 @@ public class ComplianceService {
         return transactionRepository.findByStatusOrderByCreatedAtDesc("FLAGGED").stream()
                 .map(transaction -> {
                     TransactionDto dto = modelMapper.map(transaction, TransactionDto.class);
+                    populateObstructedRules(dto);
                     // You can add alert count or other alert-related info here if needed
                     return dto;
                 })
@@ -242,26 +410,88 @@ public class ComplianceService {
      * Helper method to create a properly mapped AlertDto with transaction details
      */
     private AlertDto mapAlertWithTransaction(Alert alert) {
-        AlertDto alertDto = modelMapper.map(alert, AlertDto.class);
-        
+        // Create AlertDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
+        AlertDto alertDto = new AlertDto();
+        alertDto.setId(alert.getId());
+        alertDto.setTransactionId(alert.getTransactionId());
+        alertDto.setReason(alert.getReason());
+        alertDto.setRiskScore(alert.getRiskScore());
+        alertDto.setStatus(alert.getStatus());
+        alertDto.setCreatedAt(alert.getCreatedAt());
+
         // Manually fetch and set transaction details using the factory
         if (alert.getTransactionId() != null) {
             try {
                 Transaction transaction = transactionRepository.findById(alert.getTransactionId()).orElse(null);
                 if (transaction != null) {
+                    // Use the factory to create transaction DTO with proper type handling
                     BaseTransactionDto transactionDto = transactionDtoFactory.createTransactionDto(transaction);
-                    // Note: AlertDto.transaction field needs to be updated to BaseTransactionDto
-                    // For now, we'll keep the old mapping to maintain compatibility
-                    TransactionDto legacyDto = modelMapper.map(transaction, TransactionDto.class);
-                    alertDto.setTransaction(legacyDto);
+
+                    // Populate obstructed rules for this transaction
+                    populateObstructedRules(transactionDto);
+
+                    // Set the transaction DTO with obstructed rules in the alert
+                    alertDto.setTransaction(transactionDto);
                 }
             } catch (Exception e) {
                 // Log error but don't fail the entire operation
                 System.err.println("Error fetching transaction for alert " + alert.getId() + ": " + e.getMessage());
             }
         }
-        
+
         return alertDto;
+    }
+    
+    /**
+     * Helper method to populate obstructed rules for a transaction DTO
+     */
+    private void populateObstructedRules(TransactionDto transactionDto) {
+        if (transactionDto != null && transactionDto.getId() != null) {
+            List<RuleExecutionLog> ruleLogs = ruleExecutionLogRepository.findByTransactionIdAndMatchedTrueOrderByEvaluatedAtDesc(transactionDto.getId().toString());
+
+            List<ObstructedRuleDto> obstructedRules = ruleLogs.stream()
+                    .map(log -> new ObstructedRuleDto(
+                            log.getRule().getId(),
+                            log.getRule().getName(),
+                            log.getRule().getAction(),
+                            log.getRule().getRiskWeight(),
+                            log.getRule().getPriority(),
+                            log.getDetails(),
+                            log.getEvaluatedAt()
+                    ))
+                    .collect(Collectors.toList());
+
+            transactionDto.setObstructedRules(obstructedRules);
+        } else {
+            // Ensure obstructedRules is never null
+            transactionDto.setObstructedRules(new java.util.ArrayList<>());
+        }
+    }
+
+    /**
+     * Helper method to populate obstructed rules for a base transaction DTO
+     */
+    private void populateObstructedRules(BaseTransactionDto transactionDto) {
+        if (transactionDto != null && transactionDto.getId() != null) {
+            List<RuleExecutionLog> ruleLogs = ruleExecutionLogRepository.findByTransactionIdAndMatchedTrueOrderByEvaluatedAtDesc(transactionDto.getId().toString());
+
+            List<ObstructedRuleDto> obstructedRules = ruleLogs.stream()
+                    .map(log -> new ObstructedRuleDto(
+                            log.getRule().getId(),
+                            log.getRule().getName(),
+                            log.getRule().getAction(),
+                            log.getRule().getRiskWeight(),
+                            log.getRule().getPriority(),
+                            log.getDetails(),
+                            log.getEvaluatedAt()
+                    ))
+                    .collect(Collectors.toList());
+
+            transactionDto.setObstructedRules(obstructedRules);
+        } else {
+            // Ensure obstructedRules is never null
+            transactionDto.setObstructedRules(new java.util.ArrayList<>());
+        }
     }
 }
 

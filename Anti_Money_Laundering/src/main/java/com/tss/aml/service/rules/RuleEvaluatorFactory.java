@@ -25,6 +25,7 @@ public class RuleEvaluatorFactory {
     private final BalanceRatioEvaluator balanceRatioEvaluator;
     private final DailyTotalEvaluator dailyTotalEvaluator;
     private final NewCounterpartyEvaluator newCounterpartyEvaluator;
+    private final PatternDepositWithdrawEvaluator patternDepositWithdrawEvaluator;
 
     private final Map<ConditionType, RuleEvaluator> evaluators = new EnumMap<>(ConditionType.class);
 
@@ -41,6 +42,7 @@ public class RuleEvaluatorFactory {
         evaluators.put(ConditionType.AMOUNT_BALANCE_RATIO, balanceRatioEvaluator);
         evaluators.put(ConditionType.DAILY_TOTAL, dailyTotalEvaluator);
         evaluators.put(ConditionType.NEW_COUNTERPARTY, newCounterpartyEvaluator);
+        evaluators.put(ConditionType.PATTERN_DEPOSIT_WITHDRAW, patternDepositWithdrawEvaluator);
     }
 
     public RuleEvaluator getEvaluator(ConditionType type) {

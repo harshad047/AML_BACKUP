@@ -70,6 +70,18 @@ public class NewCounterpartyEvaluator implements RuleEvaluator {
                     after,
                     types
             );
+            
+            // 🟩 ADD LOG HERE
+            log.info(
+                "Evaluating NEW_COUNTERPARTY: customerId={}, toAcc={}, after={}, types={}, priorCount={}, amount={}, minAmount={}",
+                customerId,
+                input.getToAccountNumber(),
+                after,
+                types,
+                priorCount,
+                input.getAmount(),
+                minAmount
+            );
 
             boolean result = priorCount == 0;
             log.debug("NewCounterpartyEvaluator: priorCount={} (lookbackDays={}), minAmount={}, types={} => {}",

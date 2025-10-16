@@ -2,11 +2,14 @@ package com.tss.aml.dto.transaction;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tss.aml.dto.compliance.ObstructedRuleDto;
 import com.tss.aml.entity.Transaction;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "transactionType")
@@ -34,5 +37,9 @@ public abstract class BaseTransactionDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String transactionReference;
+    
+    // Rules that obstructed this transaction
+    @JsonProperty("obstructedRules")
+    private List<ObstructedRuleDto> obstructedRules;
 }
 
