@@ -227,10 +227,8 @@ public class TransactionService {
         int nlp = suspiciousKeywordService.calculateRiskScore(desc);
         System.out.println("Database-driven keyword risk score: " + nlp);
 
-        // Find customer based on the account involved in the transaction
         Customer customer = findCustomerFromAccount(from, to);
         
-        // Log customer info for debugging
         System.out.println("Transaction processing - Customer ID: " + customer.getId() + 
                           ", Email: " + customer.getEmail() + 
                           ", Name: " + customer.getFirstName() + " " + customer.getLastName());

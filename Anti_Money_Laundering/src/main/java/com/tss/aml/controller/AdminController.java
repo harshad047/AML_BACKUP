@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -71,6 +72,11 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateRule(id, ruleDto));
     }
 
+    @PatchMapping("/rules/{id}/toggle")
+    public ResponseEntity<RuleDto> toggleRuleStatus(@PathVariable Long id, @RequestParam boolean active) {
+        return ResponseEntity.ok(adminService.toggleRuleStatus(id, active));
+    }
+
     @DeleteMapping("/rules/{id}")
     public ResponseEntity<Void> deleteRule(@PathVariable Long id) {
         adminService.deleteRule(id);
@@ -85,6 +91,12 @@ public class AdminController {
     @PostMapping("/keywords")
     public ResponseEntity<SuspiciousKeywordDto> addKeyword(@RequestBody SuspiciousKeywordDto keywordDto) {
         return new ResponseEntity<>(adminService.addKeyword(keywordDto), HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/keywords/{id}")
+    public ResponseEntity<Void> deleteKeyword(@PathVariable Long id) {
+        adminService.deleteKeyword(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/accounts/pending")
