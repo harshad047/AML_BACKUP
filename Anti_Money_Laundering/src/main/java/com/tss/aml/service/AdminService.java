@@ -12,21 +12,21 @@ import org.springframework.stereotype.Service;
 
 import com.tss.aml.dto.account.BankAccountDto;
 import com.tss.aml.dto.admin.CreateUserDto;
-import com.tss.aml.dto.compliance.RuleDto;
-import com.tss.aml.dto.compliance.CountryRiskDto;
-import com.tss.aml.dto.transaction.TransactionDto;
-import com.tss.aml.dto.compliance.SuspiciousKeywordDto;
 import com.tss.aml.dto.admin.UserDto;
+import com.tss.aml.dto.compliance.CountryRiskDto;
+import com.tss.aml.dto.compliance.RuleConditionDto;
+import com.tss.aml.dto.compliance.RuleDto;
+import com.tss.aml.dto.compliance.SuspiciousKeywordDto;
+import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.entity.BankAccount;
+import com.tss.aml.entity.CountryRisk;
 import com.tss.aml.entity.Role;
 import com.tss.aml.entity.Rule;
-import com.tss.aml.entity.CountryRisk;
+import com.tss.aml.entity.RuleCondition;
 import com.tss.aml.entity.SuspiciousKeyword;
 import com.tss.aml.entity.User;
-import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Enums.AccountStatus;
 import com.tss.aml.entity.Enums.ApprovalStatus;
-import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.exception.AmlApiException;
 import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.AlertRepository;
@@ -82,29 +82,152 @@ public class AdminService {
 
     public List<RuleDto> getAllRules() {
         return ruleRepository.findAll().stream()
-                .map(rule -> modelMapper.map(rule, RuleDto.class))
+                .map(this::mapRuleToDto)
                 .collect(Collectors.toList());
+    }
+    
+    private RuleDto mapRuleToDto(Rule rule) {
+        RuleDto dto = new RuleDto();
+        dto.setId(rule.getId());
+        dto.setName(rule.getName());
+        dto.setDescription(rule.getDescription());
+        dto.setPriority(rule.getPriority());
+        dto.setAction(rule.getAction());
+        dto.setRiskWeight(rule.getRiskWeight());
+        
+        dto.setActive(rule.isActive()); // Explicit mapping for boolean field
+        
+        if (rule.getConditions() != null) {
+            List<RuleConditionDto> conditionDtos = rule.getConditions().stream()
+                    .map(this::mapConditionToDto)
+                    .collect(Collectors.toList());
+            dto.setConditions(conditionDtos);
+        }
+        
+        return dto;
+    }
+    
+    private RuleConditionDto mapConditionToDto(RuleCondition condition) {
+        RuleConditionDto dto = new RuleConditionDto();
+        dto.setId(condition.getId());
+        dto.setType(condition.getType());
+        dto.setField(condition.getField());
+        dto.setOperator(condition.getOperator());
+        dto.setValue(condition.getValue());
+        
+        dto.setActive(condition.isActive()); // Explicit mapping for boolean field
+        return dto;
     }
 
     public RuleDto createRule(RuleDto ruleDto) {
-        Rule rule = modelMapper.map(ruleDto, Rule.class);
+        // Create the Rule entity manually to handle relationships properly
+        // Note: New rules and conditions are always created as active (isActive = true)
+        Rule rule = Rule.builder()
+                .name(ruleDto.getName())
+                .description(ruleDto.getDescription())
+                .priority(ruleDto.getPriority())
+                .action(ruleDto.getAction())
+                .riskWeight(ruleDto.getRiskWeight())
+                .isActive(true)  // Force new rules to be active by default
+                .build();
+        
+        // Save the rule first to get the ID
         Rule savedRule = ruleRepository.save(rule);
+        
+        // Now handle the conditions if they exist
+        if (ruleDto.getConditions() != null && !ruleDto.getConditions().isEmpty()) {
+            List<RuleCondition> conditions = ruleDto.getConditions().stream()
+                    .map(conditionDto -> RuleCondition.builder()
+                            .rule(savedRule)  // Set the saved rule reference
+                            .type(conditionDto.getType())
+                            .field(conditionDto.getField())
+                            .operator(conditionDto.getOperator())
+                            .value(conditionDto.getValue())
+                            .isActive(true)  // Force new conditions to be active by default
+                            .build())
+                    .collect(Collectors.toList());
+            
+            savedRule.setConditions(conditions);
+            // Save again to persist the conditions
+            ruleRepository.save(savedRule);
+        }
         
         // Log rule creation
         auditLogService.logRuleCreation("ADMIN", savedRule.getName());
         
-        return modelMapper.map(savedRule, RuleDto.class);
+        return mapRuleToDto(savedRule);
     }
 
     public RuleDto updateRule(Long id, RuleDto ruleDto) {
         Rule existing = ruleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
+        
+        // Update basic rule properties
         existing.setName(ruleDto.getName());
         existing.setDescription(ruleDto.getDescription());
+        existing.setPriority(ruleDto.getPriority());
+        existing.setAction(ruleDto.getAction());
+        existing.setRiskWeight(ruleDto.getRiskWeight());
         existing.setActive(ruleDto.isActive());
+        
+        // Handle conditions update
+        if (ruleDto.getConditions() != null) {
+            // Clear existing conditions
+            existing.getConditions().clear();
+            
+            // Add new conditions with automatic activation/deactivation based on rule status
+            List<RuleCondition> newConditions = ruleDto.getConditions().stream()
+                    .map(conditionDto -> RuleCondition.builder()
+                            .rule(existing)  // Set the existing rule reference
+                            .type(conditionDto.getType())
+                            .field(conditionDto.getField())
+                            .operator(conditionDto.getOperator())
+                            .value(conditionDto.getValue())
+                            // Auto-activate/deactivate conditions based on rule status
+                            .isActive(ruleDto.isActive() ? conditionDto.isActive() : false)
+                            .build())
+                    .collect(Collectors.toList());
+            
+            existing.setConditions(newConditions);
+        } else {
+            // If no conditions provided in update, just update existing conditions based on rule status
+            if (existing.getConditions() != null) {
+                existing.getConditions().forEach(condition -> 
+                    condition.setActive(ruleDto.isActive() ? condition.isActive() : false)
+                );
+            }
+        }
+        
         Rule saved = ruleRepository.save(existing);
         auditLogService.logRuleCreation("ADMIN", "Updated: " + saved.getName());
-        return modelMapper.map(saved, RuleDto.class);
+        return mapRuleToDto(saved);
+    }
+
+    public RuleDto toggleRuleStatus(Long id, boolean isActive) {
+        Rule existing = ruleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
+        
+        // Update rule status
+        existing.setActive(isActive);
+        
+        // Auto-activate/deactivate all conditions based on rule status
+        if (existing.getConditions() != null) {
+            existing.getConditions().forEach(condition -> {
+                if (isActive) {
+                    // When activating rule, restore condition to active (you might want to store previous state)
+                    condition.setActive(true);
+                } else {
+                    // When deactivating rule, deactivate all conditions
+                    condition.setActive(false);
+                }
+            });
+        }
+        
+        Rule saved = ruleRepository.save(existing);
+        String action = isActive ? "Activated" : "Deactivated";
+        auditLogService.logRuleCreation("ADMIN", action + ": " + saved.getName());
+        
+        return mapRuleToDto(saved);
     }
 
     public void deleteRule(Long id) {
@@ -124,6 +247,13 @@ public class AdminService {
         SuspiciousKeyword keyword = modelMapper.map(keywordDto, SuspiciousKeyword.class);
         SuspiciousKeyword savedKeyword = suspiciousKeywordRepository.save(keyword);
         return modelMapper.map(savedKeyword, SuspiciousKeywordDto.class);
+    }
+
+    public void deleteKeyword(Long id) {
+        SuspiciousKeyword existing = suspiciousKeywordRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("SuspiciousKeyword", "id", id));
+        suspiciousKeywordRepository.delete(existing);
+        auditLogService.logRuleCreation("ADMIN", "Deleted keyword: " + existing.getKeyword());
     }
 
     public List<BankAccountDto> getPendingAccounts() {
@@ -169,7 +299,14 @@ public class AdminService {
     }
 
     public CountryRiskDto createCountryRisk(CountryRiskDto dto) {
-        CountryRisk entity = modelMapper.map(dto, CountryRisk.class);
+        // Manual mapping to handle null riskScore safely
+        CountryRisk entity = CountryRisk.builder()
+                .countryCode(dto.getCountryCode())
+                .countryName(dto.getCountryName())
+                .riskScore(dto.getRiskScore() != null ? dto.getRiskScore() : 0)
+                .notes(dto.getNotes())
+                .isActive(dto.isActive())
+                .build();
         CountryRisk saved = countryRiskRepository.save(entity);
         return modelMapper.map(saved, CountryRiskDto.class);
     }
@@ -179,7 +316,8 @@ public class AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("CountryRisk", "id", id));
         existing.setCountryCode(dto.getCountryCode());
         existing.setCountryName(dto.getCountryName());
-        existing.setRiskScore(dto.getRiskScore());
+        // Handle null riskScore safely
+        existing.setRiskScore(dto.getRiskScore() != null ? dto.getRiskScore() : 0);
         existing.setNotes(dto.getNotes());
         existing.setActive(dto.isActive());
         CountryRisk saved = countryRiskRepository.save(existing);
