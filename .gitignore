@@ -1,1 +1,9 @@
 .metadata
+
+# Other ignored files...
+
+# Ignore Angular node_modules folder
+aml-frontend/node_modules
+
+# You might also want to ignore the .angular cache directory
+aml-frontend/.angular

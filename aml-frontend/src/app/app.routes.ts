@@ -1,0 +1,63 @@
+import { Routes } from '@angular/router';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
+import { OtpVerificationComponent } from './auth/otp-verification/otp-verification.component';
+import { CustomerDashboardComponent } from './customer/customer-dashboard/customer-dashboard.component';
+import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
+import { ComplianceDashboardComponent } from './compliance/compliance-dashboard/compliance-dashboard.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
+import { CustomerDocumentsComponent } from './customer/customer-documents/customer-documents.component';
+import { CustomerTransactionsComponent } from './customer/customer-transactions/customer-transactions.component';
+import { CustomerOpenAccountComponent } from './customer/open-account/customer-open-account.component';
+import { CustomerNewTransactionComponent } from './customer/new-transaction/customer-new-transaction.component';
+
+export const routes: Routes = [
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'otp-verification', component: OtpVerificationComponent },
+  { path: 'register', component: RegisterComponent },
+  {
+    path: 'customer',
+    component: CustomerDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/documents',
+    component: CustomerDocumentsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/transactions',
+    component: CustomerTransactionsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/open-account',
+    component: CustomerOpenAccountComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/new-transaction',
+    component: CustomerNewTransactionComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'admin',
+    component: AdminDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'compliance',
+    component: ComplianceDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  { path: '**', redirectTo: '/login' }
+];
