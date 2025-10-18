@@ -27,6 +27,47 @@ interface Transaction {
         </div>
       </div>
 
+      <!-- Quick Actions Section -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card quick-actions-card">
+            <div class="card-header">
+              <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <a class="btn btn-outline-primary btn-lg w-100 mb-3" [routerLink]="['/customer/documents']">
+                    <i class="fas fa-file-alt me-2"></i>
+                    View Documents
+                  </a>
+                </div>
+                <div class="col-md-6">
+                  <a class="btn btn-outline-info btn-lg w-100 mb-3" [routerLink]="['/customer/alerts']">
+                    <i class="fas fa-bell me-2"></i>
+                    View Alerts
+                  </a>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <a class="btn btn-outline-success btn-lg w-100 mb-3" [routerLink]="['/customer/new-transaction']">
+                    <i class="fas fa-plus me-2"></i>
+                    New Transaction
+                  </a>
+                </div>
+                <div class="col-md-6">
+                  <a class="btn btn-outline-warning btn-lg w-100 mb-3" [routerLink]="['/customer/open-account']">
+                    <i class="fas fa-credit-card me-2"></i>
+                    Request Account
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Stats -->
       <div class="row mb-4">
         <div class="col-md-3">
@@ -66,7 +107,7 @@ interface Transaction {
 
       <!-- Recent Activity -->
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-12">
           <div class="card">
             <div class="card-header">
               <h5 class="mb-0">Recent Transactions</h5>
@@ -91,27 +132,68 @@ interface Transaction {
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="col-md-4">
+      <!-- My Alerts Section -->
+      <div class="row mt-4">
+        <div class="col-12">
           <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">Quick Actions</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">My Alerts</h5>
+              <a class="btn btn-sm btn-outline-primary" [routerLink]="['/customer/alerts']">
+                <i class="fas fa-external-link-alt me-1"></i>
+                View All
+              </a>
             </div>
             <div class="card-body">
-              <div class="d-grid gap-2">
-                <a class="btn btn-outline-primary" [routerLink]="['/customer/new-transaction']">
-                  <i class="fas fa-plus me-2"></i>
-                  New Transaction
-                </a>
-                <a class="btn btn-outline-info" [routerLink]="['/customer/open-account']">
-                  <i class="fas fa-credit-card me-2"></i>
-                  Request Account
-                </a>
+              <!-- Loading State -->
+              <div class="text-center py-4" *ngIf="isLoadingAlerts">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading alerts...</p>
+              </div>
+
+              <!-- Empty State -->
+              <div class="text-center text-muted py-4" *ngIf="!isLoadingAlerts && (!alertsCount || alertsCount === 0)">
+                <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                <p>No alerts found</p>
+                <small>All your alerts will appear here when they are generated.</small>
+              </div>
+
+              <!-- Alerts List with Scrollbar -->
+              <div class="alerts-container" *ngIf="!isLoadingAlerts && alertsCount && alertsCount > 0">
+                <div class="list-group list-group-flush">
+                  <div class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let alert of transactionAlerts.slice(0, 5)">
+                    <div class="flex-grow-1">
+                      <div class="fw-bold text-dark">{{ alert.title || 'Transaction Alert' }}</div>
+                      <div class="text-muted small mb-1">{{ alert.message || 'A transaction requires attention' }}</div>
+                      <div class="text-muted small" *ngIf="alert.transactionId">TX: {{ alert.transactionId }}</div>
+                      <div class="text-muted small" *ngIf="getReasonText(alert)">
+                        <strong>Reason:</strong> {{ getReasonText(alert) }}
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-center ms-3">
+                      <span class="badge me-2" [ngClass]="getSeverityClass(alert.severity)">
+                        {{ alert.severity || 'Medium' }}
+                      </span>
+                      <small class="text-muted">{{ formatDate(alert.createdAt) }}</small>
+                    </div>
+                  </div>
+                  <div class="list-group-item text-center text-muted" *ngIf="alertsCount > 5">
+                    <small>... and {{ alertsCount - 5 }} more alerts</small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="card mt-3" *ngIf="accounts.length">
+      <!-- Sidebar Section -->
+      <div class="row mt-4">
+        <div class="col-12" *ngIf="accounts.length">
+          <div class="card">
             <div class="card-header">
               <h5 class="mb-0">My Accounts</h5>
             </div>
@@ -124,21 +206,6 @@ interface Transaction {
                 <div class="text-end">
                   <div class="tx-item-title">{{ acc.balance }} {{ acc.currency }}</div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card mt-3" *ngIf="transactionAlerts.length > 0">
-            <div class="card-header">
-              <h5 class="mb-0">Transaction Alerts</h5>
-            </div>
-            <div class="list-group list-group-flush">
-              <div class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let alert of transactionAlerts">
-                <div>
-                  <div class="tx-item-title">{{ alert.title || 'Transaction Alert' }}</div>
-                  <div class="tx-item-sub">{{ alert.message || 'A transaction requires attention' }}</div>
-                </div>
-                <div class="badge bg-warning">{{ alert.severity || 'Medium' }}</div>
               </div>
             </div>
           </div>
@@ -167,6 +234,58 @@ interface Transaction {
     .tx-item-sub {
       color: #6c757d;
     }
+
+    .alerts-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .alerts-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .alerts-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    .alerts-container::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    .alerts-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    .sidebar-section {
+      margin-top: 1.5rem;
+    }
+
+    .btn-lg {
+      padding: 0.75rem 1.25rem;
+      font-size: 1.1rem;
+    }
+
+    .quick-actions-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .quick-actions-card .card-header {
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .quick-actions-card .btn {
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .quick-actions-card .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
   `]
 })
 export class CustomerDashboardComponent implements OnInit {
@@ -182,6 +301,7 @@ export class CustomerDashboardComponent implements OnInit {
   accounts: AccountDto[] = [];
   alertsCount: number | null = null;
   transactionAlerts: any[] = [];
+  isLoadingAlerts = false;
 
   constructor(private authService: AuthService, private txService: TransactionService, private docService: DocumentService, private accountService: AccountService, private customerService: CustomerService) {}
 
@@ -195,31 +315,65 @@ export class CustomerDashboardComponent implements OnInit {
   }
 
   private loadDashboardData(): void {
-    this.kycStatus = this.currentUser?.kycStatus || 'PENDING';
-    this.txService.getHistory().subscribe({
+    // Load KYC status from proper API
+    this.customerService.getKycStatus().subscribe({
       next: (resp) => {
-        const list: TransactionDto[] = (resp as any)?.data ?? (resp as any) ?? [];
-        const recent = (list || []).slice(0, 5);
-        this.recentTransactions = recent.map(t => ({
-          type: t.type,
-          date: new Date(t.createdAt),
-          status: t.status
-        }));
-        this.pendingTransactions = (list || []).filter(t => String(t.status).toLowerCase() === 'pending').length;
+        const kycData = ((resp as any)?.data ?? (resp as any) ?? { status: 'PENDING' });
+        this.kycStatus = kycData.status || 'PENDING';
       },
       error: () => {
-        this.recentTransactions = [];
+        this.kycStatus = 'PENDING';
       }
     });
 
+    // Load transactions from proper API
+    this.txService.getHistory().subscribe({
+      next: (resp) => {
+        const list: TransactionDto[] = (resp as any)?.data ?? (resp as any) ?? [];
+        const transactions = Array.isArray(list) ? list : [];
+
+        // Map transactions for display
+        const recent = transactions.slice(0, 5);
+        this.recentTransactions = recent.map(t => ({
+          type: this.getTransactionType(t),
+          date: new Date(t.createdAt),
+          status: t.status
+        }));
+
+        // Calculate pending transactions (including flagged ones)
+        this.pendingTransactions = transactions.filter(t =>
+          String(t.status).toLowerCase() === 'pending' ||
+          String(t.status).toLowerCase() === 'processing' ||
+          String(t.status).toLowerCase() === 'flagged'
+        ).length;
+      },
+      error: () => {
+        this.recentTransactions = [];
+        this.pendingTransactions = 0;
+      }
+    });
+
+    // Load documents from proper API
     this.docService.getMyDocuments().subscribe({
       next: (resp) => {
-        const docs = ((resp as any)?.data ?? (resp as any) ?? []) as DocumentDto[];
-        const arr = Array.isArray(docs) ? docs : [];
-        this.totalDocuments = arr.length;
-        const norm = (s?: string) => String(s || '').toUpperCase();
-        this.pendingDocuments = arr.filter(d => norm(d.status) === 'PENDING').length;
-        this.approvedDocuments = arr.filter(d => norm(d.status) === 'APPROVED').length;
+        const docs = ((resp as any)?.data ?? (resp as any) ?? []) as any[];
+        const documents = Array.isArray(docs) ? docs : [];
+
+        this.totalDocuments = documents.length;
+
+        // Calculate document statuses
+        const pendingDocs = documents.filter(d =>
+          String(d.status).toUpperCase() === 'PENDING' ||
+          String(d.status).toUpperCase() === 'UNDER_REVIEW'
+        ).length;
+
+        const approvedDocs = documents.filter(d =>
+          String(d.status).toUpperCase() === 'APPROVED' ||
+          String(d.status).toUpperCase() === 'VERIFIED'
+        ).length;
+
+        this.pendingDocuments = pendingDocs;
+        this.approvedDocuments = approvedDocs;
       },
       error: () => {
         this.totalDocuments = 0;
@@ -228,11 +382,17 @@ export class CustomerDashboardComponent implements OnInit {
       }
     });
 
+    // Load accounts from proper API
     this.accountService.getMyAccounts().subscribe({
       next: (resp) => {
         const accs = ((resp as any)?.data ?? (resp as any) ?? []) as AccountDto[];
         this.accounts = Array.isArray(accs) ? accs : [];
-        this.activeAccounts = this.accounts.length;
+
+        // Calculate active accounts based on status
+        this.activeAccounts = this.accounts.filter(account =>
+          account.status?.toUpperCase() === 'ACTIVE' ||
+          account.approvalStatus?.toUpperCase() === 'APPROVED'
+        ).length;
       },
       error: () => {
         this.accounts = [];
@@ -240,27 +400,99 @@ export class CustomerDashboardComponent implements OnInit {
       }
     });
 
+    // Load alerts from proper API
     this.customerService.getMyAlerts().subscribe({
       next: (resp) => {
         const alerts = ((resp as any)?.data ?? (resp as any) ?? []) as any[];
         this.alertsCount = Array.isArray(alerts) ? alerts.length : 0;
-        // Filter for transaction-related alerts (assuming they have a 'type' or 'category' field)
-        this.transactionAlerts = alerts.filter(alert => alert.type === 'TRANSACTION' || alert.category === 'TRANSACTION');
+
+        // Map alerts for dashboard display
+        this.transactionAlerts = (alerts || []).slice(0, 3).map(alert => ({
+          id: alert.id || alert.alertId || 0,
+          title: this.getAlertTitle(alert),
+          message: this.getAlertMessage(alert),
+          type: this.getAlertType(alert),
+          severity: alert.severity || alert.priority || 'MEDIUM',
+          status: alert.status || 'ACTIVE',
+          createdAt: alert.createdAt || alert.timestamp || new Date().toISOString(),
+          updatedAt: alert.updatedAt || alert.createdAt || new Date().toISOString(),
+          category: alert.category || alert.alertType || null,
+          priority: alert.priority || alert.severity || 'MEDIUM',
+          description: alert.description || alert.details || null,
+          actionRequired: alert.actionRequired || false,
+          resolvedAt: alert.resolvedAt || null,
+          resolvedBy: alert.resolvedBy || null,
+          reason: alert.reason || alert.flaggedReason || alert.description || null,
+          flaggedReason: alert.flaggedReason || alert.reason || null,
+          transactionId: alert.transactionId || alert.transactionReference || alert.txId || null,
+          accountNumber: alert.accountNumber || alert.accountId || null
+        }));
+        this.isLoadingAlerts = false;
       },
       error: () => {
         this.alertsCount = 0;
         this.transactionAlerts = [];
+        this.isLoadingAlerts = false;
       }
     });
   }
 
+  private getTransactionType(transaction: TransactionDto): string {
+    return transaction.transactionType ||
+           (transaction as any).type ||
+           (transaction as any).operationType ||
+           'Transaction';
+  }
+
   getStatusClass(status: string): string {
     switch (status.toLowerCase()) {
-      case 'completed': return 'bg-success';
-      case 'pending': return 'bg-warning';
-      case 'rejected': return 'bg-danger';
-      case 'flagged': return 'bg-info';
+      case 'completed':
+      case 'approved':
+        return 'bg-success';
+      case 'pending':
+      case 'processing':
+        return 'bg-warning';
+      case 'rejected':
+      case 'failed':
+        return 'bg-danger';
+      case 'flagged':
+        return 'bg-info';
+      default:
+        return 'bg-secondary';
+    }
+  }
+
+  getSeverityClass(severity: string): string {
+    switch (severity?.toUpperCase()) {
+      case 'HIGH': return 'bg-danger';
+      case 'MEDIUM': return 'bg-warning';
+      case 'LOW': return 'bg-success';
       default: return 'bg-secondary';
     }
+  }
+
+  formatDate(dateString?: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  }
+
+  getReasonText(alert: any): string {
+    // Try multiple possible field names for the reason
+    return alert.reason || alert.flaggedReason || alert.description || '';
+  }
+
+  private getAlertTitle(alert: any): string {
+    return alert.title || alert.alertTitle || alert.name || alert.subject ||
+           (alert.type ? `${alert.type} Alert` : 'Transaction Alert');
+  }
+
+  private getAlertMessage(alert: any): string {
+    return alert.message || alert.alertMessage || alert.description || alert.details ||
+           alert.content || 'A transaction alert has been generated for your account.';
+  }
+
+  private getAlertType(alert: any): string {
+    return alert.type || alert.alertType || alert.category || 'TRANSACTION';
   }
 }

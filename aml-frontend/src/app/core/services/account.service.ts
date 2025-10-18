@@ -15,7 +15,18 @@ export interface AccountDto {
   accountType: string;
   balance: number;
   currency: string;
+  status: string;
+  approvalStatus: string;
   createdAt?: string;
+  approvedAt?: string | null;
+  rejectedAt?: string | null;
+  suspendedAt?: string | null;
+  activatedAt?: string | null;
+  user?: {
+    id: number;
+    username: string;
+    role: string;
+  };
 }
 
 @Injectable({ providedIn: 'root' })

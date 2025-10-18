@@ -1,65 +1,191 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AccountService, CreateAccountRequest, AccountDto } from '../../core/services/account.service';
 
 @Component({
   selector: 'app-customer-open-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, DatePipe],
   template: `
     <div class="container py-3">
-      <h3 class="mb-3">Open a Bank Account</h3>
+      <h3 class="mb-3">Account Management</h3>
 
-      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-3">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Account Type</label>
-            <select class="form-select" formControlName="accountType">
-              <option value="SAVINGS">Savings</option>
-              <option value="CURRENT">Current</option>
-            </select>
+      <!-- Existing Accounts Section -->
+      <div class="card mb-4" *ngIf="existingAccounts.length > 0">
+        <div class="card-header">
+          <h5 class="mb-0">Your Accounts</h5>
+        </div>
+        <div class="card-body">
+          <div class="row" *ngIf="loadingAccounts">
+            <div class="col-12 text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading your accounts...</p>
+            </div>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Initial Deposit</label>
-            <input type="number" class="form-control" formControlName="initialDeposit" min="0" step="0.01" />
+
+          <div class="row" *ngIf="!loadingAccounts && accountsError">
+            <div class="col-12">
+              <div class="alert alert-danger">{{ accountsError }}</div>
+            </div>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">Currency</label>
-            <input type="text" class="form-control" formControlName="currency" placeholder="e.g. INR, USD" />
+
+          <div class="row" *ngIf="!loadingAccounts && !accountsError && existingAccounts.length > 0">
+            <div class="col-md-4 mb-3" *ngFor="let account of existingAccounts">
+              <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="card-title mb-0">{{ getAccountTypeDisplay(account.accountType) }}</h6>
+                    <span class="badge" [ngClass]="getAccountStatusClass(account)">
+                      {{ getAccountStatusText(account) }}
+                    </span>
+                  </div>
+                  <div class="mb-2">
+                    <small class="text-muted">Account Number</small>
+                    <div class="fw-bold text-dark">{{ account.accountNumber }}</div>
+                  </div>
+                  <div class="mb-2">
+                    <small class="text-muted">Balance</small>
+                    <div class="h5 text-success mb-0">{{ account.balance | currency:account.currency:'symbol':'1.2-2' }}</div>
+                  </div>
+                  <div class="mb-2" *ngIf="account.approvalStatus">
+                    <small class="text-muted">Approval Status</small>
+                    <div class="badge bg-info">{{ getApprovalStatusText(account) }}</div>
+                  </div>
+                  <div *ngIf="account.createdAt" class="text-muted small">
+                    Created: {{ account.createdAt | date:'mediumDate' }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="mt-3 d-flex gap-2">
-          <button class="btn btn-primary" type="submit" [disabled]="form.invalid || loading">
-            {{ loading ? 'Creating...' : 'Create Account' }}
-          </button>
-          <div *ngIf="error" class="text-danger">{{ error }}</div>
-          <div *ngIf="success" class="text-success">Account created successfully!</div>
+      <!-- Account Creation Form -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Open New Account</h5>
         </div>
-      </form>
+        <div class="card-body">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Account Type</label>
+                <select class="form-select" formControlName="accountType">
+                  <option value="SAVINGS">Savings Account</option>
+                  <option value="CURRENT">Current Account</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Initial Balance</label>
+                <input type="number" class="form-control" formControlName="initialBalance" min="0" step="0.01" placeholder="0.00" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Currency</label>
+                <select class="form-select" formControlName="currency">
+                  <option value="INR">Indian Rupee (INR)</option>
+                  <option value="USD">US Dollar (USD)</option>
+                  <option value="EUR">Euro (EUR)</option>
+                </select>
+              </div>
+            </div>
 
-      <div *ngIf="created" class="card p-3 mt-3">
-        <h5 class="mb-2">New Account</h5>
-        <div>Account Number: <strong>{{ created.accountNumber }}</strong></div>
-        <div>Type: {{ created.accountType }}</div>
-        <div>Balance: {{ created.balance }} {{ created.currency }}</div>
+            <div class="mt-3 d-flex gap-2">
+              <button class="btn btn-primary" type="submit" [disabled]="form.invalid || loading">
+                {{ loading ? 'Creating...' : 'Create Account' }}
+              </button>
+              <div *ngIf="error" class="text-danger">{{ error }}</div>
+              <div *ngIf="success" class="text-success">Account created successfully!</div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- New Account Details -->
+      <div *ngIf="created" class="card mt-3 border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Account Created Successfully!</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-2">
+                <strong>Account Number:</strong>
+                <div class="h6 text-dark">{{ created.accountNumber }}</div>
+              </div>
+              <div class="mb-2">
+                <strong>Account Type:</strong>
+                <div>{{ getAccountTypeDisplay(created.accountType) }}</div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-2">
+                <strong>Initial Balance:</strong>
+                <div class="h5 text-success">{{ created.balance | currency:created.currency:'symbol':'1.2-2' }}</div>
+              </div>
+              <div *ngIf="created.createdAt" class="text-muted small">
+                Created: {{ created.createdAt | date:'medium' }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .card {
+      border: none;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.35rem 0.65rem;
+    }
+  `]
 })
-export class CustomerOpenAccountComponent {
+export class CustomerOpenAccountComponent implements OnInit {
   form: FormGroup;
   loading = false;
   error = '';
   success = false;
   created: AccountDto | null = null;
 
+  // New properties for existing accounts
+  existingAccounts: AccountDto[] = [];
+  loadingAccounts = false;
+  accountsError = '';
+
   constructor(private fb: FormBuilder, private accounts: AccountService) {
     this.form = this.fb.group({
       accountType: ['SAVINGS', Validators.required],
-      initialDeposit: [0, [Validators.required, Validators.min(0)]],
+      initialBalance: [0, [Validators.required, Validators.min(0)]],
       currency: ['INR']
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadExistingAccounts();
+  }
+
+  loadExistingAccounts(): void {
+    this.loadingAccounts = true;
+    this.accountsError = '';
+
+    this.accounts.getMyAccounts().subscribe({
+      next: (resp) => {
+        this.loadingAccounts = false;
+        const accountsData = ((resp as any)?.data ?? (resp as any) ?? []) as AccountDto[];
+        this.existingAccounts = Array.isArray(accountsData) ? accountsData : [];
+      },
+      error: (err) => {
+        this.loadingAccounts = false;
+        this.accountsError = err?.error?.message || 'Failed to load accounts';
+        console.error('Error loading accounts:', err);
+      }
     });
   }
 
@@ -69,7 +195,13 @@ export class CustomerOpenAccountComponent {
     this.error = '';
     this.success = false;
 
-    const req: CreateAccountRequest = this.form.value as CreateAccountRequest;
+    const formValue = this.form.value;
+    const req: CreateAccountRequest = {
+      accountType: formValue.accountType,
+      initialDeposit: formValue.initialBalance, // Map form field to interface field
+      currency: formValue.currency
+    };
+
     this.accounts.createAccount(req).subscribe({
       next: (resp) => {
         this.loading = false;
@@ -77,11 +209,53 @@ export class CustomerOpenAccountComponent {
         const dto = (resp as any)?.data ?? (resp as any);
         this.created = dto as AccountDto;
         this.success = true;
+
+        // Refresh existing accounts list
+        this.loadExistingAccounts();
       },
       error: (err) => {
         this.loading = false;
         this.error = err?.error?.message || 'Failed to create account';
       }
     });
+  }
+
+  getAccountTypeDisplay(accountType: string): string {
+    switch (accountType?.toUpperCase()) {
+      case 'SAVINGS': return 'Savings Account';
+      case 'CURRENT': return 'Current Account';
+      default: return accountType || 'Unknown';
+    }
+  }
+
+  getAccountStatusClass(account: AccountDto): string {
+    switch (account.status?.toUpperCase()) {
+      case 'ACTIVE': return 'bg-success';
+      case 'PENDING': return 'bg-warning';
+      case 'SUSPENDED': return 'bg-danger';
+      case 'REJECTED': return 'bg-danger';
+      case 'INACTIVE': return 'bg-secondary';
+      default: return 'bg-secondary';
+    }
+  }
+
+  getAccountStatusText(account: AccountDto): string {
+    switch (account.status?.toUpperCase()) {
+      case 'ACTIVE': return 'Active';
+      case 'PENDING': return 'Pending Approval';
+      case 'SUSPENDED': return 'Suspended';
+      case 'REJECTED': return 'Rejected';
+      case 'INACTIVE': return 'Inactive';
+      default: return account.status || 'Unknown';
+    }
+  }
+
+  getApprovalStatusText(account: AccountDto): string {
+    switch (account.approvalStatus?.toUpperCase()) {
+      case 'APPROVED': return 'Approved';
+      case 'PENDING': return 'Pending';
+      case 'REJECTED': return 'Rejected';
+      default: return account.approvalStatus || 'Unknown';
+    }
   }
 }

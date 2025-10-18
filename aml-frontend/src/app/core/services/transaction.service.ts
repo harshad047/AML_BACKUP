@@ -5,11 +5,22 @@ import { AuthService, ApiResponse } from './auth.service';
 
 export interface TransactionDto {
   id: number;
-  type: string;
+  transactionType: string;
+  toAccountNumber?: string;
+  fromAccountNumber?: string;
+  customerId: number;
   amount: number;
-  status: string;
-  createdAt: string; // ISO string
+  currency: string;
   description?: string;
+  status: string;
+  nlpScore?: number;
+  ruleEngineScore?: number;
+  combinedRiskScore?: number;
+  thresholdExceeded?: boolean;
+  alertId?: string;
+  createdAt: string;
+  updatedAt: string;
+  transactionReference: string;
 }
 
 export interface CreateTransactionRequest {

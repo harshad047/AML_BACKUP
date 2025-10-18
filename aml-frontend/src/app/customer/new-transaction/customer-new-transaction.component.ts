@@ -80,7 +80,7 @@ import { AccountService, AccountDto } from '../../core/services/account.service'
 
       <div *ngIf="created" class="card p-3 mt-3">
         <h5 class="mb-2">Created Transaction</h5>
-        <div>Type: {{ created.type }}</div>
+        <div>Transaction Type: {{ created.transactionType }}</div>
         <div>Amount: {{ created.amount }}</div>
         <div>Status: {{ created.status }}</div>
         <div>Date: {{ created.createdAt }}</div>

@@ -47,6 +47,12 @@ import { AuthService, User } from '../../core/services/auth.service';
                   Open Account
                 </a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link" routerLink="/customer/alerts" routerLinkActive="active">
+                  <i class="fas fa-bell me-1"></i>
+                  My Alerts
+                </a>
+              </li>
             </ng-container>
 
             <!-- Admin Navigation -->

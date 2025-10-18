@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
 import { ApiResponse } from '../../core/services/auth.service';
 import { AccountDto } from '../../core/services/account.service';
@@ -8,10 +9,16 @@ import { AccountDto } from '../../core/services/account.service';
 @Component({
   selector: 'app-customer-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe],
+  imports: [CommonModule, FormsModule, DatePipe, RouterModule],
   template: `
     <div class="container py-3">
-      <h3 class="mb-3">All Transactions</h3>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">All Transactions</h3>
+        <a class="btn btn-primary" [routerLink]="['/customer/new-transaction']">
+          <i class="fas fa-plus me-2"></i>
+          New Transaction
+        </a>
+      </div>
 
       <div class="row g-2 mb-3">
         <div class="col-auto">
@@ -32,7 +39,7 @@ import { AccountDto } from '../../core/services/account.service';
           <div class="text-danger p-3" *ngIf="error">{{ error }}</div>
           <div class="table-responsive" *ngIf="!loading && transactions.length > 0">
             <table class="table table-striped mb-0">
-              <thead>
+              <thead class="table-light">
                 <tr>
                   <th>#</th>
                   <th>Type</th>
@@ -45,13 +52,13 @@ import { AccountDto } from '../../core/services/account.service';
               <tbody>
                 <tr *ngFor="let t of transactions; index as i">
                   <td>{{ i + 1 }}</td>
-                  <td>{{ t.type }}</td>
-                  <td>{{ t.amount }}</td>
+                  <td><strong class="text-dark">{{ getTransactionType(t) }}</strong></td>
+                  <td class="text-dark">{{ t.amount | currency:'INR':'symbol':'1.2-2' }}</td>
                   <td>
-                    <span class="badge" [ngClass]="statusClass(t.status)">{{ t.status }}</span>
+                    <span class="badge" [ngClass]="statusClass(t.status)">{{ getStatusText(t) }}</span>
                   </td>
-                  <td>{{ t.createdAt | date:'short' }}</td>
-                  <td>{{ t.description || '-' }}</td>
+                  <td class="text-dark">{{ t.createdAt | date:'medium' }}</td>
+                  <td class="text-dark">{{ t.description || '-' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -70,11 +77,11 @@ import { AccountDto } from '../../core/services/account.service';
         <div class="list-group list-group-flush">
           <div class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let t of flaggedTransactions">
             <div>
-              <div class="tx-item-title">{{ t.type }} - {{ t.amount }}</div>
+              <div class="tx-item-title text-dark">{{ getTransactionType(t) }} - {{ t.amount | currency:'INR':'symbol':'1.2-2' }}</div>
               <div class="tx-item-sub">{{ t.description || 'No description' }} ({{ t.createdAt | date:'short' }})</div>
             </div>
             <div class="badge" [ngClass]="statusClass(t.status)">
-              {{ t.status }}
+              {{ getStatusText(t) }}
             </div>
           </div>
         </div>
@@ -175,5 +182,18 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     if (s === 'flagged') return 'bg-info';
     if (s === 'blocked') return 'bg-danger';
     return 'bg-secondary';
+  }
+
+  getTransactionType(transaction: TransactionDto): string {
+    // Handle different possible field names for transaction type
+    return transaction.transactionType ||
+           (transaction as any).type ||
+           (transaction as any).operationType ||
+           (transaction as any).txType ||
+           'Unknown';
+  }
+
+  getStatusText(transaction: TransactionDto): string {
+    return transaction.status || 'Unknown';
   }
 }

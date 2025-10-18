@@ -11,6 +11,7 @@ import { CustomerDocumentsComponent } from './customer/customer-documents/custom
 import { CustomerTransactionsComponent } from './customer/customer-transactions/customer-transactions.component';
 import { CustomerOpenAccountComponent } from './customer/open-account/customer-open-account.component';
 import { CustomerNewTransactionComponent } from './customer/new-transaction/customer-new-transaction.component';
+import { CustomerAlertsComponent } from './customer/customer-alerts/customer-alerts.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -44,6 +45,12 @@ export const routes: Routes = [
   {
     path: 'customer/new-transaction',
     component: CustomerNewTransactionComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/alerts',
+    component: CustomerAlertsComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['CUSTOMER'] }
   },

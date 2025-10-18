@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService, ApiResponse } from './auth.service';
 
@@ -44,7 +44,31 @@ export class DocumentService {
     return `${this.API_URL}/documents/${id}`;
   }
 
-  getDocumentLegacyUrl(id: number): string {
-    return `${this.API_URL}/documents/${id}/download`;
+  uploadDocument(file: File, documentType: string): Observable<ApiResponse<DocumentDto>> {
+    const formData = new FormData();
+    // Add the file with key 'file'
+    formData.append('file', file);
+    // Add the document type as text with key 'docType'
+    formData.append('docType', documentType);
+
+    console.log('Uploading document:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      documentType: documentType,
+      formDataKeys: ['file', 'docType'],
+      url: `${this.API_URL}/documents/upload`
+    });
+
+    return this.http.post<ApiResponse<DocumentDto>>(
+      `${this.API_URL}/documents/upload`,
+      formData,
+      {
+        headers: new HttpHeaders({
+          'Authorization': `Bearer ${this.auth.getToken()}`
+          // Explicitly NOT setting Content-Type - let browser set multipart boundary
+        })
+      }
+    );
   }
 }
