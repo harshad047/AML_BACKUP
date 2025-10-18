@@ -1,9 +1,18 @@
+export interface Address {
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
 export interface User {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
   username: string;
+  phone?: string;
+  address?: Address;
   role: 'CUSTOMER' | 'OFFICER' | 'ADMIN' | 'SUPER_ADMIN';
   kycStatus?: string;
   isEnabled: boolean;

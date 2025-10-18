@@ -94,9 +94,41 @@ export class AuthService {
     );
   }
 
-  checkRegistrationStatus(email: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/register/check-status`, null, {
-      params: { email }
+  getProfile(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.API_URL}/customer/profile`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  updateProfile(profileData: any): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.API_URL}/customer/profile`, profileData, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap((response) => {
+        // Handle both wrapped and direct response formats
+        const data = response.data || response;
+        if (data && (data.id || data.firstName)) {
+          // Update stored user data if profile update includes user info
+          const currentUser = this.getCurrentUser();
+          if (currentUser) {
+            const updatedUser = { ...currentUser };
+            this.currentUserSubject.next(updatedUser);
+            localStorage.setItem(this.USER_KEY, JSON.stringify(updatedUser));
+          }
+        }
+      })
+    );
+  }
+
+  sendChangePasswordOtp(): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/customer/change-password/send-otp`, {}, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  changePassword(passwordData: any): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/customer/change-password`, passwordData, {
+      headers: this.getAuthHeaders()
     });
   }
 

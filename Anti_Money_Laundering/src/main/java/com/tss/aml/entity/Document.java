@@ -2,6 +2,7 @@ package com.tss.aml.entity;
 
 import java.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tss.aml.entity.Enums.DocumentStatus;
 
 import jakarta.persistence.Column;
@@ -31,6 +32,7 @@ public class Document {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="customer_id", nullable=false)
+    @JsonIgnore
     private Customer customer;
 
     @NotBlank

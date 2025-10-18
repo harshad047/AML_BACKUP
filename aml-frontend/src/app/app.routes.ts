@@ -12,6 +12,8 @@ import { CustomerTransactionsComponent } from './customer/customer-transactions/
 import { CustomerOpenAccountComponent } from './customer/open-account/customer-open-account.component';
 import { CustomerNewTransactionComponent } from './customer/new-transaction/customer-new-transaction.component';
 import { CustomerAlertsComponent } from './customer/customer-alerts/customer-alerts.component';
+import { ProfileComponent } from './customer/profile/profile.component';
+import { ChangePasswordComponent } from './customer/change-password/change-password.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -51,6 +53,18 @@ export const routes: Routes = [
   {
     path: 'customer/alerts',
     component: CustomerAlertsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/profile',
+    component: ProfileComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/change-password',
+    component: ChangePasswordComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['CUSTOMER'] }
   },
