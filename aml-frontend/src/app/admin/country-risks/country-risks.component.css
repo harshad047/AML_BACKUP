@@ -1,0 +1,13 @@
+.table th {
+  font-weight: 600;
+  color: #495057;
+}
+
+.badge {
+  font-size: 0.875rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}

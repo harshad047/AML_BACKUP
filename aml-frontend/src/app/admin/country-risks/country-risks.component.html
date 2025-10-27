@@ -1,0 +1,125 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-globe me-2"></i>Country Risk Management</h2>
+        <button class="btn btn-primary" (click)="toggleCreateForm()">
+          <i class="fas fa-plus me-2"></i>{{ editingCountry ? 'Cancel' : 'Add Country' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <div class="card mb-4" *ngIf="showCreateForm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0"><i class="fas fa-{{ editingCountry ? 'edit' : 'plus' }} me-2"></i>{{ editingCountry ? 'Edit' : 'Add' }} Country Risk</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="countryForm" (ngSubmit)="onSaveCountry()">
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Country Code *</label>
+            <input type="text" class="form-control text-uppercase" formControlName="countryCode" placeholder="US, IN, GB" maxlength="3" />
+          </div>
+          <div class="col-md-5 mb-3">
+            <label class="form-label">Country Name *</label>
+            <input type="text" class="form-control" formControlName="countryName" placeholder="United States" />
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Risk Score *</label>
+            <input type="number" class="form-control" formControlName="riskScore" min="0" max="100" />
+          </div>
+          <div class="col-md-2 mb-3">
+            <label class="form-label">Status</label>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" formControlName="isActive" id="activeSwitch">
+              <label class="form-check-label" for="activeSwitch">Active</label>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notes</label>
+          <textarea class="form-control" formControlName="notes" rows="2" placeholder="Additional notes about this country's risk profile..."></textarea>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || savingCountry">
+            <span *ngIf="savingCountry" class="spinner-border spinner-border-sm me-2"></span>
+            {{ savingCountry ? 'Saving...' : (editingCountry ? 'Update' : 'Add') }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="fas fa-list me-2"></i>Country Risks ({{ countryRisks.length }})</h5>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Loading countries...</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loading">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Code</th>
+              <th>Country</th>
+              <th>Risk Score</th>
+              <th>Risk Level</th>
+              <th>Notes</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let country of countryRisks">
+              <td><strong>{{ country.countryCode }}</strong></td>
+              <td>{{ country.countryName }}</td>
+              <td><span class="badge bg-secondary">{{ country.riskScore }}</span></td>
+              <td>
+                <span class="badge" [ngClass]="getRiskLevelBadgeClass(country.riskScore)">
+                  {{ getRiskLevel(country.riskScore) }}
+                </span>
+              </td>
+              <td>{{ country.notes || '-' }}</td>
+              <td>
+                <span class="badge" [ngClass]="country.isActive ? 'bg-success' : 'bg-secondary'">
+                  {{ country.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="editCountry(country)">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="deleteCountry(country)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!loading && countryRisks.length === 0" class="text-center py-4 text-muted">
+        <i class="fas fa-globe fa-3x mb-3"></i>
+        <p>No country risk profiles found</p>
+      </div>
+    </div>
+  </div>
+</div>

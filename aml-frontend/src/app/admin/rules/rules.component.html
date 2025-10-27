@@ -1,0 +1,206 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-gavel me-2"></i>Rules Management</h2>
+        <button class="btn btn-primary" (click)="toggleCreateForm()">
+          <i class="fas fa-plus me-2"></i>{{ editingRule ? 'Cancel Edit' : 'Create Rule' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <!-- Create/Edit Rule Form -->
+  <div class="card mb-4" *ngIf="showCreateForm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">
+        <i class="fas fa-{{ editingRule ? 'edit' : 'plus' }} me-2"></i>
+        {{ editingRule ? 'Edit Rule' : 'Create New Rule' }}
+      </h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="ruleForm" (ngSubmit)="onSaveRule()">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Rule Name *</label>
+            <input type="text" class="form-control" formControlName="name" placeholder="e.g., High Value Transaction" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Priority *</label>
+            <input type="number" class="form-control" formControlName="priority" min="1" />
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Risk Weight (0-100) *</label>
+            <input type="number" class="form-control" formControlName="riskWeight" min="0" max="100" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Action *</label>
+            <select class="form-select" formControlName="action">
+              <option value="FLAG">Flag Transaction</option>
+              <option value="BLOCK">Block Transaction</option>
+              <option value="REVIEW">Send for Review</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Status</label>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" formControlName="active" id="activeSwitch">
+              <label class="form-check-label" for="activeSwitch">
+                {{ ruleForm.get('active')?.value ? 'Active' : 'Inactive' }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Description *</label>
+          <textarea class="form-control" formControlName="description" rows="2" 
+                    placeholder="Describe when this rule should be triggered..."></textarea>
+        </div>
+
+        <!-- Conditions -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="form-label mb-0">Conditions</label>
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="addCondition()">
+              <i class="fas fa-plus me-1"></i>Add Condition
+            </button>
+          </div>
+
+          <div formArrayName="conditions">
+            <div *ngFor="let condition of conditions.controls; let i = index" [formGroupName]="i" class="condition-row mb-2">
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <select class="form-select" formControlName="field">
+                    <option value="amount">Amount</option>
+                    <option value="currency">Currency</option>
+                    <option value="country">Country</option>
+                    <option value="transactionType">Transaction Type</option>
+                    <option value="description">Description</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <select class="form-select" formControlName="operator">
+                    <option value=">">Greater Than</option>
+                    <option value="<">Less Than</option>
+                    <option value="=">Equals</option>
+                    <option value="!=">Not Equals</option>
+                    <option value="contains">Contains</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <input type="text" class="form-control" formControlName="value" placeholder="Value" />
+                </div>
+                <div class="col-md-1">
+                  <button type="button" class="btn btn-danger btn-sm w-100" (click)="removeCondition(i)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="conditions.length === 0" class="text-muted text-center py-3 border rounded">
+            No conditions added. Click "Add Condition" to create rule conditions.
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="ruleForm.invalid || savingRule">
+            <span *ngIf="savingRule" class="spinner-border spinner-border-sm me-2"></span>
+            {{ savingRule ? 'Saving...' : (editingRule ? 'Update Rule' : 'Create Rule') }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rules Table -->
+  <div class="card">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Rules ({{ rules.length }})</h5>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Loading rules...</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loading">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Priority</th>
+              <th>Action</th>
+              <th>Risk Weight</th>
+              <th>Conditions</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rule of rules">
+              <td>{{ rule.id }}</td>
+              <td><strong>{{ rule.name }}</strong></td>
+              <td>{{ rule.description }}</td>
+              <td><span class="badge bg-secondary">{{ rule.priority }}</span></td>
+              <td>
+                <span class="badge" [ngClass]="getActionBadgeClass(rule.action)">
+                  {{ rule.action }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getRiskBadgeClass(rule.riskWeight)">
+                  {{ rule.riskWeight }}
+                </span>
+              </td>
+              <td>{{ rule.conditions ? rule.conditions.length : 0 }}</td>
+              <td>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" [checked]="rule.active" 
+                         (change)="toggleRuleStatus(rule)" [id]="'rule-' + rule.id">
+                  <label class="form-check-label" [for]="'rule-' + rule.id">
+                    {{ rule.active ? 'Active' : 'Inactive' }}
+                  </label>
+                </div>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" (click)="editRule(rule)">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="deleteRule(rule)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!loading && rules.length === 0" class="text-center py-4 text-muted">
+        <i class="fas fa-gavel fa-3x mb-3"></i>
+        <p>No rules found. Create your first compliance rule!</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,193 +1,94 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
+import { AdminService } from '../../core/services/admin.service';
+import { forkJoin } from 'rxjs';
+
+interface DashboardStats {
+  totalUsers: number;
+  activeUsers: number;
+  pendingKyc: number;
+  pendingAccounts: number;
+  activeRules: number;
+  complianceOfficers: number;
+  totalKeywords: number;
+  countryRisks: number;
+}
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-12">
-          <h1 class="mb-4">Admin Dashboard</h1>
-          <p class="text-muted">Welcome back, {{ currentUser?.firstName }}!</p>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="row mb-4">
-        <div class="col-md-3">
-          <div class="card bg-primary text-white">
-            <div class="card-body">
-              <h5 class="card-title">Total Users</h5>
-              <h3>{{ totalUsers }}</h3>
-              <small>{{ activeUsers }} active</small>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card bg-warning text-white">
-            <div class="card-body">
-              <h5 class="card-title">Pending KYC</h5>
-              <h3>{{ pendingKyc }}</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card bg-success text-white">
-            <div class="card-body">
-              <h5 class="card-title">Pending Accounts</h5>
-              <h3>{{ pendingAccounts }}</h3>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <div class="card bg-info text-white">
-            <div class="card-body">
-              <h5 class="card-title">Active Rules</h5>
-              <h3>{{ activeRules }}</h3>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Activity -->
-      <div class="row">
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">Recent Activities</h5>
-              <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-primary active">All</button>
-                <button class="btn btn-outline-primary">Users</button>
-                <button class="btn btn-outline-primary">Transactions</button>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="text-center text-muted py-4" *ngIf="recentActivities.length === 0">
-                <i class="fas fa-list fa-3x mb-3"></i>
-                <p>No recent activities</p>
-              </div>
-              <div class="list-group list-group-flush" *ngIf="recentActivities.length > 0">
-                <div class="list-group-item d-flex justify-content-between align-items-center"
-                     *ngFor="let activity of recentActivities">
-                  <div>
-                    <strong>{{ activity.action }}</strong>
-                    <br>
-                    <small class="text-muted">{{ activity.details }}</small>
-                    <br>
-                    <small class="text-muted">{{ activity.timestamp | date:'short' }}</small>
-                  </div>
-                  <span class="badge" [ngClass]="getActivityClass(activity.type)">
-                    {{ activity.type }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-header">
-              <h5 class="mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-              <div class="d-grid gap-2">
-                <button class="btn btn-outline-primary">
-                  <i class="fas fa-user-plus me-2"></i>
-                  Create User
-                </button>
-                <button class="btn btn-outline-secondary">
-                  <i class="fas fa-file-check me-2"></i>
-                  Review KYC
-                </button>
-                <button class="btn btn-outline-info">
-                  <i class="fas fa-credit-card me-2"></i>
-                  Approve Accounts
-                </button>
-                <button class="btn btn-outline-success">
-                  <i class="fas fa-cog me-2"></i>
-                  Manage Rules
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card mt-3">
-            <div class="card-header">
-              <h5 class="mb-0">System Status</h5>
-            </div>
-            <div class="card-body">
-              <div class="d-flex justify-content-between mb-2">
-                <span>Database</span>
-                <span class="badge bg-success">Online</span>
-              </div>
-              <div class="d-flex justify-content-between mb-2">
-                <span>API Services</span>
-                <span class="badge bg-success">Running</span>
-              </div>
-              <div class="d-flex justify-content-between mb-2">
-                <span>Email Service</span>
-                <span class="badge bg-success">Connected</span>
-              </div>
-              <div class="d-flex justify-content-between">
-                <span>File Storage</span>
-                <span class="badge bg-success">Available</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .card {
-      border: none;
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      border-radius: 0.5rem;
-    }
-
-    .badge {
-      font-size: 0.75rem;
-    }
-  `]
+  imports: [CommonModule, RouterModule],
+  templateUrl: './admin-dashboard.component.html',
+  styleUrls: ['./admin-dashboard.component.css']
 })
 export class AdminDashboardComponent implements OnInit {
   currentUser: User | null = null;
-  totalUsers = 0;
-  activeUsers = 0;
-  pendingKyc = 0;
-  pendingAccounts = 0;
-  activeRules = 0;
+  loading = true;
+  
+  stats: DashboardStats = {
+    totalUsers: 0,
+    activeUsers: 0,
+    pendingKyc: 0,
+    pendingAccounts: 0,
+    activeRules: 0,
+    complianceOfficers: 0,
+    totalKeywords: 0,
+    countryRisks: 0
+  };
 
-  recentActivities: any[] = [
-    // Sample data - will be replaced with actual API calls
-  ];
-
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private adminService: AdminService
+  ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
+    this.currentUser = this.authService.getCurrentUser();
+    console.log('Current user:', this.currentUser);
+    console.log('User role:', this.currentUser?.role);
+    this.loadDashboardStats();
+  }
+
+  loadDashboardStats(): void {
+    this.loading = true;
+    console.log('Loading dashboard stats...');
+
+    // Load all stats in parallel
+    forkJoin({
+      users: this.adminService.getAllUsers(),
+      pendingAccounts: this.adminService.getPendingAccounts(),
+      pendingKyc: this.adminService.getPendingKycDocuments(),
+      rules: this.adminService.getAllRules(),
+      officers: this.adminService.getComplianceOfficers(),
+      keywords: this.adminService.getAllKeywords(),
+      countryRisks: this.adminService.getCountryRisks()
+    }).subscribe({
+      next: (data) => {
+        console.log('Dashboard data received:', data);
+        
+        this.stats.totalUsers = Array.isArray(data.users) ? data.users.length : 0;
+        this.stats.activeUsers = Array.isArray(data.users) ? data.users.filter(u => !u.blocked && u.isEnabled !== false).length : 0;
+        this.stats.pendingAccounts = Array.isArray(data.pendingAccounts) ? data.pendingAccounts.length : 0;
+        this.stats.pendingKyc = Array.isArray(data.pendingKyc) ? data.pendingKyc.length : 0;
+        this.stats.activeRules = Array.isArray(data.rules) ? data.rules.filter(r => r.active).length : 0;
+        this.stats.complianceOfficers = Array.isArray(data.officers) ? data.officers.length : 0;
+        this.stats.totalKeywords = Array.isArray(data.keywords) ? data.keywords.length : 0;
+        this.stats.countryRisks = Array.isArray(data.countryRisks) ? data.countryRisks.length : 0;
+        
+        console.log('Stats calculated:', this.stats);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading dashboard stats:', err);
+        console.error('Error details:', {
+          status: err.status,
+          statusText: err.statusText,
+          message: err.message,
+          error: err.error
+        });
+        this.loading = false;
+      }
     });
-
-    // Load dashboard data
-    this.loadDashboardData();
-  }
-
-  private loadDashboardData(): void {
-    // TODO: Implement API calls to load actual data
-  }
-
-  getActivityClass(type: string): string {
-    switch (type.toLowerCase()) {
-      case 'user': return 'bg-primary';
-      case 'transaction': return 'bg-success';
-      case 'alert': return 'bg-warning';
-      case 'system': return 'bg-info';
-      default: return 'bg-secondary';
-    }
   }
 }
