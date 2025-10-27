@@ -192,3 +192,365 @@
     transform: translateY(0);
   }
 }
+
+/* Multi-Step Progress Indicator */
+.progress-container {
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.step:hover .step-circle {
+  transform: scale(1.1);
+}
+
+.step-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #e9ecef;
+  border: 3px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.step.active .step-circle {
+  background: linear-gradient(135deg, #003d82 0%, #0056b3 100%);
+  border-color: #003d82;
+  color: white;
+  box-shadow: 0 0.5rem 1rem rgba(0, 61, 130, 0.3);
+  animation: pulse 2s infinite;
+}
+
+.step.completed .step-circle {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border-color: #28a745;
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0.5rem 1rem rgba(0, 61, 130, 0.3);
+  }
+  50% {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 61, 130, 0.5);
+  }
+}
+
+.step-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step.active .step-label {
+  color: #003d82;
+}
+
+.step.completed .step-label {
+  color: #28a745;
+}
+
+.step-line {
+  flex: 1;
+  height: 3px;
+  background: #dee2e6;
+  margin: 0 1rem;
+  margin-bottom: 2rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.step-line.completed {
+  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+/* Navigation Buttons */
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+  color: #6c757d;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover:not(:disabled) {
+  background: #6c757d;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(108, 117, 125, 0.3);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838 0%, #1e9e7a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(40, 167, 69, 0.3);
+}
+
+/* Responsive Progress Indicator */
+@media (max-width: 768px) {
+  .step-label {
+    font-size: 0.75rem;
+  }
+  
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .step-line {
+    margin: 0 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .progress-container {
+    padding: 1.5rem 0.5rem;
+  }
+}
+
+/* Password Visibility Toggle Button */
+.input-group .btn-outline-secondary {
+  border: 2px solid #e0e0e0;
+  border-left: none;
+  background: white;
+  color: #6c757d;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-group .btn-outline-secondary:hover {
+  background: #f8f9fa;
+  color: #003d82;
+  border-color: #003d82;
+}
+
+.input-group .btn-outline-secondary:focus {
+  box-shadow: none;
+  border-color: #003d82;
+}
+
+.input-group .form-control {
+  border-right: none;
+}
+
+.input-group .form-control:focus {
+  border-color: #003d82;
+  box-shadow: none;
+}
+
+.input-group .form-control:focus + .btn-outline-secondary {
+  border-color: #003d82;
+}
+
+/* Terms and Conditions Checkbox */
+.form-check {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  border: 2px solid #e9ecef;
+}
+
+.form-check-input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.25rem;
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background-color: #003d82;
+  border-color: #003d82;
+}
+
+.form-check-label {
+  font-size: 1rem;
+  color: #495057;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.form-check-label a {
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.form-check-label a:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1050;
+  display: none;
+  overflow: hidden;
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-dialog {
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  margin: 1.75rem auto;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 1rem 1rem 0 0;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #003d82;
+  margin: 0;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 2rem;
+  max-height: calc(90vh - 200px);
+  overflow-y: auto;
+}
+
+.terms-content h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.terms-content p {
+  color: #495057;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.terms-content ul {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.terms-content li {
+  color: #495057;
+  line-height: 1.8;
+  margin-bottom: 0.5rem;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 2px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 0 0 1rem 1rem;
+}
+
+/* Scrollbar Styling for Modal */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

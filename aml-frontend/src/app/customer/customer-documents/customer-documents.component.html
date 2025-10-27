@@ -1,0 +1,141 @@
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">My Documents</h3>
+    <span class="badge" [ngClass]="getOverallStatusClass()">
+      {{ getOverallStatusText() }}
+    </span>
+  </div>
+
+  <!-- Document Upload Section -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <h5 class="mb-0">Upload New Document</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="uploadForm" (ngSubmit)="onUpload()">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Document Type</label>
+            <select class="form-select" formControlName="documentType">
+              <option value="">Select document type</option>
+              <option value="AADHAAR">Aadhaar Card</option>
+              <option value="PAN">PAN Card</option>
+              <option value="PASSPORT">Passport</option>
+              <option value="DRIVING_LICENSE">Driving License</option>
+              <option value="VOTER_ID">Voter ID</option>
+              <option value="BANK_STATEMENT">Bank Statement</option>
+              <option value="UTILITY_BILL">Utility Bill</option>
+              <option value="OTHER">Other</option>
+            </select>
+            <div *ngIf="uploadForm.get('documentType')?.invalid && uploadForm.get('documentType')?.touched" class="text-danger small">
+              Document type is required
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">File</label>
+            <input type="file" class="form-control" #fileInput (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
+            <div *ngIf="selectedFileName" class="text-success small mt-1">
+              Selected: {{ selectedFileName }}
+            </div>
+            <div *ngIf="!selectedFileName && uploadForm.get('documentType')?.touched" class="text-danger small">
+              Please select a file (PDF, JPG, PNG)
+            </div>
+            <div class="form-text">Supported formats: PDF, JPG, PNG. Max size: 5MB</div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-primary" type="submit" [disabled]="!selectedFile || uploading">
+            <span *ngIf="!uploading">
+              <i class="fas fa-upload me-2"></i>Upload Document
+            </span>
+            <span *ngIf="uploading">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...
+            </span>
+          </button>
+          <div *ngIf="uploadError" class="text-danger mt-2">{{ uploadError }}</div>
+          <div *ngIf="uploadSuccess" class="text-success mt-2">{{ uploadSuccess }}</div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- KYC Status Card -->
+  <div class="card mb-3" *ngIf="hasKycStatus()">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-8">
+          <h6 class="card-title">KYC Verification Status</h6>
+          <p class="card-text text-muted">{{ getKycStatusMessage() }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+          <span class="badge fs-6" [ngClass]="getKycStatusBadgeClass()">
+            {{ getKycStatusText() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="text-center text-muted py-4" *ngIf="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading documents...</p>
+      </div>
+
+      <div class="alert alert-danger" *ngIf="error">{{ error }}</div>
+
+      <div class="table-responsive" *ngIf="!loading && documents.length > 0">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Document Type</th>
+              <th>File Name</th>
+              <th>Status</th>
+              <th>Verification</th>
+              <th>Uploaded</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let doc of documents; index as i" [class]="'document-row ' + getDocumentRowClass(doc)">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <strong>{{ getDocumentTypeDisplay(doc) }}</strong>
+                <div class="text-muted small">{{ getDocumentDescription(doc) }}</div>
+              </td>
+              <td>{{ getFileName(doc) }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(doc.status)">
+                  {{ getStatusText(doc) }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getVerificationBadgeClass(doc)">
+                  {{ getVerificationText(doc) }}
+                </span>
+              </td>
+              <td>{{ getUploadedDate(doc) | date:'medium' }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary" (click)="viewDocument(doc)" title="View Document">
+                  <i class="fas fa-eye me-1"></i>View Document
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-center text-muted py-4" *ngIf="!loading && documents.length === 0">
+        <i class="fas fa-file-alt fa-3x mb-3 text-muted"></i>
+        <p>No documents found</p>
+        <small class="text-muted">Documents uploaded during registration will appear here once processed.</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Preview Modal (if needed) -->
+</div>

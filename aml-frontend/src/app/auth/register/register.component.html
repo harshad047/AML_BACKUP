@@ -17,12 +17,50 @@
     </div>
 
     <div class="register-form-container">
+      <!-- Progress Indicator -->
+      <div class="progress-container mb-4">
+        <div class="step-indicator">
+          <div class="step" 
+               [class.active]="currentStep === 1" 
+               [class.completed]="currentStep > 1"
+               (click)="goToStep(1)">
+            <div class="step-circle">
+              <span *ngIf="currentStep > 1">✓</span>
+              <span *ngIf="currentStep <= 1">1</span>
+            </div>
+            <div class="step-label">Personal Info</div>
+          </div>
+          <div class="step-line" [class.completed]="currentStep > 1"></div>
+          <div class="step" 
+               [class.active]="currentStep === 2" 
+               [class.completed]="currentStep > 2"
+               (click)="goToStep(2)">
+            <div class="step-circle">
+              <span *ngIf="currentStep > 2">✓</span>
+              <span *ngIf="currentStep <= 2">2</span>
+            </div>
+            <div class="step-label">Contact & Security</div>
+          </div>
+          <div class="step-line" [class.completed]="currentStep > 2"></div>
+          <div class="step" 
+               [class.active]="currentStep === 3" 
+               [class.completed]="currentStep > 3"
+               (click)="goToStep(3)">
+            <div class="step-circle">
+              <span *ngIf="currentStep > 3">✓</span>
+              <span *ngIf="currentStep <= 3">3</span>
+            </div>
+            <div class="step-label">Address</div>
+          </div>
+        </div>
+      </div>
+
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-        <!-- Personal Information Section -->
-        <div class="form-section">
+        <!-- Step 1: Personal Information -->
+        <div class="form-section" *ngIf="currentStep === 1">
           <h5 class="section-title">
-            <span class="section-icon">👤</span>
-            Personal Information
+            <span class="section-icon">{{ getStepIcon() }}</span>
+            {{ getStepTitle() }}
           </h5>
           
           <div class="row">
@@ -37,7 +75,7 @@
                 [class.is-invalid]="isFieldInvalid('firstName')"
               >
               <div class="invalid-feedback" *ngIf="isFieldInvalid('firstName')">
-                First name is required
+                {{ getFieldError('firstName') }}
               </div>
             </div>
 
@@ -49,7 +87,11 @@
                 id="middleName"
                 formControlName="middleName"
                 placeholder="Optional"
+                [class.is-invalid]="isFieldInvalid('middleName')"
               >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('middleName')">
+                {{ getFieldError('middleName') }}
+              </div>
             </div>
 
             <div class="col-md-4 mb-3">
@@ -63,7 +105,7 @@
                 [class.is-invalid]="isFieldInvalid('lastName')"
               >
               <div class="invalid-feedback" *ngIf="isFieldInvalid('lastName')">
-                Last name is required
+                {{ getFieldError('lastName') }}
               </div>
             </div>
           </div>
@@ -79,32 +121,37 @@
                 [class.is-invalid]="isFieldInvalid('dob')"
               >
               <div class="invalid-feedback" *ngIf="isFieldInvalid('dob')">
-                Date of birth is required
+                {{ getFieldError('dob') }}
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
-              <label for="phone" class="form-label">Phone Number</label>
+              <label for="phone" class="form-label">Phone Number *</label>
               <input
                 type="tel"
                 class="form-control"
                 id="phone"
                 formControlName="phone"
-                placeholder="+1 (555) 000-0000"
+                placeholder="1234567890"
+                maxlength="10"
+                [class.is-invalid]="isFieldInvalid('phone')"
               >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('phone')">
+                {{ getFieldError('phone') }}
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Contact Information Section -->
-        <div class="form-section">
+        <!-- Step 2: Contact & Security -->
+        <div class="form-section" *ngIf="currentStep === 2">
           <h5 class="section-title">
-            <span class="section-icon">📧</span>
-            Contact & Security
+            <span class="section-icon">{{ getStepIcon() }}</span>
+            {{ getStepTitle() }}
           </h5>
           
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-12 mb-3">
               <label for="email" class="form-label">Email Address *</label>
               <input
                 type="email"
@@ -115,35 +162,91 @@
                 [class.is-invalid]="isFieldInvalid('email')"
               >
               <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
-                Please enter a valid email address
+                {{ getFieldError('email') }}
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label for="password" class="form-label">Password *</label>
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                formControlName="password"
-                placeholder="Min. 8 characters"
-                [class.is-invalid]="isFieldInvalid('password')"
-              >
-              <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
-                Password must be at least 8 characters long
+              <div class="input-group">
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="form-control"
+                  id="password"
+                  formControlName="password"
+                  placeholder="Enter strong password"
+                  [class.is-invalid]="isFieldInvalid('password')"
+                >
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+                  <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                </button>
               </div>
-              <small class="form-text text-muted">
-                Use a strong password with letters, numbers, and symbols
-              </small>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                {{ getFieldError('password') }}
+              </div>
+              <!-- Password Strength Indicator - Only show when typing -->
+              <div *ngIf="registerForm.get('password')?.value && registerForm.get('password')?.touched" class="mt-2">
+                <small class="form-text">
+                  Password Strength: 
+                  <span 
+                    [class.text-danger]="getPasswordStrength() === 'weak'"
+                    [class.text-warning]="getPasswordStrength() === 'medium'"
+                    [class.text-success]="getPasswordStrength() === 'strong'"
+                    class="fw-bold">
+                    {{ getPasswordStrength() | uppercase }}
+                  </span>
+                </small>
+                <div class="progress" style="height: 5px;">
+                  <div 
+                    class="progress-bar"
+                    [class.bg-danger]="getPasswordStrength() === 'weak'"
+                    [class.bg-warning]="getPasswordStrength() === 'medium'"
+                    [class.bg-success]="getPasswordStrength() === 'strong'"
+                    [style.width]="getPasswordStrength() === 'weak' ? '33%' : getPasswordStrength() === 'medium' ? '66%' : '100%'">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="confirmPassword" class="form-label">Confirm Password *</label>
+              <div class="input-group">
+                <input
+                  [type]="showConfirmPassword ? 'text' : 'password'"
+                  class="form-control"
+                  id="confirmPassword"
+                  formControlName="confirmPassword"
+                  placeholder="Re-enter password"
+                  [class.is-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+                  [class.is-valid]="registerForm.get('confirmPassword')?.valid && registerForm.get('confirmPassword')?.touched && !registerForm.errors?.['passwordMismatch']"
+                >
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button"
+                  (click)="toggleConfirmPasswordVisibility()"
+                  [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'">
+                  <i class="fas" [class.fa-eye]="!showConfirmPassword" [class.fa-eye-slash]="showConfirmPassword"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback" *ngIf="registerForm.get('confirmPassword')?.touched">
+                {{ getConfirmPasswordError() }}
+              </div>
+              <div class="valid-feedback" *ngIf="registerForm.get('confirmPassword')?.valid && !registerForm.errors?.['passwordMismatch']">
+                Passwords match!
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Address Information Section -->
-        <div class="form-section">
+        <!-- Step 3: Address Information -->
+        <div class="form-section" *ngIf="currentStep === 3">
           <h5 class="section-title">
-            <span class="section-icon">🏠</span>
-            Address Information
+            <span class="section-icon">{{ getStepIcon() }}</span>
+            {{ getStepTitle() }}
           </h5>
           
           <div class="row">
@@ -206,21 +309,63 @@
           </div>
         </div>
 
-        <!-- Terms and Conditions -->
-        <div class="form-section">
-          <div class="alert alert-info">
-            <strong>📋 Important:</strong> By creating an account, you agree to our Terms of Service and Privacy Policy. Your information will be securely stored and used in accordance with banking regulations.
+        <!-- Terms and Conditions Checkbox (Step 3 only) -->
+        <div class="form-section" *ngIf="currentStep === 3">
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              id="agreeToTerms"
+              formControlName="agreeToTerms"
+              [class.is-invalid]="isFieldInvalid('agreeToTerms')">
+            <label class="form-check-label" for="agreeToTerms">
+              I agree to the 
+              <a href="javascript:void(0)" (click)="openTermsModal()" class="text-primary fw-bold">
+                Banking Rules and Regulations
+              </a>
+            </label>
+            <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('agreeToTerms')">
+              You must agree to the terms and conditions to continue
+            </div>
           </div>
         </div>
 
-        <!-- Submit Button -->
-        <div class="d-grid gap-2">
+        <!-- Navigation Buttons -->
+        <div class="d-flex justify-content-between gap-2 mt-4">
+          <!-- Previous Button -->
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-lg"
+            (click)="previousStep()"
+            [disabled]="currentStep === 1"
+            *ngIf="currentStep > 1"
+          >
+            <i class="fas fa-arrow-left me-2"></i>
+            Previous
+          </button>
+          
+          <div class="flex-grow-1"></div>
+          
+          <!-- Next Button (Steps 1-2) -->
+          <button
+            type="button"
+            class="btn btn-primary btn-lg"
+            (click)="nextStep()"
+            *ngIf="currentStep < totalSteps"
+          >
+            Next
+            <i class="fas fa-arrow-right ms-2"></i>
+          </button>
+          
+          <!-- Submit Button (Step 3) -->
           <button
             type="submit"
-            class="btn btn-primary btn-lg"
+            class="btn btn-success btn-lg"
             [disabled]="registerForm.invalid || isLoading"
+            *ngIf="currentStep === totalSteps"
           >
             <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            <i class="fas fa-check me-2" *ngIf="!isLoading"></i>
             {{ isLoading ? 'Creating Your Account...' : 'Create Account' }}
           </button>
         </div>
@@ -254,6 +399,107 @@
             <p class="feature-text">AML Compliant</p>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal-backdrop" *ngIf="showTermsModal" (click)="closeTermsModal()"></div>
+<div class="modal" [class.show]="showTermsModal" *ngIf="showTermsModal">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-file-contract me-2"></i>
+          Banking Rules and Regulations
+        </h5>
+        <button type="button" class="btn-close" (click)="closeTermsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="terms-content">
+          <h6 class="text-primary">1. Account Terms and Conditions</h6>
+          <p>By opening an account with our banking platform, you agree to comply with all applicable banking regulations and our internal policies. Your account is subject to verification and approval processes as mandated by regulatory authorities.</p>
+
+          <h6 class="text-primary">2. Anti-Money Laundering (AML) Compliance</h6>
+          <p>We are committed to preventing money laundering and terrorist financing. All transactions are monitored and may be reported to relevant authorities if suspicious activity is detected. You agree to:</p>
+          <ul>
+            <li>Provide accurate and truthful information during registration</li>
+            <li>Update your information promptly when changes occur</li>
+            <li>Cooperate with any verification or investigation procedures</li>
+            <li>Not use the platform for any illegal activities</li>
+          </ul>
+
+          <h6 class="text-primary">3. Know Your Customer (KYC) Requirements</h6>
+          <p>As per regulatory requirements, we must verify your identity. You agree to provide:</p>
+          <ul>
+            <li>Valid government-issued identification documents</li>
+            <li>Proof of address (utility bills, bank statements, etc.)</li>
+            <li>Additional documentation as requested for enhanced due diligence</li>
+          </ul>
+
+          <h6 class="text-primary">4. Transaction Monitoring</h6>
+          <p>All transactions are subject to automated and manual monitoring systems. We reserve the right to:</p>
+          <ul>
+            <li>Flag suspicious transactions for review</li>
+            <li>Temporarily hold or block transactions pending investigation</li>
+            <li>Request additional information about transaction purposes</li>
+            <li>Report suspicious activities to regulatory authorities</li>
+          </ul>
+
+          <h6 class="text-primary">5. Data Privacy and Security</h6>
+          <p>Your personal and financial information will be:</p>
+          <ul>
+            <li>Stored securely using bank-level encryption</li>
+            <li>Used only for legitimate banking and compliance purposes</li>
+            <li>Shared with regulatory authorities when legally required</li>
+            <li>Protected in accordance with applicable data protection laws</li>
+          </ul>
+
+          <h6 class="text-primary">6. Account Restrictions and Termination</h6>
+          <p>We reserve the right to restrict, suspend, or terminate your account if:</p>
+          <ul>
+            <li>You violate these terms and conditions</li>
+            <li>Suspicious or illegal activity is detected</li>
+            <li>You fail to provide required documentation</li>
+            <li>Regulatory authorities require such action</li>
+          </ul>
+
+          <h6 class="text-primary">7. Regulatory Compliance</h6>
+          <p>This platform operates in compliance with:</p>
+          <ul>
+            <li>Bank Secrecy Act (BSA)</li>
+            <li>USA PATRIOT Act</li>
+            <li>Financial Crimes Enforcement Network (FinCEN) regulations</li>
+            <li>Office of Foreign Assets Control (OFAC) sanctions</li>
+            <li>Other applicable federal and state banking regulations</li>
+          </ul>
+
+          <h6 class="text-primary">8. Customer Responsibilities</h6>
+          <p>As an account holder, you are responsible for:</p>
+          <ul>
+            <li>Maintaining the confidentiality of your login credentials</li>
+            <li>Reporting any unauthorized access immediately</li>
+            <li>Ensuring all transactions are legitimate and lawful</li>
+            <li>Keeping your contact information up to date</li>
+          </ul>
+
+          <h6 class="text-primary">9. Fees and Charges</h6>
+          <p>Account maintenance, transaction fees, and other charges may apply as disclosed in our fee schedule. You agree to pay all applicable fees and authorize us to deduct them from your account balance.</p>
+
+          <h6 class="text-primary">10. Amendments</h6>
+          <p>We reserve the right to modify these terms and conditions at any time. You will be notified of significant changes, and continued use of the platform constitutes acceptance of the modified terms.</p>
+
+          <div class="alert alert-warning mt-4">
+            <strong><i class="fas fa-exclamation-triangle me-2"></i>Important Notice:</strong>
+            By checking the agreement box, you acknowledge that you have read, understood, and agree to be bound by these Banking Rules and Regulations.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeTermsModal()">
+          Close
+        </button>
       </div>
     </div>
   </div>
