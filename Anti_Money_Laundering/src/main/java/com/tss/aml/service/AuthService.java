@@ -2,6 +2,7 @@ package com.tss.aml.service;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -86,26 +87,31 @@ public class AuthService {
 			token = jwtUtil.generateToken(userDetails.getUsername(), role);
 		}
 
-		// Log the login action
-		auditLogService.logLogin(userDetails.getUsername(), "127.0.0.1"); // You can get real IP from request
+		// Log the login action asynchronously - doesn't block response
+		auditLogService.logLoginAsync(userDetails.getUsername(), "127.0.0.1");
 		
-		// Send login success email
+		// Send login success email asynchronously - doesn't block response
+		sendLoginEmailAsync(userDetails.getUsername());
+
+		return new AuthResponse(token, "Bearer", userDetails.getUsername(), "ROLE_" + role, userId );
+	}
+	
+	/**
+	 * Sends login success email asynchronously to avoid blocking the login response
+	 * Uses optimized query to fetch only email instead of entire User entity
+	 */
+	@Async("taskExecutor")
+	private void sendLoginEmailAsync(String username) {
 		try {
-			// Get user email - assuming username is email or we need to fetch user
-			String userEmail = userDetails.getUsername();
+			String userEmail = username;
+			// If username is not an email, fetch email from database using optimized query
 			if (!userEmail.contains("@")) {
-				// If username is not email, fetch user to get email
-				User user = userRepository.findByUsername(userEmail).orElse(null);
-				if (user != null) {
-					userEmail = user.getEmail();
-				}
+				userEmail = userRepository.findEmailByUsername(userEmail).orElse(userEmail);
 			}
 			emailService.sendLoginSuccessEmailHtml(userEmail);
 		} catch (Exception e) {
 			// Log error but don't fail login
-			System.err.println("Failed to send login email: " + e.getMessage());
+			System.err.println("Failed to send login email asynchronously: " + e.getMessage());
 		}
-
-		return new AuthResponse(token, "Bearer", userDetails.getUsername(), "ROLE_" + role, userId );
 	}
 }

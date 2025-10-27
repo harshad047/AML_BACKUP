@@ -9,5 +9,5 @@ public class AntiMoneyLaunderingApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AntiMoneyLaunderingApplication.class, args);
 	}
+
 }
-	

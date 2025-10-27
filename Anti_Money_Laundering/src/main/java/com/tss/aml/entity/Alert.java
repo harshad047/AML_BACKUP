@@ -24,6 +24,7 @@ public class Alert {
     private int riskScore;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private AlertStatus status = AlertStatus.OPEN;
 
     private LocalDateTime createdAt = LocalDateTime.now();

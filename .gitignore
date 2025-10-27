@@ -1,1 +1,4 @@
 .metadata
+
+aml-frontend/node_modules
+aml-frontend/.angular

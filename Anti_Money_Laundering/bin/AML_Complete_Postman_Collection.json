@@ -1,0 +1,1550 @@
+{
+	"info": {
+		"_postman_id": "aml-complete-collection-2024",
+		"name": "AML System - Complete API Collection",
+		"description": "Complete API collection for Anti Money Laundering System with all endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('jwt_token', response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👨‍💼 Admin",
+			"item": [
+				{
+					"name": "User Management",
+					"item": [
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/users",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "users"]
+								}
+							}
+						},
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\",\n  \"email\": \"test.user@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"CUSTOMER\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/users",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "users"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Rule Management",
+					"item": [
+						{
+							"name": "Get All Rules",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/rules",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "rules"]
+								}
+							}
+						},
+						{
+							"name": "Create Rule",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"High Value Transaction\",\n  \"description\": \"Flags transactions over 10000\",\n  \"condition\": \"amount > 10000\",\n  \"action\": \"FLAG\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/rules",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "rules"]
+								}
+							}
+						},
+						{
+							"name": "Update Rule",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated High Value Transaction\",\n  \"description\": \"Flags transactions over 15000\",\n  \"condition\": \"amount > 15000\",\n  \"action\": \"BLOCK\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/rules/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "rules", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Rule",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/rules/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "rules", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Keyword Management",
+					"item": [
+						{
+							"name": "Get All Keywords",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/keywords",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "keywords"]
+								}
+							}
+						},
+						{
+							"name": "Add Keyword",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"keyword\": \"suspicious\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/keywords",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "keywords"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Account Management",
+					"item": [
+						{
+							"name": "Get Pending Accounts",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts/pending",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts", "pending"]
+								}
+							}
+						},
+						{
+							"name": "Get All Accounts",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts"]
+								}
+							}
+						},
+						{
+							"name": "Get Account By Id",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts", "1"]
+								}
+							}
+						},
+						{
+							"name": "Approve Account",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts/1/approve",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts", "1", "approve"]
+								}
+							}
+						},
+						{
+							"name": "Reject Account",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts/1/reject",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts", "1", "reject"]
+								}
+							}
+						},
+						{
+							"name": "Suspend Account",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts/1/suspend",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts", "1", "suspend"]
+								}
+							}
+						},
+						{
+							"name": "Activate Account",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/accounts/1/activate",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "accounts", "1", "activate"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Country Risk Management",
+					"item": [
+						{
+							"name": "Get Country Risks",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/country-risks",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "country-risks"]
+								}
+							}
+						},
+						{
+							"name": "Create Country Risk",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"countryName\": \"Testland\",\n  \"riskLevel\": \"HIGH\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/country-risks",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "country-risks"]
+								}
+							}
+						},
+						{
+							"name": "Update Country Risk",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"countryName\": \"Testland\",\n  \"riskLevel\": \"MEDIUM\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/country-risks/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "country-risks", "1"]
+								}
+							}
+						},
+						{
+							"name": "Delete Country Risk",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/country-risks/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "country-risks", "1"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Transaction Management",
+					"item": [
+						{
+							"name": "Get Transactions By Account",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/transactions/account/123456789",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "transactions", "account", "123456789"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Compliance Officer Management",
+					"item": [
+						{
+							"name": "Get Compliance Officers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/compliance-officers",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "compliance-officers"]
+								}
+							}
+						},
+						{
+							"name": "Create Compliance Officer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"firstName\": \"Compliance\",\n  \"lastName\": \"Officer\",\n  \"email\": \"officer@example.com\",\n  \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/admin/compliance-officers",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "compliance-officers"]
+								}
+							}
+						},
+						{
+							"name": "Add Compliance Officer Role",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/compliance-officers/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "compliance-officers", "1"]
+								}
+							}
+						},
+						{
+							"name": "Remove Compliance Officer Role",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/compliance-officers/1/remove",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "compliance-officers", "1", "remove"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Customer Management",
+					"item": [
+						{
+							"name": "Get Blocked Customers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/customers/blocked",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "customers", "blocked"]
+								}
+							}
+						},
+						{
+							"name": "Block Customer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/customers/1/block?reason=Suspicious activity",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "customers", "1", "block"],
+									"query": [
+										{
+											"key": "reason",
+											"value": "Suspicious activity"
+										}
+									]
+								}
+							}
+						},
+						{
+							"name": "Unblock Customer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/customers/1/unblock",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "customers", "1", "unblock"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Audit Logs",
+					"item": [
+						{
+							"name": "Get All Audit Logs",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/audit-logs",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "audit-logs"]
+								}
+							}
+						},
+						{
+							"name": "Get Audit Logs By Username",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/audit-logs/user/testuser",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "audit-logs", "user", "testuser"]
+								}
+							}
+						},
+						{
+							"name": "Get Audit Logs By Action",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/audit-logs/action/LOGIN",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "audit-logs", "action", "LOGIN"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "KYC Document Management",
+					"item": [
+						{
+							"name": "Get Pending KYC Documents",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/kyc/documents/pending",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "kyc", "documents", "pending"]
+								}
+							}
+						},
+						{
+							"name": "Verify KYC Document",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/kyc/documents/1/verify",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "kyc", "documents", "1", "verify"]
+								}
+							}
+						},
+						{
+							"name": "Reject KYC Document",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/kyc/documents/1/reject",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "kyc", "documents", "1", "reject"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Debug",
+					"item": [
+						{
+							"name": "Debug Auth",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/debug/auth",
+									"host": ["{{base_url}}"],
+									"path": ["api", "admin", "debug", "auth"]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "🏦 Bank Account",
+			"item": [
+				{
+					"name": "Create Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountType\": \"SAVINGS\",\n  \"initialDeposit\": 1000.0\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/accounts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts"]
+						}
+					}
+				},
+				{
+					"name": "Get My Accounts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/accounts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "accounts"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "⚖️ Compliance",
+			"item": [
+				{
+					"name": "Alert Management",
+					"item": [
+						{
+							"name": "Get All Open Alerts",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/alerts",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "alerts"]
+								}
+							}
+						},
+						{
+							"name": "Get Alert By Id",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/alerts/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "alerts", "1"]
+								}
+							}
+						},
+						{
+							"name": "Create Case From Alert",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/alerts/1/case",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "alerts", "1", "case"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Case Management",
+					"item": [
+						{
+							"name": "Get Cases Under Investigation",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/cases/under-investigation",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "cases", "under-investigation"]
+								}
+							}
+						},
+						{
+							"name": "Get Resolved Cases",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/cases/resolved",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "cases", "resolved"]
+								}
+							}
+						},
+						{
+							"name": "Get Case By Id",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/cases/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "cases", "1"]
+								}
+							}
+						},
+						{
+							"name": "Add Note To Case",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"content\": \"Investigation notes here...\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/compliance/cases/1/notes",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "cases", "1", "notes"]
+								}
+							}
+						}
+					]
+				},
+				{
+					"name": "Transaction Management",
+					"item": [
+						{
+							"name": "Get All Transactions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/all",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "all"]
+								}
+							}
+						},
+						{
+							"name": "Get Flagged Transactions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/flagged",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "flagged"]
+								}
+							}
+						},
+						{
+							"name": "Get Blocked Transactions",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/blocked",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "blocked"]
+								}
+							}
+						},
+						{
+							"name": "Get Transactions For Review",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/review",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "review"]
+								}
+							}
+						},
+						{
+							"name": "Get Transaction Details",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/1",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "1"]
+								}
+							}
+						},
+						{
+							"name": "Approve Transaction",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/1/approve",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "1", "approve"]
+								}
+							}
+						},
+						{
+							"name": "Reject Transaction",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{jwt_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/compliance/transactions/1/reject?reason=Suspicious transaction",
+									"host": ["{{base_url}}"],
+									"path": ["api", "compliance", "transactions", "1", "reject"],
+									"query": [
+										{
+											"key": "reason",
+											"value": "Suspicious transaction"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "👤 Customer",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/customer/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Get KYC Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/customer/kyc-status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "kyc-status"]
+						}
+					}
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"User\",\n  \"phone\": \"1234567890\",\n  \"address\": {\n    \"city\": \"New City\",\n    \"state\": \"New State\",\n    \"postalCode\": \"12345\",\n    \"country\": \"New Country\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/customer/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newPassword456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/customer/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "change-password"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🚨 Customer Alert",
+			"item": [
+				{
+					"name": "Get My Alerts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/customer/alerts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "alerts"]
+						}
+					}
+				},
+				{
+					"name": "Get Alert Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/customer/alerts/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "alerts", "1"]
+						}
+					}
+				},
+				{
+					"name": "Get Alerts For Transaction",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/customer/alerts/transaction/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customer", "alerts", "transaction", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📄 Document",
+			"item": [
+				{
+					"name": "Upload Document",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "docType",
+									"value": "ID_PROOF",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/documents/upload",
+							"host": ["{{base_url}}"],
+							"path": ["api", "documents", "upload"]
+						}
+					}
+				},
+				{
+					"name": "Get My Documents",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/documents/my",
+							"host": ["{{base_url}}"],
+							"path": ["api", "documents", "my"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📝 Registration",
+			"item": [
+				{
+					"name": "Send OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "test@example.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register/send-otp",
+							"host": ["{{base_url}}"],
+							"path": ["api", "register", "send-otp"]
+						}
+					}
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "test@example.com",
+									"type": "text"
+								},
+								{
+									"key": "otp",
+									"value": "123456",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register/verify-otp",
+							"host": ["{{base_url}}"],
+							"path": ["api", "register", "verify-otp"]
+						}
+					}
+				},
+				{
+					"name": "Register Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"phone\": \"1234567890\",\n  \"street\": \"123 Main St\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"country\": \"USA\",\n  \"postalCode\": \"10001\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "register"]
+						}
+					}
+				},
+				{
+					"name": "Upload Registration Documents",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "docType",
+									"value": "ID_PROOF",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register/1/documents",
+							"host": ["{{base_url}}"],
+							"path": ["api", "register", "1", "documents"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "💳 Transaction",
+			"item": [
+				{
+					"name": "Deposit",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountNumber\": \"123456789\",\n  \"amount\": 1000.0,\n  \"description\": \"Salary deposit\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions/deposit",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "deposit"]
+						}
+					}
+				},
+				{
+					"name": "Withdraw",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"accountNumber\": \"123456789\",\n  \"amount\": 500.0,\n  \"description\": \"ATM withdrawal\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions/withdraw",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "withdraw"]
+						}
+					}
+				},
+				{
+					"name": "Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fromAccountNumber\": \"123456789\",\n  \"toAccountNumber\": \"987654321\",\n  \"amount\": 250.0,\n  \"description\": \"Transfer to friend\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions/transfer",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "transfer"]
+						}
+					}
+				},
+				{
+					"name": "Get Transaction History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/history",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "history"]
+						}
+					}
+				},
+				{
+					"name": "Get Account Transaction History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/history/123456789",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "history", "123456789"]
+						}
+					}
+				},
+				{
+					"name": "Get Account Balance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/balance/123456789",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "balance", "123456789"]
+						}
+					}
+				},
+				{
+					"name": "Get Transaction Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/status/1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "status", "1"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

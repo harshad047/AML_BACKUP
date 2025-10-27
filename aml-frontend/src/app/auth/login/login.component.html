@@ -1,0 +1,78 @@
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-form">
+      <div class="text-center mb-4">
+        <h2 class="fw-bold text-primary">AML System</h2>
+        <p class="text-muted">Sign in to your account</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email address</label>
+          <input
+            type="email"
+            class="form-control form-control-lg"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [class.is-invalid]="isFieldInvalid('email')"
+          >
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+            Please enter a valid email address
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input
+            type="password"
+            class="form-control form-control-lg"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.is-invalid]="isFieldInvalid('password')"
+          >
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+            Password is required
+          </div>
+        </div>
+
+        <div class="d-grid">
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg"
+            [disabled]="loginForm.invalid || isLoading"
+          >
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            {{ isLoading ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </div>
+
+        <div class="text-center mt-3">
+          <a routerLink="/forgot-password" class="text-decoration-none">Forgot password?</a>
+        </div>
+      </form>
+
+      <div class="text-center mt-4">
+        <p class="mb-0">Don't have an account?
+          <a routerLink="/register" class="text-decoration-none fw-bold">Sign up</a>
+        </p>
+      </div>
+    </div>
+    <div class="login-branding">
+      <div class="branding-content">
+        <div class="simple-branding">
+          <div class="rupee-circle">
+            <span class="rupee-symbol">₹</span>
+          </div>
+          <h1>AML System</h1>
+          <p class="subtitle">Anti-Money Laundering Platform</p>
+          <div class="divider"></div>
+          <p class="description">
+            Secure, compliant, and intelligent financial monitoring system designed to detect and prevent money laundering activities.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

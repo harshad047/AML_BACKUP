@@ -4,10 +4,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tss.aml.entity.*;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tss.aml.entity.Enums.KycStatus;
-import com.tss.aml.entity.Role;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -88,6 +86,7 @@ public class Customer {
     private Instant createdAt = Instant.now();
 
     @OneToMany(mappedBy="customer", cascade=CascadeType.ALL, orphanRemoval=true)
+    @JsonIgnore
     private List<Document> documents = new ArrayList<>();
 
     public void addDocument(Document doc) {
