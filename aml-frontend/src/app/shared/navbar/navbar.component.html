@@ -1,0 +1,191 @@
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" [routerLink]="currentUser ? dashboardRoute : '/login'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: brandExactMatch}">
+      <i class="fas fa-shield-alt me-2"></i>
+      AML System
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <div class="d-flex justify-content-between w-100">
+        <ul class="navbar-nav me-auto" *ngIf="currentUser">
+          <ng-container *ngIf="currentUser.role === 'CUSTOMER'">
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/customer" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/customer/documents" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-file-alt me-1"></i> Documents
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/customer/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-credit-card me-1"></i> Transactions
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/customer/open-account" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-university me-1"></i> Open Account
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/customer/alerts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-bell me-1"></i> My Alerts
+              </a>
+            </li>
+          </ng-container>
+
+          <ng-container *ngIf="currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN'">
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/customers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-users me-1"></i> Customers
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/rules" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-cog me-1"></i> Rules
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-exchange-alt me-1"></i> Transactions
+              </a>
+            </li>
+          </ng-container>
+
+          <ng-container *ngIf="currentUser.role === 'OFFICER'">
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/compliance" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/compliance/alerts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-exclamation-triangle me-1"></i> Alerts
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/compliance/cases" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-search me-1"></i> Investigations
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/compliance/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-exchange-alt me-1"></i> Transactions
+              </a>
+            </li>
+          </ng-container>
+        </ul>
+
+        <div class="d-flex align-items-center">
+          <ul class="navbar-nav" *ngIf="currentUser">
+            <li class="nav-item dropdown" [class.show]="isDropdownOpen">
+              <a class="nav-link dropdown-toggle d-flex align-items-center user-menu" 
+                 href="#" 
+                 id="userDropdown" 
+                 role="button" 
+                 (click)="toggleDropdown($event)"
+                 [attr.aria-expanded]="isDropdownOpen">
+                <i class="fas fa-user-circle me-2 user-icon"></i>
+                <span class="d-none d-sm-inline user-name">{{ currentUser.firstName }} {{ currentUser.lastName }}</span>
+                <span class="d-sm-none d-inline">Account</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow-lg" 
+                  [class.show]="isDropdownOpen"
+                  aria-labelledby="userDropdown">
+                <!-- User Info Header -->
+                <li class="dropdown-header">
+                  <div class="user-info">
+                    <i class="fas fa-user-circle fa-2x mb-2"></i>
+                    <div class="fw-bold">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
+                    <small class="text-muted">{{ currentUser.email }}</small>
+                    <div class="mt-1">
+                      <span class="badge bg-primary">{{ getRoleDisplayName(currentUser.role) }}</span>
+                    </div>
+                  </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                
+                <!-- Customer Menu Items -->
+                <ng-container *ngIf="currentUser.role === 'CUSTOMER'">
+                  <li>
+                    <a class="dropdown-item" routerLink="/customer/profile" (click)="closeDropdown()">
+                      <i class="fas fa-user me-2"></i>My Profile
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/customer/change-password" (click)="closeDropdown()">
+                      <i class="fas fa-key me-2"></i>Change Password
+                    </a>
+                  </li>
+                </ng-container>
+                
+                <!-- Officer Menu Items -->
+                <ng-container *ngIf="currentUser.role === 'OFFICER'">
+                  <li>
+                    <a class="dropdown-item" routerLink="/compliance" (click)="closeDropdown()">
+                      <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/compliance/alerts" (click)="closeDropdown()">
+                      <i class="fas fa-exclamation-triangle me-2"></i>Alerts
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/compliance/cases" (click)="closeDropdown()">
+                      <i class="fas fa-search me-2"></i>Investigations
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/compliance/transactions" (click)="closeDropdown()">
+                      <i class="fas fa-exchange-alt me-2"></i>Transactions
+                    </a>
+                  </li>
+                </ng-container>
+                
+                <!-- Admin Menu Items -->
+                <ng-container *ngIf="currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN'">
+                  <li>
+                    <a class="dropdown-item" routerLink="/admin" (click)="closeDropdown()">
+                      <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/admin/customers" (click)="closeDropdown()">
+                      <i class="fas fa-users me-2"></i>Customers
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/admin/rules" (click)="closeDropdown()">
+                      <i class="fas fa-cog me-2"></i>Rules
+                    </a>
+                  </li>
+                </ng-container>
+                
+                <li><hr class="dropdown-divider"></li>
+                
+                <!-- Logout (Common for all) -->
+                <li>
+                  <a class="dropdown-item text-danger logout-item" href="#" (click)="logout($event)">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
