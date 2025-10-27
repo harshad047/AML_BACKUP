@@ -15,36 +15,39 @@ import { AuthService, User } from '../../core/services/auth.service';
           AML System
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <!-- Mobile toggler button -->
+        <button class="navbar-toggler" type="button" (click)="toggleNavbar($event)" [attr.aria-expanded]="!isNavbarCollapsed" aria-controls="navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <!-- Collapsible content -->
+        <div class="collapse navbar-collapse" id="navbarNav" [class.show]="!isNavbarCollapsed">
           <div class="d-flex justify-content-between w-100">
+            <!-- Left-side navigation links -->
             <ul class="navbar-nav me-auto" *ngIf="currentUser">
               <ng-container *ngIf="currentUser.role === 'CUSTOMER'">
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/customer" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/customer" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/customer/documents" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/customer/documents" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-file-alt me-1"></i> Documents
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/customer/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/customer/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-credit-card me-1"></i> Transactions
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/customer/open-account" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/customer/open-account" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-university me-1"></i> Open Account
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/customer/alerts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/customer/alerts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-bell me-1"></i> My Alerts
                   </a>
                 </li>
@@ -52,22 +55,22 @@ import { AuthService, User } from '../../core/services/auth.service';
 
               <ng-container *ngIf="currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN'">
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/admin/customers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/admin/customers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-users me-1"></i> Customers
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/admin/rules" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/admin/rules" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-cog me-1"></i> Rules
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/admin/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/admin/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-exchange-alt me-1"></i> Transactions
                   </a>
                 </li>
@@ -75,50 +78,53 @@ import { AuthService, User } from '../../core/services/auth.service';
 
               <ng-container *ngIf="currentUser.role === 'OFFICER'">
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/compliance" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/compliance" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/compliance/alerts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/compliance/alerts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-exclamation-triangle me-1"></i> Alerts
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/compliance/investigations" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/compliance/investigations" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-search me-1"></i> Investigations
                   </a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/compliance/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                  <a class="nav-link" routerLink="/compliance/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeNavbar()">
                     <i class="fas fa-exchange-alt me-1"></i> Transactions
                   </a>
                 </li>
               </ng-container>
             </ul>
 
+            <!-- Right-side user menu -->
             <div class="d-flex align-items-center">
               <ul class="navbar-nav" *ngIf="currentUser">
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <!-- User dropdown toggle -->
+                  <a class="nav-link dropdown-toggle d-flex align-items-center" id="userDropdown" role="button" (click)="toggleUserDropdown($event)" [attr.aria-expanded]="isUserDropdownOpen" [class.show]="isUserDropdownOpen">
                     <i class="fas fa-user-circle me-2"></i>
                     <span class="d-none d-sm-inline">{{ currentUser.firstName }} {{ currentUser.lastName }}</span>
                     <span class="d-sm-none d-inline">Account</span>
                   </a>
-                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                  <!-- User dropdown menu -->
+                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" [class.show]="isUserDropdownOpen">
                     <li>
-                      <a class="dropdown-item" routerLink="/customer/profile">
+                      <a class="dropdown-item" routerLink="/customer/profile" (click)="closeUserDropdown()">
                         <i class="fas fa-user me-2"></i>Profile
                       </a>
                     </li>
                     <li>
-                      <a class="dropdown-item" routerLink="/customer/change-password">
+                      <a class="dropdown-item" routerLink="/customer/change-password" (click)="closeUserDropdown()">
                         <i class="fas fa-key me-2"></i>Change Password
                       </a>
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                      <a class="dropdown-item text-danger" href="#" (click)="logout($event)">
+                      <a class="dropdown-item text-danger" (click)="logout($event)">
                         <i class="fas fa-sign-out-alt me-2"></i>Logout
                       </a>
                     </li>
@@ -142,6 +148,9 @@ import { AuthService, User } from '../../core/services/auth.service';
       font-weight: 700;
       color: white !important;
     }
+    .navbar-toggler {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
     .navbar-toggler-icon {
       background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
     }
@@ -152,6 +161,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       margin: 0 0.25rem;
       padding: 0.5rem 1rem;
       border-radius: 0.375rem;
+      cursor: pointer; /* Added for links that are now click handlers */
     }
     .nav-link:hover {
       color: white !important;
@@ -162,6 +172,11 @@ import { AuthService, User } from '../../core/services/auth.service';
       color: white !important;
     }
     
+    /* This rule anchors the dropdown menu to its parent item */
+    .nav-item.dropdown {
+      position: relative;
+    }
+
     /* --- DROPDOWN STYLES (Simplified) --- */
     .dropdown-toggle::after {
         transition: transform 0.3s ease;
@@ -174,7 +189,17 @@ import { AuthService, User } from '../../core/services/auth.service';
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         border: 1px solid rgba(0,0,0,.1);
         padding: 0.5rem 0;
+        /* Handle visibility with .show class */
+        display: none; 
+        position: absolute; /* Ensure it's positioned correctly */
+        z-index: 1000; /* Ensure dropdown appears on top of other content */
     }
+
+    /* This is the key class Bootstrap JS would have added */
+    .dropdown-menu.show {
+        display: block;
+    }
+
     .dropdown-item {
       padding: 0.5rem 1.25rem;
       font-weight: 400;
@@ -182,17 +207,26 @@ import { AuthService, User } from '../../core/services/auth.service';
       text-decoration: none;
       background-color: transparent;
       transition: all 0.2s ease-in-out;
+      cursor: pointer; /* Added for links that are now click handlers */
     }
     .dropdown-item:hover,
     .dropdown-item:focus {
       color: #1e2125;
       background-color: #f8f9fa;
     }
+
+    /* Ensure dropdown icons take up space even if font fails */
     .dropdown-item i {
+      display: inline-block; /* <-- ADDED */
       width: 1.25rem;
       text-align: center;
       margin-right: 0.5rem;
     }
+    /* Ensure user circle icon takes up space */
+    .nav-link .fa-user-circle {
+      display: inline-block; /* <-- ADDED */
+    }
+
     .dropdown-item.text-danger {
       color: #dc3545 !important;
     }
@@ -204,10 +238,31 @@ import { AuthService, User } from '../../core/services/auth.service';
       margin: 0.5rem 0;
       border-top: 1px solid #e9ecef;
     }
+
+    /* Styles for mobile navbar collapse (Bootstrap defaults) */
+    @media (max-width: 991.98px) {
+      .navbar-collapse {
+        /* display: none; */ /* Handled by .collapse */
+        width: 100%;
+      }
+      .navbar-collapse.show {
+        /* display: block; */ /* Handled by .collapse.show */
+      }
+      .navbar-nav {
+        width: 100%;
+      }
+      .dropdown-menu {
+        position: static; /* Make dropdown static in mobile view */
+        float: none;
+        z-index: auto; /* Reset z-index for static positioning */
+      }
+    }
   `]
 })
 export class NavbarComponent implements OnInit {
   currentUser: User | null = null;
+  isUserDropdownOpen = false;
+  isNavbarCollapsed = true; // Start with navbar collapsed
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -217,11 +272,42 @@ export class NavbarComponent implements OnInit {
     });
   }
 
+  // Toggle for the mobile navbar
+  toggleNavbar(event: Event): void {
+    event.preventDefault();
+    this.isNavbarCollapsed = !this.isNavbarCollapsed;
+    this.isUserDropdownOpen = false; // Close user dropdown when toggling navbar
+  }
+
+  // Close mobile navbar (e.g., after clicking a link)
+  closeNavbar(): void {
+    this.isNavbarCollapsed = true;
+    this.isUserDropdownOpen = false;
+  }
+
+  // Toggle for the user account dropdown
+  toggleUserDropdown(event: Event): void {
+    event.preventDefault();
+    this.isUserDropdownOpen = !this.isUserDropdownOpen;
+    // On mobile, ensure navbar is open to show dropdown
+    if (!this.isNavbarCollapsed && !this.isUserDropdownOpen) {
+       // if navbar is open and we are closing dropdown, do nothing special
+    } else if (this.isNavbarCollapsed) {
+       // if navbar is collapsed, opening dropdown should not open navbar
+    }
+  }
+
+  // Close user dropdown (e.g., after clicking a link)
+  closeUserDropdown(): void {
+    this.isUserDropdownOpen = false;
+    this.isNavbarCollapsed = true; // Also close mobile menu
+  }
+
   logout(event: Event): void {
     event.preventDefault();
-    if (confirm('Are you sure you want to logout?')) {
-      this.authService.logout();
-    }
+    // Removed the 'confirm' dialog as it is not supported.
+    this.closeUserDropdown(); // Close dropdown
+    this.authService.logout();
   }
 
   get dashboardRoute(): string {
@@ -248,3 +334,4 @@ export class NavbarComponent implements OnInit {
     return false;
   }
 }
+
