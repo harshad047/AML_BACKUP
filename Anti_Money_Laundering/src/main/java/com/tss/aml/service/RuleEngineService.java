@@ -38,7 +38,9 @@ public class RuleEngineService {
         List<RuleExecutionLog> logs = new ArrayList<>();
         List<RuleMatchDto> flaggedRules = new ArrayList<>();
         List<RuleMatchDto> blockedRules = new ArrayList<>();
-        double combinedRiskScore = 0.0;
+
+        // --- Probability-based aggregation (Noisy-OR model) ---
+        double productComplement = 1.0; // Start with full complement (for independence)
 
         for (Rule rule : rules) {
             log.debug("Evaluating rule: {} (Weight: {}, Action: {}, Priority: {})",
@@ -47,6 +49,7 @@ public class RuleEngineService {
             boolean ruleMatched = true;
             List<String> conditionResults = new ArrayList<>();
 
+            // --- Evaluate rule conditions ---
             for (RuleCondition cond : rule.getConditions()) {
                 if (!cond.isActive()) {
                     log.trace("  Condition inactive: {}", cond.getType());
@@ -69,16 +72,22 @@ public class RuleEngineService {
                 }
             }
 
+            // --- If rule matched, include its probability contribution ---
             if (ruleMatched) {
                 log.info("  Rule MATCHED: {}", rule.getName());
 
-                // Convert risk weight to probability (0.0 - 1.0)
+                // Convert risk weight (0–100) → probability (0–1)
                 double ruleProb = Math.min(1.0, Math.max(0.0, rule.getRiskWeight() / 100.0));
 
-                // Aggregate using weighted sum approach capped at 100
-                combinedRiskScore += ruleProb * 100.0;
-                combinedRiskScore = Math.min(combinedRiskScore, 100);
+                // BLOCK rules can immediately push probability to 1.0
+                if ("BLOCK".equalsIgnoreCase(rule.getAction())) {
+                    ruleProb = 1.0;
+                }
 
+                // Apply noisy-OR aggregation: P_total = 1 - Π(1 - p_i)
+                productComplement *= (1.0 - ruleProb);
+
+                // --- Logging and DTO creation ---
                 RuleExecutionLog entry = RuleExecutionLog.builder()
                         .rule(rule)
                         .transactionId(input.getTxId())
@@ -91,7 +100,8 @@ public class RuleEngineService {
                         .evaluatedAt(java.time.LocalDateTime.now())
                         .build();
                 logs.add(entry);
-                try { ruleExecutionLogRepository.save(entry); } catch (Exception e) { log.warn("Failed to persist RuleExecutionLog: {}", e.getMessage()); }
+                try { ruleExecutionLogRepository.save(entry); } 
+                catch (Exception e) { log.warn("Failed to persist RuleExecutionLog: {}", e.getMessage()); }
 
                 RuleMatchDto matchDto = new RuleMatchDto(
                         rule.getId(),
@@ -114,7 +124,13 @@ public class RuleEngineService {
             }
         }
 
-        log.info("Rule Engine Final Score: {}", combinedRiskScore);
+        // --- Final probabilistic score computation ---
+        double finalProb = 1.0 - productComplement; // 1 - Π(1 - p_i)
+        finalProb = Math.max(0.0, Math.min(1.0, finalProb)); // Clamp 0–1
+        double combinedRiskScore = finalProb * 100.0;
+
+        log.info("Rule Engine Final Probability-Based Score: {}", combinedRiskScore);
+
         if (!flaggedRules.isEmpty() || !blockedRules.isEmpty()) {
             String summary = flaggedRules.stream().map(r -> r.getRuleName() + "[FLAG]").collect(Collectors.joining(", "));
             String blockSummary = blockedRules.stream().map(r -> r.getRuleName() + "[BLOCK]").collect(Collectors.joining(", "));
