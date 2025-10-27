@@ -12,10 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tss.aml.dto.customer.CustomerProfileDTO;
 import com.tss.aml.entity.Address;
-
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
 import com.tss.aml.service.EmailService;
@@ -44,28 +45,44 @@ public class CustomerController {
     private EmailService emailService;
 
     @GetMapping("/profile")
-    public ResponseEntity<Customer> getProfile(Authentication authentication) {
+    public ResponseEntity<CustomerProfileDTO> getProfile(Authentication authentication) {
         String username = authentication.getName();
         Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
-        return ResponseEntity.ok(customer);
+
+        // Map Customer entity to DTO to avoid circular references and deep nesting
+        CustomerProfileDTO profileDTO = new CustomerProfileDTO();
+        profileDTO.setId(customer.getId());
+        profileDTO.setFirstName(customer.getFirstName());
+        profileDTO.setMiddleName(customer.getMiddleName());
+        profileDTO.setLastName(customer.getLastName());
+        profileDTO.setEmail(customer.getEmail());
+        profileDTO.setUsername(customer.getUsername());
+        profileDTO.setPhone(customer.getPhone());
+        profileDTO.setAddress(customer.getAddress());
+        profileDTO.setKycStatus(customer.getKycStatus());
+        profileDTO.setCreatedAt(customer.getCreatedAt().toString());
+
+        return ResponseEntity.ok(profileDTO);
     }
 
     @GetMapping("/kyc-status")
-    public ResponseEntity<?> getKycStatus(Authentication authentication) {
+    public ResponseEntity<KycStatusResponse> getKycStatus(Authentication authentication) {
         String username = authentication.getName();
-        Customer customer = customerRepository.findByUsername(username)
+
+        // Use a custom query to get only the KYC status without loading the full entity
+        KycStatus kycStatus = customerRepository.findKycStatusByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
-        
+
         KycStatusResponse response = new KycStatusResponse(
-            customer.getKycStatus().name(),
-            "Your KYC status is: " + customer.getKycStatus()
+            kycStatus.name(),
+            "Your KYC status is: " + kycStatus
         );
         return ResponseEntity.ok(response);
     }
     
     @PutMapping("/profile")
-    public ResponseEntity<Customer> updateProfile(@RequestBody ProfileUpdateRequest req, Authentication authentication) {
+    public ResponseEntity<CustomerProfileDTO> updateProfile(@RequestBody ProfileUpdateRequest req, Authentication authentication) {
         String username = authentication.getName();
         Customer customer = customerRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -89,7 +106,21 @@ public class CustomerController {
         }
 
         Customer saved = customerRepository.save(customer);
-        return ResponseEntity.ok(saved);
+
+        // Map to DTO to avoid serialization issues
+        CustomerProfileDTO profileDTO = new CustomerProfileDTO();
+        profileDTO.setId(saved.getId());
+        profileDTO.setFirstName(saved.getFirstName());
+        profileDTO.setMiddleName(saved.getMiddleName());
+        profileDTO.setLastName(saved.getLastName());
+        profileDTO.setEmail(saved.getEmail());
+        profileDTO.setUsername(saved.getUsername());
+        profileDTO.setPhone(saved.getPhone());
+        profileDTO.setAddress(saved.getAddress());
+        profileDTO.setKycStatus(saved.getKycStatus());
+        profileDTO.setCreatedAt(saved.getCreatedAt().toString());
+
+        return ResponseEntity.ok(profileDTO);
     }
 
     @PostMapping("/change-password")

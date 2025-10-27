@@ -4,6 +4,7 @@ import com.tss.aml.entity.AuditLog;
 import com.tss.aml.repository.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,25 @@ public class AuditLogService {
         logUserAction(username, "LOGIN", 
             String.format("User logged in from IP: %s at %s", 
                 ipAddress != null ? ipAddress : "unknown", LocalDateTime.now()));
+    }
+    
+    // Async version for login - doesn't block the login response
+    @Async("taskExecutor")
+    @Transactional
+    public void logLoginAsync(String username, String ipAddress) {
+        try {
+            AuditLog auditLog = new AuditLog();
+            auditLog.setUsername(username);
+            auditLog.setAction("LOGIN");
+            auditLog.setDetails(String.format("User logged in from IP: %s at %s", 
+                ipAddress != null ? ipAddress : "unknown", LocalDateTime.now()));
+            auditLog.setTimestamp(LocalDateTime.now());
+            
+            auditLogRepository.save(auditLog);
+            log.info("Audit log created (async): {} - LOGIN - IP: {}", username, ipAddress);
+        } catch (Exception e) {
+            log.error("Failed to create async audit log for login: {}", username, e);
+        }
     }
 
     public void logLogout(String username) {

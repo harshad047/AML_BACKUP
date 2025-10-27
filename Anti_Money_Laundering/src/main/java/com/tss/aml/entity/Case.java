@@ -24,6 +24,7 @@ public class Case {
     private String assignedTo; // Username of the compliance officer
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 25, nullable = false)
     private CaseStatus status = CaseStatus.UNDER_INVESTIGATION;
 
     @OneToMany(mappedBy = "caseEntity", cascade = CascadeType.ALL)

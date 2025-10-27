@@ -1,0 +1,260 @@
+<div class="register-container">
+  <div class="register-wrapper">
+    <div class="register-header">
+      <div class="text-center">
+        <div class="bank-logo">
+          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="60" height="60" rx="12" fill="#003d82"/>
+            <path d="M30 15L45 25V45H15V25L30 15Z" fill="white"/>
+            <rect x="20" y="30" width="5" height="15" fill="#003d82"/>
+            <rect x="27.5" y="30" width="5" height="15" fill="#003d82"/>
+            <rect x="35" y="30" width="5" height="15" fill="#003d82"/>
+          </svg>
+        </div>
+        <h2 class="fw-bold text-primary mt-3">Open Your Account</h2>
+        <p class="text-muted">Join our secure banking platform</p>
+      </div>
+    </div>
+
+    <div class="register-form-container">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <!-- Personal Information Section -->
+        <div class="form-section">
+          <h5 class="section-title">
+            <span class="section-icon">👤</span>
+            Personal Information
+          </h5>
+          
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="firstName" class="form-label">First Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="firstName"
+                formControlName="firstName"
+                placeholder="John"
+                [class.is-invalid]="isFieldInvalid('firstName')"
+              >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('firstName')">
+                First name is required
+              </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="middleName" class="form-label">Middle Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="middleName"
+                formControlName="middleName"
+                placeholder="Optional"
+              >
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="lastName" class="form-label">Last Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="lastName"
+                formControlName="lastName"
+                placeholder="Doe"
+                [class.is-invalid]="isFieldInvalid('lastName')"
+              >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('lastName')">
+                Last name is required
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="dob" class="form-label">Date of Birth *</label>
+              <input
+                type="date"
+                class="form-control"
+                id="dob"
+                formControlName="dob"
+                [class.is-invalid]="isFieldInvalid('dob')"
+              >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('dob')">
+                Date of birth is required
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phone"
+                formControlName="phone"
+                placeholder="+1 (555) 000-0000"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Information Section -->
+        <div class="form-section">
+          <h5 class="section-title">
+            <span class="section-icon">📧</span>
+            Contact & Security
+          </h5>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">Email Address *</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                placeholder="john.doe@example.com"
+                [class.is-invalid]="isFieldInvalid('email')"
+              >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+                Please enter a valid email address
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="password" class="form-label">Password *</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                formControlName="password"
+                placeholder="Min. 8 characters"
+                [class.is-invalid]="isFieldInvalid('password')"
+              >
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                Password must be at least 8 characters long
+              </div>
+              <small class="form-text text-muted">
+                Use a strong password with letters, numbers, and symbols
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address Information Section -->
+        <div class="form-section">
+          <h5 class="section-title">
+            <span class="section-icon">🏠</span>
+            Address Information
+          </h5>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="street" class="form-label">Street Address</label>
+              <input
+                type="text"
+                class="form-control"
+                id="street"
+                formControlName="street"
+                placeholder="123 Main Street"
+              >
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="city" class="form-label">City</label>
+              <input
+                type="text"
+                class="form-control"
+                id="city"
+                formControlName="city"
+                placeholder="New York"
+              >
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="state" class="form-label">State/Province</label>
+              <input
+                type="text"
+                class="form-control"
+                id="state"
+                formControlName="state"
+                placeholder="NY"
+              >
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="country" class="form-label">Country</label>
+              <input
+                type="text"
+                class="form-control"
+                id="country"
+                formControlName="country"
+                placeholder="United States"
+              >
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="postalCode" class="form-label">Postal Code</label>
+              <input
+                type="text"
+                class="form-control"
+                id="postalCode"
+                formControlName="postalCode"
+                placeholder="10001"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="form-section">
+          <div class="alert alert-info">
+            <strong>📋 Important:</strong> By creating an account, you agree to our Terms of Service and Privacy Policy. Your information will be securely stored and used in accordance with banking regulations.
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid gap-2">
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg"
+            [disabled]="registerForm.invalid || isLoading"
+          >
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            {{ isLoading ? 'Creating Your Account...' : 'Create Account' }}
+          </button>
+        </div>
+
+        <div class="text-center mt-4">
+          <p class="mb-0 text-muted">Already have an account?
+            <a routerLink="/login" class="text-decoration-none fw-bold">Sign in here</a>
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Security Features -->
+    <div class="security-features mt-4">
+      <div class="row text-center">
+        <div class="col-md-4">
+          <div class="feature-item">
+            <span class="feature-icon">🔒</span>
+            <p class="feature-text">Bank-Level Security</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <p class="feature-text">FDIC Insured</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-item">
+            <span class="feature-icon">🛡️</span>
+            <p class="feature-text">AML Compliant</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

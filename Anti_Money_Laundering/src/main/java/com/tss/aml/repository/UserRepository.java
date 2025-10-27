@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tss.aml.entity.Role;
@@ -17,4 +19,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRole(Role role);
     List<User> findByIsEnabledFalse();
     List<User> findByIsEnabledTrue();
+    
+    // Optimized query to fetch only email - faster than loading entire User entity
+    @Query("SELECT u.email FROM User u WHERE u.username = :username")
+    Optional<String> findEmailByUsername(@Param("username") String username);
 }

@@ -1,0 +1,139 @@
+# 🛡️ Anti-Money Laundering System - Project Breakdown
+
+## Project Overview
+**Project Name:** Anti-Money Laundering (AML) System  
+**Project Description:** Comprehensive banking system with AML compliance, transaction monitoring, and risk assessment capabilities
+
+---
+
+| Sr No | Project Name | Epic ID | Epic | Story ID | Story Title | Story Description | Task ID | Task | Description | ETA(hrs) | Sub Task |
+|-------|--------------|---------|------|----------|-------------|-------------------|---------|------|-------------|----------|----------|
+| 1 | AML System | E001 | User Management & Authentication | S001 | Customer Registration | Implement secure customer registration with KYC validation | T001 | Create Customer Entity | Design and implement Customer entity with all required fields | 8 | Database schema design |
+| 2 | AML System | E001 | User Management & Authentication | S001 | Customer Registration | Implement secure customer registration with KYC validation | T002 | Registration API | Develop customer registration REST API endpoints | 12 | Input validation, password hashing |
+| 3 | AML System | E001 | User Management & Authentication | S001 | Customer Registration | Implement secure customer registration with KYC validation | T003 | KYC Document Upload | Implement document upload and validation system | 16 | File upload, validation rules |
+| 4 | AML System | E001 | User Management & Authentication | S002 | JWT Authentication | Implement secure JWT-based authentication system | T004 | JWT Configuration | Configure JWT security with proper token generation | 10 | Security configuration |
+| 5 | AML System | E001 | User Management & Authentication | S002 | JWT Authentication | Implement secure JWT-based authentication system | T005 | Login/Logout APIs | Develop authentication endpoints with proper error handling | 8 | Error handling, session management |
+| 6 | AML System | E001 | User Management & Authentication | S003 | OTP Verification | Implement OTP-based two-factor authentication | T006 | OTP Service | Create OTP generation and validation service | 12 | Random generation, expiry handling |
+| 7 | AML System | E001 | User Management & Authentication | S003 | OTP Verification | Implement OTP-based two-factor authentication | T007 | Email Integration | Integrate email service for OTP delivery | 6 | SMTP configuration |
+| 8 | AML System | E002 | Bank Account Management | S004 | Account Creation | Implement bank account creation with approval workflow | T008 | BankAccount Entity | Design bank account entity with approval status | 6 | Entity relationships |
+| 9 | AML System | E002 | Bank Account Management | S004 | Account Creation | Implement bank account creation with approval workflow | T009 | Account Creation API | Develop account creation with initial balance handling | 10 | Business logic implementation |
+| 10 | AML System | E002 | Bank Account Management | S004 | Account Creation | Implement bank account creation with approval workflow | T010 | Approval Workflow | Implement admin approval/rejection workflow | 14 | Status management, notifications |
+| 11 | AML System | E002 | Bank Account Management | S005 | Account Operations | Implement basic account operations and balance management | T011 | Balance Management | Implement balance tracking and validation | 8 | Concurrency handling |
+| 12 | AML System | E002 | Bank Account Management | S005 | Account Operations | Implement basic account operations and balance management | T012 | Account Status Management | Implement account activation/suspension | 6 | Status transitions |
+| 13 | AML System | E003 | Transaction Processing | S006 | Transaction Creation | Implement secure transaction processing system | T013 | Transaction Entity | Design transaction entity with all required fields | 8 | Entity design, relationships |
+| 14 | AML System | E003 | Transaction Processing | S006 | Transaction Creation | Implement secure transaction processing system | T014 | Transaction API | Develop transaction creation and processing APIs | 16 | Business logic, validation |
+| 15 | AML System | E003 | Transaction Processing | S006 | Transaction Creation | Implement secure transaction processing system | T015 | Balance Validation | Implement balance checking and updates | 10 | Atomic operations |
+| 16 | AML System | E003 | Transaction Processing | S007 | Transaction History | Implement transaction history and reporting | T016 | History API | Develop transaction history retrieval APIs | 8 | Pagination, filtering |
+| 17 | AML System | E003 | Transaction Processing | S007 | Transaction History | Implement transaction history and reporting | T017 | Transaction Reports | Implement transaction reporting features | 12 | Report generation, exports |
+| 18 | AML System | E004 | AML Rule Engine | S008 | Rule Configuration | Implement configurable AML rules system | T018 | AML Rule Entity | Design AML rule entity with conditions and weights | 10 | Rule structure design |
+| 19 | AML System | E004 | AML Rule Engine | S008 | Rule Configuration | Implement configurable AML rules system | T019 | Rule Management API | Develop rule CRUD operations | 12 | Rule validation, activation |
+| 20 | AML System | E004 | AML Rule Engine | S009 | Risk Scoring | Implement transaction risk scoring engine | T020 | Risk Calculation | Implement risk score calculation algorithm | 20 | Complex business logic |
+| 21 | AML System | E004 | AML Rule Engine | S009 | Risk Scoring | Implement transaction risk scoring engine | T021 | Rule Evaluation | Implement rule evaluation against transactions | 16 | Rule engine logic |
+| 22 | AML System | E004 | AML Rule Engine | S010 | Suspicious Keywords | Implement suspicious keyword detection | T022 | Keyword Entity | Design suspicious keyword entity with risk levels | 6 | Entity design |
+| 23 | AML System | E004 | AML Rule Engine | S010 | Suspicious Keywords | Implement suspicious keyword detection | T023 | Keyword Detection | Implement keyword matching in transactions | 14 | Text processing, pattern matching |
+| 24 | AML System | E004 | AML Rule Engine | S010 | Suspicious Keywords | Implement suspicious keyword detection | T024 | Keyword Management | Develop keyword CRUD operations | 8 | Admin interface |
+| 25 | AML System | E005 | Country Risk Assessment | S011 | Country Risk Setup | Implement country-based risk assessment | T025 | Country Risk Entity | Design country risk entity with risk scores | 6 | Entity design |
+| 26 | AML System | E005 | Country Risk Assessment | S011 | Country Risk Setup | Implement country-based risk assessment | T026 | Risk Assessment | Implement country risk evaluation in transactions | 12 | Risk calculation integration |
+| 27 | AML System | E005 | Country Risk Assessment | S011 | Country Risk Setup | Implement country-based risk assessment | T027 | Country Management | Develop country risk CRUD operations | 8 | Admin management |
+| 28 | AML System | E006 | Alert Management | S012 | Alert Generation | Implement automated alert generation system | T028 | Alert Entity | Design alert entity with severity levels | 8 | Entity relationships |
+| 29 | AML System | E006 | Alert Management | S012 | Alert Generation | Implement automated alert generation system | T029 | Alert Generation Logic | Implement automatic alert creation for high-risk transactions | 16 | Business rules, triggers |
+| 30 | AML System | E006 | Alert Management | S013 | Alert Processing | Implement alert handling and resolution | T030 | Alert Assignment | Implement alert assignment to compliance officers | 10 | Assignment logic |
+| 31 | AML System | E006 | Alert Management | S013 | Alert Processing | Implement alert handling and resolution | T031 | Alert Resolution | Implement alert investigation and resolution workflow | 14 | Workflow management |
+| 32 | AML System | E006 | Alert Management | S013 | Alert Processing | Implement alert handling and resolution | T032 | Alert APIs | Develop alert management APIs for officers | 12 | CRUD operations |
+| 33 | AML System | E007 | Admin System | S014 | Admin Dashboard | Implement comprehensive admin dashboard | T033 | Dashboard Statistics | Implement dashboard with system statistics | 16 | Data aggregation, metrics |
+| 34 | AML System | E007 | Admin System | S014 | Admin Dashboard | Implement comprehensive admin dashboard | T034 | User Activity Monitoring | Implement user activity analysis for blocking decisions | 14 | Activity tracking, risk assessment |
+| 35 | AML System | E007 | Admin System | S015 | Officer Management | Implement compliance officer management | T035 | Officer Entity | Design compliance officer entity | 6 | Entity design |
+| 36 | AML System | E007 | Admin System | S015 | Officer Management | Implement compliance officer management | T036 | Officer CRUD | Develop officer creation and management APIs | 12 | User management |
+| 37 | AML System | E007 | Admin System | S015 | Officer Management | Implement compliance officer management | T037 | Officer Activation | Implement officer activation/deactivation | 6 | Status management |
+| 38 | AML System | E007 | Admin System | S016 | System Configuration | Implement system configuration management | T038 | Configuration APIs | Develop APIs for managing rules, keywords, countries | 10 | Configuration management |
+| 39 | AML System | E007 | Admin System | S016 | System Configuration | Implement system configuration management | T039 | User Blocking | Implement user blocking/unblocking functionality | 8 | User status management |
+| 40 | AML System | E008 | Email Notification System | S017 | Email Service | Implement comprehensive email notification system | T040 | Email Configuration | Configure SMTP and email templates | 8 | SMTP setup, templates |
+| 41 | AML System | E008 | Email Notification System | S017 | Email Service | Implement comprehensive email notification system | T041 | Transaction Notifications | Implement email notifications for transactions | 12 | Event-driven notifications |
+| 42 | AML System | E008 | Email Notification System | S017 | Email Service | Implement comprehensive email notification system | T042 | Alert Notifications | Implement email notifications for alerts | 10 | Alert-based emails |
+| 43 | AML System | E008 | Email Notification System | S018 | Audit Trail | Implement comprehensive audit logging | T043 | Audit Entity | Design audit log entity for tracking changes | 8 | Audit design |
+| 44 | AML System | E008 | Email Notification System | S018 | Audit Trail | Implement comprehensive audit logging | T044 | Audit Service | Implement audit logging service | 12 | Logging implementation |
+| 45 | AML System | E009 | Security & Compliance | S019 | Role-Based Access | Implement comprehensive role-based access control | T045 | Security Configuration | Configure Spring Security with role-based access | 14 | Security setup |
+| 46 | AML System | E009 | Security & Compliance | S019 | Role-Based Access | Implement comprehensive role-based access control | T046 | Permission Management | Implement fine-grained permission system | 16 | Authorization logic |
+| 47 | AML System | E009 | Security & Compliance | S020 | Data Protection | Implement data encryption and protection | T047 | Data Encryption | Implement sensitive data encryption | 12 | Encryption implementation |
+| 48 | AML System | E009 | Security & Compliance | S020 | Data Protection | Implement data encryption and protection | T048 | Input Validation | Implement comprehensive input validation | 10 | Validation rules |
+| 49 | AML System | E010 | Testing & Documentation | S021 | Unit Testing | Implement comprehensive unit test coverage | T049 | Service Tests | Write unit tests for all service classes | 24 | Test coverage |
+| 50 | AML System | E010 | Testing & Documentation | S021 | Unit Testing | Implement comprehensive unit test coverage | T050 | Controller Tests | Write unit tests for all controller classes | 20 | API testing |
+| 51 | AML System | E010 | Testing & Documentation | S022 | Integration Testing | Implement integration and end-to-end testing | T051 | Database Tests | Write integration tests for database operations | 16 | Database testing |
+| 52 | AML System | E010 | Testing & Documentation | S022 | Integration Testing | Implement integration and end-to-end testing | T052 | API Integration Tests | Write integration tests for API endpoints | 18 | API testing |
+| 53 | AML System | E010 | Testing & Documentation | S023 | Documentation | Create comprehensive system documentation | T053 | API Documentation | Create detailed API documentation | 16 | Documentation |
+| 54 | AML System | E010 | Testing & Documentation | S023 | Documentation | Create comprehensive system documentation | T054 | System Architecture | Document system architecture and design | 12 | Architecture docs |
+| 55 | AML System | E010 | Testing & Documentation | S023 | Documentation | Create comprehensive system documentation | T055 | Deployment Guide | Create deployment and setup documentation | 10 | Deployment docs |
+
+---
+
+## Epic Summary
+
+### **E001: User Management & Authentication** (Total: 46 hrs)
+- Customer registration with KYC validation
+- JWT-based authentication system
+- OTP verification for enhanced security
+
+### **E002: Bank Account Management** (Total: 44 hrs)
+- Account creation with approval workflow
+- Balance management and account operations
+- Admin approval/rejection system
+
+### **E003: Transaction Processing** (Total: 54 hrs)
+- Secure transaction processing
+- Transaction history and reporting
+- Balance validation and updates
+
+### **E004: AML Rule Engine** (Total: 76 hrs)
+- Configurable AML rules system
+- Risk scoring engine
+- Suspicious keyword detection
+
+### **E005: Country Risk Assessment** (Total: 26 hrs)
+- Country-based risk assessment
+- Risk score management
+- Geographic risk evaluation
+
+### **E006: Alert Management** (Total: 60 hrs)
+- Automated alert generation
+- Alert processing and resolution
+- Compliance officer workflow
+
+### **E007: Admin System** (Total: 72 hrs)
+- Comprehensive admin dashboard
+- Officer management system
+- System configuration management
+
+### **E008: Email Notification System** (Total: 50 hrs)
+- Email service integration
+- Transaction and alert notifications
+- Comprehensive audit trail
+
+### **E009: Security & Compliance** (Total: 52 hrs)
+- Role-based access control
+- Data protection and encryption
+- Input validation and security
+
+### **E010: Testing & Documentation** (Total: 116 hrs)
+- Comprehensive unit testing
+- Integration and end-to-end testing
+- System documentation
+
+---
+
+## **Total Project Estimation: 596 Hours**
+
+### **Phase Breakdown:**
+- **Phase 1 (Foundation):** E001, E002 - 90 hrs (2-3 months)
+- **Phase 2 (Core Features):** E003, E004 - 130 hrs (3-4 months)
+- **Phase 3 (AML Features):** E005, E006 - 86 hrs (2-3 months)
+- **Phase 4 (Admin & Security):** E007, E009 - 124 hrs (3-4 months)
+- **Phase 5 (Integration & Testing):** E008, E010 - 166 hrs (4-5 months)
+
+### **Key Milestones:**
+1. **MVP Release:** After Phase 2 (220 hrs)
+2. **AML Compliance:** After Phase 3 (306 hrs)
+3. **Full System:** After Phase 5 (596 hrs)
+
+---
+
+*This project breakdown provides a comprehensive roadmap for your Anti-Money Laundering system development with detailed task estimation and phased delivery approach.*

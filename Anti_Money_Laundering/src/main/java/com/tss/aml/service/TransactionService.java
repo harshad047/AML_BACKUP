@@ -1,6 +1,7 @@
 package com.tss.aml.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public class TransactionService {
         }
 
         // STEP 1: Pre-transaction risk assessment (NO money movement yet)
-        TransactionDto riskAssessment = processTransaction(null, toAccount, depositDto.getAmount(), depositDto.getCurrency(), depositDto.getDescription(), Transaction.TransactionType.DEPOSIT);
+        TransactionDto riskAssessment = processTransaction(null, toAccount, depositDto.getAmount(), toAccount.getCurrency(), depositDto.getDescription(), Transaction.TransactionType.DEPOSIT);
         
         // STEP 2: Handle based on risk assessment result
         if ("BLOCKED".equals(riskAssessment.getStatus())) {
@@ -106,7 +107,7 @@ public class TransactionService {
         }
 
         // STEP 1: Pre-transaction risk assessment (NO money movement yet)
-        TransactionDto riskAssessment = processTransaction(fromAccount, null, withdrawalDto.getAmount(), withdrawalDto.getCurrency(), withdrawalDto.getDescription(), Transaction.TransactionType.WITHDRAWAL);
+        TransactionDto riskAssessment = processTransaction(fromAccount, null, withdrawalDto.getAmount(), fromAccount.getCurrency(), withdrawalDto.getDescription(), Transaction.TransactionType.WITHDRAWAL);
         
         // STEP 2: Handle based on risk assessment result
         if ("BLOCKED".equals(riskAssessment.getStatus())) {
@@ -275,7 +276,7 @@ public class TransactionService {
         int combined = (int) (0.6*ruleResult.getTotalRiskScore() + 0.4*nlp);
         System.out.println("Combined Risk Score (max of NLP and Rule): " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
         String status;
-        if(nlp >= 60)
+        if(nlp >= 60 && combined <=50)
         {
         	status = "FLAGGED";
         }
@@ -306,9 +307,7 @@ public class TransactionService {
         return modelMapper.map(savedTx, TransactionDto.class);
     }
     
-    /**
-     * Officer approval method for flagged and blocked transactions
-     */
+   
     @Transactional
     public TransactionDto approveTransaction(Long transactionId, String officerEmail) {
         Transaction transaction = txRepo.findById(transactionId)
@@ -350,9 +349,7 @@ public class TransactionService {
         return modelMapper.map(savedTx, TransactionDto.class);
     }
     
-    /**
-     * Officer rejection method for flagged and blocked transactions
-     */
+ 
     @Transactional
     public TransactionDto rejectTransaction(Long transactionId, String officerEmail, String reason) {
         Transaction transaction = txRepo.findById(transactionId)
@@ -807,8 +804,31 @@ public class TransactionService {
             int nlp, 
             Customer customer) {
         
+        // First create and save the transaction to get proper sequential ID
+        Transaction pendingTransaction = Transaction.builder()
+                .transactionType(Transaction.TransactionType.INTERCURRENCY_TRANSFER)
+                .fromAccountNumber(fromAccount.getAccountNumber())
+                .toAccountNumber(toAccount.getAccountNumber())
+                .customerId(customer.getId())
+                .amount(conversionResult.getOriginalAmount())
+                .currency(conversionResult.getOriginalCurrency())
+                .description(description)
+                .status("PENDING")
+                .nlpScore(nlp)
+                .ruleEngineScore(0) // Will be updated after rule evaluation
+                .originalCurrency(conversionResult.getOriginalCurrency())
+                .convertedCurrency(conversionResult.getConvertedCurrency())
+                .originalAmount(conversionResult.getOriginalAmount())
+                .convertedAmount(conversionResult.getConvertedAmount())
+                .exchangeRate(conversionResult.getExchangeRate())
+                .conversionCharges(conversionResult.getConversionCharges())
+                .build();
+        
+        Transaction savedTransaction = txRepo.save(pendingTransaction);
+        
+        // Now use the actual transaction ID for rule evaluation
         var input = TransactionInputDto.builder()
-                .txId("TEMP-" + UUID.randomUUID().toString())
+                .txId(savedTransaction.getId().toString())
                 .customerId(customer.getId().toString())
                 .amount(conversionResult.getOriginalAmount())
                 .countryCode(countryCode)
@@ -826,7 +846,7 @@ public class TransactionService {
         System.out.println("Intercurrency Risk Assessment - NLP: " + nlp + ", Rule Engine: " + ruleScore + ", Combined: " + combined);
 
         String status;
-        if(nlp >= 60)
+        if(nlp >= 60 && combined <=50)
         {
         	status = "FLAGGED";
         }
@@ -847,33 +867,18 @@ public class TransactionService {
             alertId = savedAlert.getId().toString();
         }
 
-        // Create transaction with intercurrency-specific data
-        Transaction transaction = Transaction.builder()
-                .transactionType(Transaction.TransactionType.INTERCURRENCY_TRANSFER)
-                .fromAccountNumber(fromAccount.getAccountNumber())
-                .toAccountNumber(toAccount.getAccountNumber())
-                .customerId(customer.getId())
-                .amount(conversionResult.getOriginalAmount())
-                .currency(conversionResult.getOriginalCurrency())
-                .description(description)
-                .status(status)
-                .nlpScore(nlp)
-                .ruleEngineScore(ruleScore)
-                .combinedRiskScore(combined)
-                .thresholdExceeded(combined > 60)
-                .alertId(alertId)
-                .transactionReference(generateTransactionReference(Transaction.TransactionType.INTERCURRENCY_TRANSFER))
-                // Intercurrency specific fields
-                .originalAmount(conversionResult.getOriginalAmount())
-                .originalCurrency(conversionResult.getOriginalCurrency())
-                .convertedAmount(conversionResult.getConvertedAmount())
-                .convertedCurrency(conversionResult.getConvertedCurrency())
-                .exchangeRate(conversionResult.getExchangeRate())
-                .conversionCharges(conversionResult.getConversionCharges())
-                .totalDebitAmount(conversionResult.getTotalDebitAmount())
-                .build();
+        // Update the already-saved transaction with risk assessment results
+        savedTransaction.setStatus(status);
+        savedTransaction.setRuleEngineScore(ruleScore);
+        savedTransaction.setCombinedRiskScore(combined);
+        savedTransaction.setThresholdExceeded(combined > 60);
+        savedTransaction.setAlertId(alertId);
+        savedTransaction.setTransactionReference(generateTransactionReference(Transaction.TransactionType.INTERCURRENCY_TRANSFER));
+        savedTransaction.setConversionCharges(conversionResult.getConversionCharges());
+        savedTransaction.setTotalDebitAmount(conversionResult.getTotalDebitAmount());
 
-        Transaction savedTransaction = txRepo.save(transaction);
+        // Save the updated transaction
+        savedTransaction = txRepo.save(savedTransaction);
         
         // Link alert to transaction if alert was created
         if (alertId != null) {
