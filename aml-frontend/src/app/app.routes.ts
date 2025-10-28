@@ -3,6 +3,7 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { OtpVerificationComponent } from './auth/otp-verification/otp-verification.component';
+import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { CustomerDashboardComponent } from './customer/customer-dashboard/customer-dashboard.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { ComplianceDashboardComponent } from './compliance/compliance-dashboard/compliance-dashboard.component';
@@ -19,12 +20,23 @@ import { CustomerAlertsComponent } from './customer/customer-alerts/customer-ale
 import { ProfileComponent } from './customer/profile/profile.component';
 import { ChangePasswordComponent } from './customer/change-password/change-password.component';
 
+// Admin Components
+import { UsersComponent } from './admin/users/users.component';
+import { RulesComponent } from './admin/rules/rules.component';
+import { KeywordsComponent } from './admin/keywords/keywords.component';
+import { AccountsComponent } from './admin/accounts/accounts.component';
+import { CountryRisksComponent } from './admin/country-risks/country-risks.component';
+import { ComplianceOfficersComponent } from './admin/compliance-officers/compliance-officers.component';
+import { AuditLogsComponent } from './admin/audit-logs/audit-logs.component';
+import { KycVerificationComponent } from './admin/kyc-verification/kyc-verification.component';
+
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'otp-verification', component: OtpVerificationComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
   {
     path: 'customer',
     component: CustomerDashboardComponent,
@@ -76,6 +88,54 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/users',
+    component: UsersComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/rules',
+    component: RulesComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/keywords',
+    component: KeywordsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/accounts',
+    component: AccountsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/country-risks',
+    component: CountryRisksComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/compliance-officers',
+    component: ComplianceOfficersComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/audit-logs',
+    component: AuditLogsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/kyc-verification',
+    component: KycVerificationComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
   },

@@ -1,0 +1,103 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2><i class="fas fa-university me-2"></i>Account Management</h2>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'pending'" (click)="switchTab('pending')" style="cursor: pointer;">
+        <i class="fas fa-clock me-2"></i>Pending Approval ({{ pendingAccounts.length }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'all'" (click)="switchTab('all')" style="cursor: pointer;">
+        <i class="fas fa-list me-2"></i>All Accounts ({{ allAccounts.length }})
+      </a>
+    </li>
+  </ul>
+
+  <!-- Accounts Table -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Loading accounts...</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loading">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Account Number</th>
+              <th>Type</th>
+              <th>Customer</th>
+              <th>Balance</th>
+              <th>Status</th>
+              <th>Approval</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let account of displayedAccounts">
+              <td><strong>{{ account.accountNumber }}</strong></td>
+              <td>{{ account.accountType }}</td>
+              <td>{{ account.customerName || 'Customer #' + account.customerId }}</td>
+              <td>{{ account.balance | currency:account.currency:'symbol':'1.2-2' }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusBadgeClass(account.status)">
+                  {{ account.status }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getApprovalBadgeClass(account.approvalStatus)">
+                  {{ account.approvalStatus }}
+                </span>
+              </td>
+              <td>{{ account.createdAt | date:'short' }}</td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button *ngIf="account.approvalStatus === 'PENDING'" 
+                          class="btn btn-success" (click)="approveAccount(account)">
+                    <i class="fas fa-check"></i> Approve
+                  </button>
+                  <button *ngIf="account.approvalStatus === 'PENDING'" 
+                          class="btn btn-danger" (click)="rejectAccount(account)">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
+                  <button *ngIf="account.status === 'ACTIVE'" 
+                          class="btn btn-warning" (click)="suspendAccount(account)">
+                    <i class="fas fa-ban"></i> Suspend
+                  </button>
+                  <button *ngIf="account.status === 'SUSPENDED'" 
+                          class="btn btn-success" (click)="activateAccount(account)">
+                    <i class="fas fa-check-circle"></i> Activate
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!loading && displayedAccounts.length === 0" class="text-center py-4 text-muted">
+        <i class="fas fa-university fa-3x mb-3"></i>
+        <p>No {{ activeTab === 'pending' ? 'pending' : '' }} accounts found</p>
+      </div>
+    </div>
+  </div>
+</div>

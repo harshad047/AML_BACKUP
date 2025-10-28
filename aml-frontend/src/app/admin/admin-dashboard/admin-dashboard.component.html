@@ -1,0 +1,219 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="mb-1"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+      <p class="text-muted">Welcome back, {{ currentUser?.firstName }}! Manage your AML system from here.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading dashboard...</p>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4" *ngIf="!loading">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-primary">
+        <div class="stat-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.totalUsers }}</h3>
+          <p class="stat-label">Total Users</p>
+          <small class="stat-detail">{{ stats.activeUsers }} active</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-warning">
+        <div class="stat-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.pendingKyc }}</h3>
+          <p class="stat-label">Pending KYC</p>
+          <small class="stat-detail">Documents to verify</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-success">
+        <div class="stat-icon">
+          <i class="fas fa-university"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.pendingAccounts }}</h3>
+          <p class="stat-label">Pending Accounts</p>
+          <small class="stat-detail">Awaiting approval</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-info">
+        <div class="stat-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.activeRules }}</h3>
+          <p class="stat-label">Active Rules</p>
+          <small class="stat-detail">Compliance rules</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/users" class="action-btn">
+                <i class="fas fa-users-cog"></i>
+                <span>Manage Users</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/accounts" class="action-btn">
+                <i class="fas fa-check-circle"></i>
+                <span>Approve Accounts</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/kyc-verification" class="action-btn">
+                <i class="fas fa-id-card"></i>
+                <span>Verify KYC</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/rules" class="action-btn">
+                <i class="fas fa-gavel"></i>
+                <span>Manage Rules</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/keywords" class="action-btn">
+                <i class="fas fa-key"></i>
+                <span>Manage Keywords</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/country-risks" class="action-btn">
+                <i class="fas fa-globe"></i>
+                <span>Country Risks</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/compliance-officers" class="action-btn">
+                <i class="fas fa-user-shield"></i>
+                <span>Officers</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-4 col-sm-6">
+              <a routerLink="/admin/audit-logs" class="action-btn">
+                <i class="fas fa-history"></i>
+                <span>Audit Logs</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity & Alerts -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Pending Approvals</h5>
+          <span class="badge bg-warning">{{ stats.pendingAccounts + stats.pendingKyc }}</span>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item px-0" *ngIf="stats.pendingAccounts > 0">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-university text-success me-2"></i>
+                  <strong>{{ stats.pendingAccounts }}</strong> account(s) pending approval
+                </div>
+                <a routerLink="/admin/accounts" class="btn btn-sm btn-outline-primary">Review</a>
+              </div>
+            </div>
+            <div class="list-group-item px-0" *ngIf="stats.pendingKyc > 0">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-id-card text-warning me-2"></i>
+                  <strong>{{ stats.pendingKyc }}</strong> KYC document(s) pending verification
+                </div>
+                <a routerLink="/admin/kyc-verification" class="btn btn-sm btn-outline-primary">Review</a>
+              </div>
+            </div>
+            <div class="list-group-item px-0" *ngIf="stats.pendingAccounts === 0 && stats.pendingKyc === 0">
+              <div class="text-center text-muted py-3">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <p class="mb-0">No pending approvals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>System Overview</h5>
+        </div>
+        <div class="card-body">
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-users text-primary me-2"></i>
+              Total Users
+            </div>
+            <div class="overview-value">{{ stats.totalUsers }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-user-shield text-info me-2"></i>
+              Compliance Officers
+            </div>
+            <div class="overview-value">{{ stats.complianceOfficers }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-shield-alt text-success me-2"></i>
+              Active Rules
+            </div>
+            <div class="overview-value">{{ stats.activeRules }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-key text-warning me-2"></i>
+              Suspicious Keywords
+            </div>
+            <div class="overview-value">{{ stats.totalKeywords }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-globe text-danger me-2"></i>
+              Country Risk Profiles
+            </div>
+            <div class="overview-value">{{ stats.countryRisks }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2><i class="fas fa-id-card me-2"></i>KYC Document Verification</h2>
+    </div>
+  </div>
+
+  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-white">
+      <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Pending KYC Documents ({{ pendingDocuments.length }})</h5>
+    </div>
+    <div class="card-body p-0">
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2">Loading documents...</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loading">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Document Type</th>
+              <th>File Name</th>
+              <th>Uploaded</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let doc of pendingDocuments">
+              <td>{{ doc.id }}</td>
+              <td>{{ doc.customerName || 'Customer #' + doc.customerId }}</td>
+              <td>
+                <span class="badge" [ngClass]="getDocumentTypeBadgeClass(doc.documentType)">
+                  {{ doc.documentType }}
+                </span>
+              </td>
+              <td><strong>{{ doc.fileName }}</strong></td>
+              <td>{{ doc.uploadedAt | date:'short' }}</td>
+              <td><span class="badge bg-warning">{{ doc.status }}</span></td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-success" (click)="verifyDocument(doc)">
+                    <i class="fas fa-check"></i> Verify
+                  </button>
+                  <button class="btn btn-danger" (click)="rejectDocument(doc)">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!loading && pendingDocuments.length === 0" class="text-center py-4 text-muted">
+        <i class="fas fa-id-card fa-3x mb-3"></i>
+        <p>No pending KYC documents</p>
+      </div>
+    </div>
+  </div>
+</div>
