@@ -28,5 +28,4 @@ public class Address {
     @Column(name="postal_code")
     private String postalCode;
 
-    // getters/setters
 }

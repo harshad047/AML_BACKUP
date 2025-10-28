@@ -99,6 +99,8 @@ public class CustomerController {
                 customer.setAddress(addr);
             }
         
+            
+            if (req.address.street != null) addr.setStreet(req.address.street);
             if (req.address.city != null) addr.setCity(req.address.city);
             if (req.address.state != null) addr.setState(req.address.state);
             if (req.address.postalCode != null) addr.setPostalCode(req.address.postalCode);
@@ -178,8 +180,7 @@ public class CustomerController {
     }
 
     public static class AddressDto {
-        public String line1;
-        public String line2;
+        public String street;
         public String city;
         public String state;
         public String postalCode;

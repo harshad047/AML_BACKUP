@@ -3,7 +3,6 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { OtpVerificationComponent } from './auth/otp-verification/otp-verification.component';
-import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { CustomerDashboardComponent } from './customer/customer-dashboard/customer-dashboard.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { ComplianceDashboardComponent } from './compliance/compliance-dashboard/compliance-dashboard.component';
