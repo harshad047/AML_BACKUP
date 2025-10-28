@@ -12,6 +12,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.tss.aml.repository.UserRepository;
+
 import jakarta.mail.internet.MimeMessage;
 
 @Service
@@ -24,9 +26,17 @@ public class OtpService {
 
     @Autowired
     private JavaMailSender mailSender;
+    
+    @Autowired
+    private UserRepository userRepository;
 
-    public void sendOtpToEmail(String email) {
+    public boolean sendOtpToEmail(String email) {
         try {
+            // First check if email exists
+            if (email == null || email.trim().isEmpty() || !userRepository.existsByEmail(email.trim().toLowerCase())) {
+                log.debug("Email not found in database: {}", email);
+                return false;
+            }
             String otp = String.format("%06d", ThreadLocalRandom.current().nextInt(0, 1_000_000));
             OtpEntry entry = new OtpEntry(otp, Instant.now().plusSeconds(EXPIRY_SECONDS));
             String key = email == null ? null : email.trim().toLowerCase();
@@ -87,9 +97,11 @@ public class OtpService {
             helper.setText(htmlContent, true); // true = HTML
 
             mailSender.send(mimeMessage);
-
+            return true;
+            
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error sending OTP to {}", email, e);
+            return false;
         }
     }
 

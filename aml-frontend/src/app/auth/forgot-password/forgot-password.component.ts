@@ -1,8 +1,8 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { HttpClient } from '@angular/common/http';
 
 interface ForgotPasswordResetRequest {
   email: string;
@@ -18,27 +18,33 @@ interface ForgotPasswordResetRequest {
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.css']
 })
-export class ForgotPasswordComponent implements OnDestroy {
-  // Form groups
+export class ForgotPasswordComponent {
+  private readonly API_URL = 'http://localhost:8080/api/auth';
+  
+  // Flow state
+  currentStep: 'email' | 'otp' | 'password' = 'email';
+  
+  // Forms
   emailForm: FormGroup;
   otpForm: FormGroup;
-  resetForm: FormGroup;
+  passwordForm: FormGroup;
   
   // State
-  currentStep: 'email' | 'otp' | 'reset' = 'email';
-  email: string = '';
-  otp: string = '';
-  isLoading: boolean = false;
-  errorMessage: string = '';
-  successMessage: string = '';
-  showNewPassword: boolean = false;
-  showConfirmPassword: boolean = false;
-  otpTimer: number = 0;
-  private timerInterval: any;
+  loading = false;
+  error = '';
+  success = '';
+
+  // Password visibility
+  showNewPassword = false;
+  showConfirmPassword = false;
+  
+  // Verified state
+  verifiedEmail = '';
+  verifiedOtp = '';
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
+    private http: HttpClient,
     private router: Router
   ) {
     this.emailForm = this.fb.group({
@@ -46,194 +52,141 @@ export class ForgotPasswordComponent implements OnDestroy {
     });
 
     this.otpForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6), Validators.pattern('^[0-9]*$')]]
     });
 
-    this.resetForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', Validators.required]
+    this.passwordForm = this.fb.group({
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
 
-  // Password match validator
-  passwordMatchValidator(group: FormGroup) {
-    const newPassword = group.get('newPassword')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
+  passwordMatchValidator(form: FormGroup) {
+    const newPassword = form.get('newPassword')?.value;
+    const confirmPassword = form.get('confirmPassword')?.value;
     return newPassword === confirmPassword ? null : { passwordMismatch: true };
   }
 
-  // Get field error message
-  getFieldError(form: FormGroup, field: string): string {
-    const control = form.get(field);
-    if (control?.hasError('required')) {
-      return 'This field is required';
-    } else if (control?.hasError('email')) {
-      return 'Please enter a valid email';
-    } else if (control?.hasError('minlength')) {
-      return `Minimum length is ${control.errors?.['minlength'].requiredLength} characters`;
-    } else if (control?.hasError('maxlength')) {
-      return `Maximum length is ${control.errors?.['maxlength'].requiredLength} characters`;
-    } else if (form.hasError('passwordMismatch') && field === 'confirmPassword') {
-      return 'Passwords do not match';
-    }
-    return '';
+  // Helper for template validation
+  isFieldInvalid(form: FormGroup, fieldName: string): boolean {
+    const control = form.get(fieldName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  // Password visibility toggles
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
   // Step 1: Send OTP to email
-  onSendOtp() {
+  sendOtp(): void {
     if (this.emailForm.invalid) {
       this.emailForm.markAllAsTouched();
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-    this.email = this.emailForm.value.email.trim().toLowerCase();
+    this.loading = true;
+    this.error = '';
+    this.success = '';
+    const email = (this.emailForm.get('email')?.value || '').trim().toLowerCase();
 
-    this.authService.sendOtp(this.email).subscribe({
+    // Single API call that checks email existence and sends OTP if exists
+    this.http.post(`${this.API_URL}/forgot-password/send-otp`, null, { params: { email } }).subscribe({
       next: (response: any) => {
-        this.isLoading = false;
-        this.successMessage = 'OTP has been sent to your email.';
-        this.currentStep = 'otp';
-        this.startOtpTimer();
+        console.log('OTP Response:', response); // Debug log
+        if (response.sent === true) {
+          this.success = response.message || 'OTP sent successfully. Please check your inbox.';
+          this.verifiedEmail = email;
+          this.currentStep = 'otp';
+        } else {
+          this.error = response.message || 'No account found with this email address.';
+        }
+        this.loading = false;
       },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.error || 'Failed to send OTP. Please try again.';
+      error: (err) => {
+        this.error = err.error?.error || 'Failed to send OTP. Please check the email and try again.';
+        this.loading = false;
       }
     });
   }
 
   // Step 2: Verify OTP
-  onVerifyOtp() {
+  verifyOtp(): void {
     if (this.otpForm.invalid) {
       this.otpForm.markAllAsTouched();
       return;
     }
 
-    this.isLoading = true;
-    this.otp = this.otpForm.value.otp;
+    this.loading = true;
+    this.error = '';
+    const otp = this.otpForm.get('otp')?.value;
 
-    this.authService.verifyOtp(this.email, this.otp).subscribe({
+    this.http.post(`${this.API_URL}/forgot-password/verify-otp`, null, { params: { email: this.verifiedEmail, otp } }).subscribe({
       next: (response: any) => {
-        this.isLoading = false;
-        this.successMessage = 'OTP verified successfully. Please set your new password.';
-        this.currentStep = 'reset';
+        this.success = response.message || 'OTP verified successfully!';
+        this.verifiedOtp = otp;
+        this.currentStep = 'password';
+        this.loading = false;
+        this.error = '';
       },
-      error: (error: any) => {
-        console.error('OTP verification error:', error);
-        this.isLoading = false;
-        this.errorMessage = error.error?.error || 'Invalid or expired OTP. Please try again.';
+      error: (err) => {
+        this.error = err.error?.error || 'Invalid OTP. Please try again.';
+        this.loading = false;
+        this.success = '';
       }
     });
   }
 
-  // Step 3: Reset password
-  onResetPassword() {
-    if (this.resetForm.invalid) {
-      this.resetForm.markAllAsTouched();
+  // Step 3: Reset Password
+  resetPassword(): void {
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
       return;
     }
 
-    // Validate that we have a verified OTP
-    if (!this.otp) {
-      this.errorMessage = 'Please verify your OTP first.';
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    const resetData: ForgotPasswordResetRequest = {
-      email: this.email,
-      otp: this.otp,
-      newPassword: this.resetForm.value.newPassword,
-      confirmPassword: this.resetForm.value.confirmPassword
+    this.loading = true;
+    this.error = '';
+    this.success = '';
+    const { newPassword, confirmPassword } = this.passwordForm.value;
+    
+    const resetRequest: ForgotPasswordResetRequest = {
+      email: this.verifiedEmail,
+      otp: this.verifiedOtp,
+      newPassword,
+      confirmPassword
     };
 
-    this.authService.resetPassword(resetData).subscribe({
+    this.http.post(`${this.API_URL}/forgot-password/reset`, resetRequest).subscribe({
       next: (response: any) => {
-        this.isLoading = false;
-        this.successMessage = 'Password has been reset successfully. Redirecting to login...';
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
+        this.success = response.message || 'Password reset successfully. Redirecting to login...';
+        this.loading = false;
+        this.error = '';
+        setTimeout(() => this.router.navigate(['/login']), 2000);
       },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.error || 'Failed to reset password. Please try again.';
+      error: (err) => {
+        this.error = err.error?.error || 'Failed to reset password. Please try again.';
+        this.loading = false;
+        this.success = '';
       }
     });
   }
 
-  // Resend OTP
-  onResendOtp() {
-    if (this.otpTimer > 0) {
-      return; // Prevent multiple rapid requests
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.sendOtp(this.email).subscribe({
-      next: (response: any) => {
-        this.isLoading = false;
-        this.successMessage = 'New OTP has been sent to your email.';
-        this.startOtpTimer();
-      },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.error || 'Failed to resend OTP. Please try again.';
-      }
-    });
+  // Navigation helpers
+  goBackToEmail(): void {
+    this.currentStep = 'email';
+    this.error = '';
+    this.success = '';
+    this.otpForm.reset();
   }
 
-  // Navigation
-  goBack() {
-    if (this.currentStep === 'otp') {
-      this.currentStep = 'email';
-      this.otpForm.reset();
-      this.stopOtpTimer();
-    } else if (this.currentStep === 'reset') {
-      this.currentStep = 'otp';
-      this.resetForm.reset();
-    }
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
-
-  // Toggle password visibility
-  togglePasswordVisibility(field: 'new' | 'confirm') {
-    if (field === 'new') {
-      this.showNewPassword = !this.showNewPassword;
-    } else {
-      this.showConfirmPassword = !this.showConfirmPassword;
-    }
-  }
-
-  // Start OTP countdown timer
-  private startOtpTimer() {
-    this.otpTimer = 60; // 60 seconds
-    this.timerInterval = setInterval(() => {
-      this.otpTimer--;
-      if (this.otpTimer <= 0) {
-        this.stopOtpTimer();
-      }
-    }, 1000);
-  }
-
-  // Stop OTP timer
-  private stopOtpTimer() {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-    this.otpTimer = 0;
-  }
-
-  // Clean up on component destroy
-  ngOnDestroy() {
-    this.stopOtpTimer();
+  resendOtp(): void {
+    this.otpForm.reset();
+    this.error = '';
+    this.success = '';
+    this.sendOtp(); // Re-use the existing sendOtp logic
   }
 }

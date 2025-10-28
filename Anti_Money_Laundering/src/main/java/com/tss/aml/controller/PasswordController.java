@@ -28,6 +28,8 @@ public class PasswordController {
     @Autowired private CustomerRepository customerRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
+    
+
     /**
      * Initiate forgot password by sending an OTP to the provided email.
      * Always returns success to avoid email enumeration.
@@ -39,9 +41,34 @@ public class PasswordController {
         if (normalized == null || normalized.isBlank()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email is required"));
         }
-        // If user exists, send OTP. If not, still return success to avoid enumeration.
-        userRepository.findByEmail(normalized).ifPresent(u -> otpService.sendOtpToEmail(normalized));
-        return ResponseEntity.ok(java.util.Map.of("sent", true, "message", "If the email exists, an OTP has been sent."));
+        
+        // Check if user exists
+        boolean userExists = userRepository.existsByEmail(normalized);
+        
+        if (!userExists) {
+            log.debug("Email not found in database: {}", normalized);
+            return ResponseEntity.ok(java.util.Map.of(
+                "sent", false,
+                "message", "No account found with this email address."
+            ));
+        }
+        
+        // Only send OTP if user exists
+        boolean otpSent = otpService.sendOtpToEmail(normalized);
+        
+        if (otpSent) {
+            log.debug("OTP sent to email: {}", normalized);
+            return ResponseEntity.ok(java.util.Map.of(
+                "sent", true,
+                "message", "OTP has been sent to your email."
+            ));
+        } else {
+            log.warn("Failed to send OTP to email: {}", normalized);
+            return ResponseEntity.ok(java.util.Map.of(
+                "sent", false,
+                "message", "Failed to send OTP. Please try again later."
+            ));
+        }
     }
 
     /**
