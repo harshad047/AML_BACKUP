@@ -12,10 +12,21 @@ import { AdminService, UserDto, CreateUserDto } from '../../core/services/admin.
 })
 export class UsersComponent implements OnInit {
   users: UserDto[] = [];
+  filteredUsers: UserDto[] = [];
+  paginatedUsers: UserDto[] = [];
   blockedUsers: UserDto[] = [];
   loading = false;
   error = '';
   success = '';
+  
+  // Search and pagination
+  searchTerm = '';
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  Math = Math;
   
   showCreateForm = false;
   createUserForm: FormGroup;
@@ -51,6 +62,8 @@ export class UsersComponent implements OnInit {
     this.adminService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
+        this.filteredUsers = [...users];
+        this.updatePagination();
         this.loading = false;
       },
       error: (err) => {
@@ -58,6 +71,88 @@ export class UsersComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  filterUsers(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredUsers = [...this.users];
+    } else {
+      const term = this.searchTerm.toLowerCase();
+      this.filteredUsers = this.users.filter(user =>
+        user.username?.toLowerCase().includes(term) ||
+        user.firstName?.toLowerCase().includes(term) ||
+        user.lastName?.toLowerCase().includes(term) ||
+        user.email?.toLowerCase().includes(term) ||
+        user.role?.toLowerCase().includes(term) ||
+        user.id?.toString().includes(term)
+      );
+    }
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  sortBy(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.filteredUsers.sort((a: any, b: any) => {
+      const aVal = a[column];
+      const bVal = b[column];
+      
+      if (aVal === bVal) return 0;
+      
+      const comparison = aVal > bVal ? 1 : -1;
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.pageSize);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = Math.max(1, this.totalPages);
+    }
+    
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedUsers = this.filteredUsers.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, this.currentPage - 2);
+      const end = Math.min(this.totalPages, start + maxVisible - 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
   }
 
   loadBlockedUsers(): void {

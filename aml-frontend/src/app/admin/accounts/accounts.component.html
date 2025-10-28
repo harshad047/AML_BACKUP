@@ -31,60 +31,83 @@
   </ul>
 
   <!-- Accounts Table -->
-  <div class="card">
+  <div class="card shadow-sm">
+    <div class="card-header accounts-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>{{ activeTab === 'pending' ? 'Pending' : 'All' }} Accounts ({{ filteredCount }})</h5>
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            class="form-control form-control-sm" 
+            placeholder="Search accounts..." 
+            [(ngModel)]="searchTerm"
+            (input)="filterAccounts()"
+          />
+        </div>
+      </div>
+    </div>
     <div class="card-body p-0">
-      <div *ngIf="loading" class="text-center py-4">
+      <div *ngIf="loading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2">Loading accounts...</p>
+        <p class="mt-3 text-muted">Loading accounts...</p>
       </div>
 
       <div class="table-responsive" *ngIf="!loading">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
+        <table class="table table-hover modern-table mb-0">
+          <thead>
             <tr>
-              <th>Account Number</th>
-              <th>Type</th>
+              <th (click)="sortBy('accountNumber')" class="sortable">
+                Account Number <i class="fas fa-sort ms-1"></i>
+              </th>
+              <th (click)="sortBy('accountType')" class="sortable">
+                Type <i class="fas fa-sort ms-1"></i>
+              </th>
               <th>Customer</th>
-              <th>Balance</th>
-              <th>Status</th>
-              <th>Approval</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th (click)="sortBy('balance')" class="sortable text-end">
+                Balance <i class="fas fa-sort ms-1"></i>
+              </th>
+              <th class="text-center">Status</th>
+              <th class="text-center">Approval</th>
+              <th (click)="sortBy('createdAt')" class="sortable">
+                Created <i class="fas fa-sort ms-1"></i>
+              </th>
+              <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let account of displayedAccounts">
-              <td><strong>{{ account.accountNumber }}</strong></td>
+            <tr *ngFor="let account of displayedAccounts" class="table-row">
+              <td><strong class="account-number">{{ account.accountNumber }}</strong></td>
               <td>{{ account.accountType }}</td>
-              <td>{{ account.customerName || 'Customer #' + account.customerId }}</td>
-              <td>{{ account.balance | currency:account.currency:'symbol':'1.2-2' }}</td>
-              <td>
+              <td class="text-muted">{{ account.customerName || 'Customer #' + account.customerId }}</td>
+              <td class="text-end">{{ account.balance | currency:account.currency:'symbol':'1.2-2' }}</td>
+              <td class="text-center">
                 <span class="badge" [ngClass]="getStatusBadgeClass(account.status)">
                   {{ account.status }}
                 </span>
               </td>
-              <td>
+              <td class="text-center">
                 <span class="badge" [ngClass]="getApprovalBadgeClass(account.approvalStatus)">
                   {{ account.approvalStatus }}
                 </span>
               </td>
               <td>{{ account.createdAt | date:'short' }}</td>
-              <td>
-                <div class="btn-group btn-group-sm">
+              <td class="text-center">
+                <div class="btn-group btn-group-sm action-buttons">
                   <button *ngIf="account.approvalStatus === 'PENDING'" 
-                          class="btn btn-success" (click)="approveAccount(account)">
+                          class="btn btn-success" (click)="approveAccount(account)" title="Approve Account">
                     <i class="fas fa-check"></i> Approve
                   </button>
                   <button *ngIf="account.approvalStatus === 'PENDING'" 
-                          class="btn btn-danger" (click)="rejectAccount(account)">
+                          class="btn btn-danger" (click)="rejectAccount(account)" title="Reject Account">
                     <i class="fas fa-times"></i> Reject
                   </button>
                   <button *ngIf="account.status === 'ACTIVE'" 
-                          class="btn btn-warning" (click)="suspendAccount(account)">
+                          class="btn btn-warning" (click)="suspendAccount(account)" title="Suspend Account">
                     <i class="fas fa-ban"></i> Suspend
                   </button>
                   <button *ngIf="account.status === 'SUSPENDED'" 
-                          class="btn btn-success" (click)="activateAccount(account)">
+                          class="btn btn-success" (click)="activateAccount(account)" title="Activate Account">
                     <i class="fas fa-check-circle"></i> Activate
                   </button>
                 </div>
@@ -94,9 +117,55 @@
         </table>
       </div>
 
-      <div *ngIf="!loading && displayedAccounts.length === 0" class="text-center py-4 text-muted">
-        <i class="fas fa-university fa-3x mb-3"></i>
-        <p>No {{ activeTab === 'pending' ? 'pending' : '' }} accounts found</p>
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="!loading && filteredCount > 0">
+        <div class="d-flex justify-content-between align-items-center px-4 py-3">
+          <div class="text-muted small">
+            Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, filteredCount) }} of {{ filteredCount }} entries
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted me-2">Rows per page:</label>
+            <select class="form-select form-select-sm page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+              <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+                <a class="page-link" (click)="goToPage(page)" href="javascript:void(0)">{{ page }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(currentPage + 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(totalPages)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && displayedAccounts.length === 0" class="text-center py-5 empty-state">
+        <i class="fas fa-university fa-4x mb-3 text-muted"></i>
+        <h5 class="text-muted">{{ searchTerm ? 'No accounts found matching your search' : 'No ' + (activeTab === 'pending' ? 'pending' : '') + ' accounts found' }}</h5>
+        <p class="text-muted">{{ searchTerm ? 'Try adjusting your search criteria' : 'Accounts will appear here' }}</p>
       </div>
     </div>
   </div>

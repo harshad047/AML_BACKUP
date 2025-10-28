@@ -1,21 +1,261 @@
+/* Modern Color Palette */
+:root {
+  --primary-color: #4f46e5;
+  --primary-light: #6366f1;
+  --primary-dark: #4338ca;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #3b82f6;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+}
+
+/* Condition Row */
 .condition-row {
-  background: #f8f9fa;
+  background: var(--gray-50);
   padding: 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--gray-200);
+  transition: all 0.2s ease;
 }
 
-.table th {
-  font-weight: 600;
+.condition-row:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+}
+
+/* Card Styling */
+.card {
+  border: none;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Rules Header - Clean and Professional */
+.rules-header {
+  background: linear-gradient(to right, #f8f9fa, #e9ecef);
   color: #495057;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 2px solid #dee2e6;
 }
 
+.rules-header h5 {
+  color: #495057;
+  font-weight: 600;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  width: 300px;
+}
+
+.search-box .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-600);
+  font-size: 0.875rem;
+}
+
+.search-box input {
+  padding-left: 2.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ced4da;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.search-box input:focus {
+  background: white;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Modern Table */
+.modern-table {
+  font-size: 0.9rem;
+}
+
+.modern-table thead {
+  background: linear-gradient(to bottom, var(--gray-50), var(--gray-100));
+  border-bottom: 2px solid var(--gray-300);
+}
+
+.modern-table thead th {
+  font-weight: 600;
+  color: var(--gray-700);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 0.75rem;
+  border: none;
+  white-space: nowrap;
+}
+
+.modern-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.modern-table thead th.sortable:hover {
+  background: var(--gray-200);
+  color: var(--primary-color);
+}
+
+.modern-table thead th.sortable i {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.modern-table thead th.sortable:hover i {
+  opacity: 1;
+}
+
+.modern-table tbody tr {
+  border-bottom: 1px solid var(--gray-200);
+  transition: all 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+  background-color: var(--gray-50);
+  transform: scale(1.001);
+}
+
+.modern-table tbody td {
+  padding: 1rem 0.75rem;
+  vertical-align: middle;
+  color: var(--gray-700);
+}
+
+.rule-name {
+  color: var(--gray-800);
+  font-weight: 600;
+}
+
+/* Badge Styling - Keep Original Colors */
 .badge {
   font-size: 0.875rem;
   padding: 0.35rem 0.65rem;
+  border-radius: 0.375rem;
 }
 
+.priority-badge {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Status Switch - Original Styling */
 .form-check-input:checked {
   background-color: #28a745;
   border-color: #28a745;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+}
+
+.action-buttons .btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.action-buttons .btn-outline-primary:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+}
+
+.action-buttons .btn-outline-danger {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.action-buttons .btn-outline-danger:hover {
+  background: var(--danger-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+}
+
+/* Pagination */
+.pagination-wrapper {
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+}
+
+.page-size-select {
+  width: 80px;
+  border-radius: 0.375rem;
+  border-color: var(--gray-300);
+}
+
+.pagination .page-link {
+  color: var(--gray-700);
+  border-color: var(--gray-300);
+  padding: 0.5rem 0.75rem;
+  margin: 0 0.125rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.pagination .page-link:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+.pagination .page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 3rem 1rem;
+}
+
+.empty-state i {
+  opacity: 0.3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-box {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .modern-table {
+    font-size: 0.85rem;
+  }
+
+  .modern-table thead th,
+  .modern-table tbody td {
+    padding: 0.75rem 0.5rem;
+  }
 }

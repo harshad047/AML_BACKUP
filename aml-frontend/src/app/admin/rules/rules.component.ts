@@ -1,20 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray, FormsModule } from '@angular/forms';
 import { AdminService, RuleDto, RuleConditionDto } from '../../core/services/admin.service';
 
 @Component({
   selector: 'app-rules',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './rules.component.html',
   styleUrls: ['./rules.component.css']
 })
 export class RulesComponent implements OnInit {
   rules: RuleDto[] = [];
+  filteredRules: RuleDto[] = [];
+  paginatedRules: RuleDto[] = [];
   loading = false;
   error = '';
   success = '';
+  
+  // Search and pagination
+  searchTerm = '';
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  Math = Math;
   
   showCreateForm = false;
   ruleForm: FormGroup;
@@ -51,6 +62,8 @@ export class RulesComponent implements OnInit {
     this.adminService.getAllRules().subscribe({
       next: (rules) => {
         this.rules = rules;
+        this.filteredRules = [...rules];
+        this.updatePagination();
         this.loading = false;
       },
       error: (err) => {
@@ -58,6 +71,86 @@ export class RulesComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  filterRules(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredRules = [...this.rules];
+    } else {
+      const term = this.searchTerm.toLowerCase();
+      this.filteredRules = this.rules.filter(rule =>
+        rule.name?.toLowerCase().includes(term) ||
+        rule.description?.toLowerCase().includes(term) ||
+        rule.action?.toLowerCase().includes(term) ||
+        rule.id?.toString().includes(term)
+      );
+    }
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  sortBy(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.filteredRules.sort((a: any, b: any) => {
+      const aVal = a[column];
+      const bVal = b[column];
+      
+      if (aVal === bVal) return 0;
+      
+      const comparison = aVal > bVal ? 1 : -1;
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredRules.length / this.pageSize);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = Math.max(1, this.totalPages);
+    }
+    
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedRules = this.filteredRules.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, this.currentPage - 2);
+      const end = Math.min(this.totalPages, start + maxVisible - 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
   }
 
   toggleCreateForm(): void {

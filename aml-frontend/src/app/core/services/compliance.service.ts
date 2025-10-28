@@ -27,6 +27,13 @@ export class ComplianceService {
     );
   }
 
+  getAllAlerts(): Observable<AlertDto[]> {
+    return this.http.get<AlertDto[]>(
+      `${this.API_URL}/alerts/all`,
+      { headers: this.auth.getAuthHeaders() }
+    );
+  }
+
   getAlertById(id: number): Observable<AlertDto> {
     return this.http.get<AlertDto>(
       `${this.API_URL}/alerts/${id}`,

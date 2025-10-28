@@ -67,11 +67,6 @@ export interface CountryRiskDto {
   countryName: string;
   riskScore: number;
   notes?: string;
-  isActive: boolean;
-  createdBy?: string;
-  updatedBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface AuditLog {

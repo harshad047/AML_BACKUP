@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../core/services/compliance.service';
 import { TransactionDto } from '../../core/models/compliance.models';
@@ -195,20 +195,13 @@ import { TransactionDto } from '../../core/models/compliance.models';
                       </td>
                       <td>
                         <div class="action-buttons">
-                          <button class="btn btn-sm btn-info btn-action" 
-                                  (click)="viewTransactionDetails(transaction)"
-                                  title="View full transaction details">
-                            <i class="fas fa-eye me-1"></i>
-                            <span class="btn-text">View</span>
-                          </button>
-                          <!-- Investigate Button - Creates Case (Optional) -->
-                          <button class="btn btn-sm btn-warning btn-action" 
-                                  (click)="investigateTransaction(transaction)"
-                                  [disabled]="!canInvestigate(transaction)"
-                                  *ngIf="activeTab === 'review' || activeTab === 'flagged' || activeTab === 'blocked'"
-                                  title="Create formal investigation case">
-                            <i class="fas fa-search me-1"></i>
-                            <span class="btn-text">Investigate</span>
+                          <!-- Generate SAR Button - Only after investigation started -->
+                          <button class="btn btn-sm btn-purple btn-action" 
+                                  (click)="generateSAR(transaction)"
+                                  *ngIf="hasActiveCase(transaction) && (activeTab === 'review' || activeTab === 'flagged' || activeTab === 'blocked')"
+                                  title="Generate Suspicious Activity Report">
+                            <i class="fas fa-file-alt me-1"></i>
+                            <span class="btn-text">Generate SAR</span>
                           </button>
                           <!-- Approve/Reject buttons always available -->
                           <button class="btn btn-sm btn-success btn-action" 
@@ -567,6 +560,20 @@ import { TransactionDto } from '../../core/models/compliance.models';
       box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
     }
 
+    /* Generate SAR Button (Purple) */
+    .btn-purple.btn-action {
+      background-color: #6f42c1;
+      border-color: #6f42c1;
+      color: #fff;
+    }
+
+    .btn-purple.btn-action:hover:not(:disabled) {
+      background-color: #5a32a3;
+      border-color: #59339d;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4);
+    }
+
     /* Disabled State */
     .btn-action:disabled {
       opacity: 0.5;
@@ -706,7 +713,10 @@ export class TransactionReviewComponent implements OnInit {
   rejectionReason = '';
   transactionToReject: TransactionDto | null = null;
 
-  constructor(private complianceService: ComplianceService) {}
+  constructor(
+    private complianceService: ComplianceService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadTransactions();
@@ -919,6 +929,11 @@ export class TransactionReviewComponent implements OnInit {
         alert(`❌ Error: ${errorMsg}`);
       }
     });
+  }
+
+  generateSAR(transaction: TransactionDto): void {
+    // Navigate to SAR report page
+    this.router.navigate(['/compliance/sar-report', transaction.id]);
   }
 
   private getAlertIdFromTransaction(transaction: TransactionDto): number | null {
