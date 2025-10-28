@@ -1,0 +1,165 @@
+<div class="container-fluid py-4">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+    <h5>Generating SAR Report...</h5>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+  </div>
+
+  <!-- SAR Report Content -->
+  <div *ngIf="sarReport && !loading" id="sar-report-content">
+    <!-- Action Buttons (Hidden in Print) -->
+    <div class="action-buttons no-print mb-4">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="fas fa-arrow-left me-2"></i>Back to Transactions
+      </button>
+      <button class="btn btn-primary" (click)="printReport()">
+        <i class="fas fa-print me-2"></i>Print Report
+      </button>
+      <button class="btn btn-success" (click)="downloadReport()">
+        <i class="fas fa-download me-2"></i>Download PDF
+      </button>
+    </div>
+
+    <!-- Report Container -->
+    <div class="report-container">
+      <!-- Report Header -->
+      <div class="report-header">
+        <div class="row">
+          <div class="col-6">
+            <h1 class="system-title">AML SYSTEM</h1>
+            <h2 class="report-title">SUSPICIOUS ACTIVITY REPORT</h2>
+          </div>
+          <div class="col-6 text-end">
+            <div class="report-meta">
+              <p><strong>Report ID:</strong> {{ sarReport.reportId }}</p>
+              <p><strong>Date:</strong> {{ sarReport.date | date:'MMMM d, yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col-12">
+            <p><strong>Prepared By:</strong> {{ sarReport.preparedBy }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. Subject Information -->
+      <div class="report-section">
+        <h3 class="section-title">1. SUBJECT INFORMATION</h3>
+        <table class="info-table">
+          <tbody>
+            <tr>
+              <td class="label-cell">Transaction Reference</td>
+              <td class="value-cell">{{ sarReport.transaction.transactionReference }}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">From Account</td>
+              <td class="value-cell">{{ sarReport.transaction.fromAccountNumber || 'N.A' }}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">To Account</td>
+              <td class="value-cell">{{ sarReport.transaction.toAccountNumber }}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">Transaction Type</td>
+              <td class="value-cell">{{ sarReport.transaction.transactionType }}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">Transaction Amount</td>
+              <td class="value-cell">{{ sarReport.transaction.amount | currency:sarReport.transaction.currency }}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">Transaction Date/Time</td>
+              <td class="value-cell">{{ sarReport.transaction.createdAt | date:'MMMM d, yyyy, h:mm:ss a' }}</td>
+            </tr>
+            <tr>
+              <td class="label-cell">Status</td>
+              <td class="value-cell status-cell">
+                <span class="status-badge status-blocked">{{ sarReport.transaction.status }}</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">Description / Narrative</td>
+              <td class="value-cell">{{ sarReport.transaction.description || 'N/A' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2. Summary of Suspicious Activity -->
+      <div class="report-section">
+        <h3 class="section-title">2. SUMMARY OF SUSPICIOUS ACTIVITY</h3>
+        <div class="summary-content">
+          <p>{{ sarReport.summary }}</p>
+        </div>
+      </div>
+
+      <!-- 3. Risk Assessment Summary -->
+      <div class="report-section">
+        <h3 class="section-title">3. RISK ASSESSMENT SUMMARY</h3>
+        <div class="table-responsive">
+          <table class="risk-table">
+            <thead>
+              <tr>
+                <th>Rule Name</th>
+                <th>Action</th>
+                <th>Risk Weight</th>
+                <th>Priority</th>
+                <th>Details</th>
+                <th>Evaluated At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let rule of sarReport.transaction.obstructedRules">
+                <td>{{ rule.ruleName }}</td>
+                <td>
+                  <span class="action-badge" [ngClass]="getActionBadgeClass(rule.action)">
+                    {{ rule.action }}
+                  </span>
+                </td>
+                <td>{{ rule.riskWeight }}</td>
+                <td>{{ rule.priority }}</td>
+                <td class="details-cell">{{ rule.details }}</td>
+                <td>{{ rule.evaluatedAt | date:'M/d/yy, h:mm a' }}</td>
+              </tr>
+              <tr *ngIf="!sarReport.transaction.obstructedRules || sarReport.transaction.obstructedRules.length === 0">
+                <td colspan="6" class="text-center text-muted">No rules triggered</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 5. Analysis & Observations -->
+      <div class="report-section">
+        <h3 class="section-title">5. ANALYSIS & OBSERVATIONS</h3>
+        <ul class="observations-list">
+          <li *ngFor="let observation of sarReport.analysisObservations">
+            {{ observation }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Report Footer -->
+      <div class="report-footer">
+        <div class="row">
+          <div class="col-6">
+            <p class="small text-muted">
+              <strong>Classification:</strong> Confidential - Internal Use Only
+            </p>
+          </div>
+          <div class="col-6 text-end">
+            <p class="small text-muted">
+              Generated by AML System on {{ sarReport.date | date:'medium' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -10,46 +10,110 @@
     <button type="button" class="btn-close" (click)="error = ''"></button>
   </div>
 
-  <div class="card">
-    <div class="card-header bg-white">
-      <h5 class="mb-0"><i class="fas fa-list me-2"></i>System Audit Logs ({{ auditLogs.length }})</h5>
+  <div class="card shadow-sm">
+    <div class="card-header logs-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>System Audit Logs ({{ filteredLogs.length }})</h5>
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            type="text" 
+            class="form-control form-control-sm" 
+            placeholder="Search logs..." 
+            [(ngModel)]="searchTerm"
+            (input)="filterLogs()"
+          />
+        </div>
+      </div>
     </div>
     <div class="card-body p-0">
-      <div *ngIf="loading" class="text-center py-4">
+      <div *ngIf="loading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
-        <p class="mt-2">Loading audit logs...</p>
+        <p class="mt-3 text-muted">Loading audit logs...</p>
       </div>
 
       <div class="table-responsive" *ngIf="!loading">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
+        <table class="table table-hover modern-table mb-0">
+          <thead>
             <tr>
-              <th>ID</th>
-              <th>Timestamp</th>
-              <th>Username</th>
-              <th>Action</th>
+              <th (click)="sortBy('id')" class="sortable">
+                ID <i class="fas fa-sort ms-1"></i>
+              </th>
+              <th (click)="sortBy('timestamp')" class="sortable">
+                Timestamp <i class="fas fa-sort ms-1"></i>
+              </th>
+              <th (click)="sortBy('username')" class="sortable">
+                Username <i class="fas fa-sort ms-1"></i>
+              </th>
+              <th class="text-center">Action</th>
               <th>Details</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let log of auditLogs">
-              <td>{{ log.id }}</td>
+            <tr *ngFor="let log of paginatedLogs" class="table-row">
+              <td class="fw-medium">{{ log.id }}</td>
               <td>{{ log.timestamp | date:'medium' }}</td>
-              <td><strong>{{ log.username }}</strong></td>
-              <td>
+              <td><strong class="log-username">{{ log.username }}</strong></td>
+              <td class="text-center">
                 <span class="badge" [ngClass]="getActionBadgeClass(log.action)">
                   {{ log.action }}
                 </span>
               </td>
-              <td><small>{{ log.details }}</small></td>
+              <td><small class="text-muted">{{ log.details }}</small></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div *ngIf="!loading && auditLogs.length === 0" class="text-center py-4 text-muted">
-        <i class="fas fa-history fa-3x mb-3"></i>
-        <p>No audit logs found</p>
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="!loading && filteredLogs.length > 0">
+        <div class="d-flex justify-content-between align-items-center px-4 py-3">
+          <div class="text-muted small">
+            Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, filteredLogs.length) }} of {{ filteredLogs.length }} entries
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted me-2">Rows per page:</label>
+            <select class="form-select form-select-sm page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+              <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+                <a class="page-link" (click)="goToPage(page)" href="javascript:void(0)">{{ page }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(currentPage + 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(totalPages)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && filteredLogs.length === 0" class="text-center py-5 empty-state">
+        <i class="fas fa-history fa-4x mb-3 text-muted"></i>
+        <h5 class="text-muted">{{ searchTerm ? 'No logs found matching your search' : 'No audit logs found' }}</h5>
+        <p class="text-muted">{{ searchTerm ? 'Try adjusting your search criteria' : 'System audit logs will appear here' }}</p>
       </div>
     </div>
   </div>

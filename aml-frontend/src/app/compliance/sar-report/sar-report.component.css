@@ -1,0 +1,293 @@
+/* Report Container */
+.report-container {
+  background: white;
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Report Header */
+.report-header {
+  border-bottom: 3px solid #333;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.system-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.report-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+}
+
+.report-meta p {
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Section Styling */
+.report-section {
+  margin-bottom: 35px;
+  page-break-inside: avoid;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e0e0e0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Information Table */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.info-table td {
+  padding: 12px 15px;
+  border: 1px solid #d0d0d0;
+  font-size: 14px;
+}
+
+.label-cell {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  width: 30%;
+  color: #333;
+}
+
+.value-cell {
+  background-color: white;
+  color: #1a1a1a;
+}
+
+.status-cell {
+  vertical-align: middle;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.status-blocked {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Summary Content */
+.summary-content {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-left: 4px solid #007bff;
+  border-radius: 4px;
+  line-height: 1.8;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Risk Assessment Table */
+.risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.risk-table thead {
+  background-color: #2c5282;
+  color: white;
+}
+
+.risk-table th {
+  padding: 12px 10px;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid #1a3a5a;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.risk-table td {
+  padding: 10px;
+  border: 1px solid #d0d0d0;
+  vertical-align: top;
+}
+
+.risk-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.risk-table tbody tr:hover {
+  background-color: #f0f0f0;
+}
+
+.action-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bg-warning {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.bg-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.details-cell {
+  max-width: 300px;
+  word-wrap: break-word;
+  font-size: 12px;
+  color: #555;
+}
+
+/* Observations List */
+.observations-list {
+  list-style-type: disc;
+  padding-left: 25px;
+  line-height: 1.8;
+}
+
+.observations-list li {
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Report Footer */
+.report-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.action-buttons .btn {
+  padding: 10px 20px;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .report-container {
+    box-shadow: none;
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .report-section {
+    page-break-inside: avoid;
+  }
+
+  .system-title {
+    font-size: 24px;
+  }
+
+  .report-title {
+    font-size: 20px;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .risk-table thead {
+    background-color: #2c5282 !important;
+    color: white !important;
+  }
+
+  .status-blocked {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+
+  .bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+  }
+
+  .bg-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .report-container {
+    padding: 20px;
+  }
+
+  .system-title {
+    font-size: 22px;
+  }
+
+  .report-title {
+    font-size: 18px;
+  }
+
+  .info-table,
+  .risk-table {
+    font-size: 12px;
+  }
+
+  .label-cell {
+    width: 40%;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons .btn {
+    width: 100%;
+  }
+}

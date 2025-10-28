@@ -9,6 +9,7 @@ import { ComplianceDashboardComponent } from './compliance/compliance-dashboard/
 import { AlertsManagementComponent } from './compliance/alerts-management/alerts-management.component';
 import { TransactionReviewComponent } from './compliance/transaction-review/transaction-review.component';
 import { CaseManagementComponent } from './compliance/case-management/case-management.component';
+import { SarReportComponent } from './compliance/sar-report/sar-report.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { RoleGuard } from './core/guards/role.guard';
 import { CustomerDocumentsComponent } from './customer/customer-documents/customer-documents.component';
@@ -159,6 +160,12 @@ export const routes: Routes = [
   {
     path: 'compliance/cases',
     component: CaseManagementComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  {
+    path: 'compliance/sar-report/:id',
+    component: SarReportComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['OFFICER'] }
   },

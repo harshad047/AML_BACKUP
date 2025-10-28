@@ -1,20 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { AdminService, CountryRiskDto } from '../../core/services/admin.service';
 
 @Component({
   selector: 'app-country-risks',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './country-risks.component.html',
   styleUrls: ['./country-risks.component.css']
 })
 export class CountryRisksComponent implements OnInit {
   countryRisks: CountryRiskDto[] = [];
+  filteredCountries: CountryRiskDto[] = [];
+  paginatedCountries: CountryRiskDto[] = [];
   loading = false;
   error = '';
   success = '';
+  
+  // Search and pagination
+  searchTerm = '';
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  Math = Math;
   
   showCreateForm = false;
   countryForm: FormGroup;
@@ -45,6 +56,8 @@ export class CountryRisksComponent implements OnInit {
     this.adminService.getCountryRisks().subscribe({
       next: (countries) => {
         this.countryRisks = countries;
+        this.filteredCountries = [...countries];
+        this.updatePagination();
         this.loading = false;
       },
       error: (err) => {
@@ -52,6 +65,80 @@ export class CountryRisksComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  filterCountries(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredCountries = [...this.countryRisks];
+    } else {
+      const term = this.searchTerm.toLowerCase();
+      this.filteredCountries = this.countryRisks.filter(country =>
+        country.countryCode?.toLowerCase().includes(term) ||
+        country.countryName?.toLowerCase().includes(term) ||
+        country.riskScore?.toString().includes(term) ||
+        this.getRiskLevel(country.riskScore).toLowerCase().includes(term)
+      );
+    }
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  sortBy(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.filteredCountries.sort((a: any, b: any) => {
+      const aVal = a[column];
+      const bVal = b[column];
+      if (aVal === bVal) return 0;
+      const comparison = aVal > bVal ? 1 : -1;
+      return this.sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredCountries.length / this.pageSize);
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = Math.max(1, this.totalPages);
+    }
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedCountries = this.filteredCountries.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, this.currentPage - 2);
+      const end = Math.min(this.totalPages, start + maxVisible - 1);
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    return pages;
   }
 
   toggleCreateForm(): void {
@@ -78,7 +165,6 @@ export class CountryRisksComponent implements OnInit {
       countryName: country.countryName,
       riskScore: country.riskScore,
       notes: country.notes,
-      isActive: country.isActive
     });
   }
 

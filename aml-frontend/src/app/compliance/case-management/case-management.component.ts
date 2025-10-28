@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../core/services/compliance.service';
 import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.models';
@@ -140,17 +140,26 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
               </div>
             </div>
             <div class="card-footer">
-              <div class="btn-group w-100">
-                <button class="btn btn-outline-primary btn-sm" 
-                        (click)="viewCaseDetails(case)">
-                  <i class="fas fa-eye me-1"></i>
-                  View Details
-                </button>
-                <button class="btn btn-outline-success btn-sm" 
-                        (click)="addNote(case)"
-                        *ngIf="case.status === 'UNDER_INVESTIGATION'">
-                  <i class="fas fa-plus me-1"></i>
-                  Add Note
+              <div class="d-flex flex-column gap-2">
+                <div class="btn-group w-100">
+                  <button class="btn btn-outline-primary btn-sm" 
+                          (click)="viewCaseDetails(case)">
+                    <i class="fas fa-eye me-1"></i>
+                    View Details
+                  </button>
+                  <button class="btn btn-outline-success btn-sm" 
+                          (click)="addNote(case)"
+                          *ngIf="case.status === 'UNDER_INVESTIGATION'">
+                    <i class="fas fa-plus me-1"></i>
+                    Add Note
+                  </button>
+                </div>
+                <button class="btn btn-purple btn-sm w-100" 
+                        (click)="generateSAR(case)"
+                        *ngIf="case.status === 'UNDER_INVESTIGATION'"
+                        title="Generate Suspicious Activity Report">
+                  <i class="fas fa-file-alt me-1"></i>
+                  Generate SAR
                 </button>
               </div>
             </div>
@@ -319,6 +328,12 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
 
                 <!-- Case Actions -->
                 <div class="mt-4" *ngIf="selectedCase.status === 'UNDER_INVESTIGATION'">
+                  <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-purple" (click)="generateSAR(selectedCase)" [disabled]="loading">
+                      <i class="fas fa-file-alt me-1"></i>
+                      Generate SAR Report
+                    </button>
+                  </div>
                   <div class="d-flex gap-2">
                     <button class="btn btn-success" (click)="approveCase(selectedCase.id)" [disabled]="loading">
                       <i class="fas fa-check me-1"></i>
@@ -398,6 +413,27 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
       color: white;
       border-color: #007bff;
     }
+    
+    /* Generate SAR Button (Purple) */
+    .btn-purple {
+      background-color: #6f42c1;
+      border-color: #6f42c1;
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .btn-purple:hover {
+      background-color: #5a32a3;
+      border-color: #59339d;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4);
+    }
+
+    .btn-purple:active {
+      background-color: #59339d;
+      border-color: #4e2d8f;
+    }
   `]
 })
 export class CaseManagementComponent implements OnInit {
@@ -422,7 +458,10 @@ export class CaseManagementComponent implements OnInit {
   showAddNoteForm = false;
   newNoteContent = '';
 
-  constructor(private complianceService: ComplianceService) {}
+  constructor(
+    private complianceService: ComplianceService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadCases();
@@ -583,6 +622,15 @@ export class CaseManagementComponent implements OnInit {
 
   trackByNoteId(index: number, note: NoteDto): number {
     return note.id;
+  }
+
+  generateSAR(caseItem: CaseDto): void {
+    // Navigate to SAR report page with the transaction ID
+    if (caseItem.alert && caseItem.alert.transaction) {
+      this.router.navigate(['/compliance/sar-report', caseItem.alert.transaction.id]);
+    } else {
+      alert('Transaction information not available for this case.');
+    }
   }
 
   approveCase(caseId: number): void {

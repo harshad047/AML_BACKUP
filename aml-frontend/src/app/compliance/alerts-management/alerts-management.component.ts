@@ -131,17 +131,24 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
                         <small>{{ alert.createdAt | date:'short' }}</small>
                       </td>
                       <td>
-                        <div class="btn-group btn-group-sm">
-                          <button class="btn btn-outline-primary" 
-                                  (click)="viewAlertDetails(alert)">
-                            <i class="fas fa-eye"></i>
+                        <div class="d-flex gap-2" *ngIf="alert.status === 'OPEN'">
+                          <button class="btn btn-sm btn-info" 
+                                  (click)="viewAlertDetails(alert)"
+                                  title="View alert details">
+                            <i class="fas fa-eye me-1"></i>
+                            View
                           </button>
-                          <button class="btn btn-outline-warning" 
+                          <button class="btn btn-sm btn-warning" 
                                   (click)="escalateToCase(alert.id)"
-                                  [disabled]="alert.status !== 'OPEN'">
-                            <i class="fas fa-level-up-alt"></i>
+                                  title="Create investigation case">
+                            <i class="fas fa-search me-1"></i>
+                            Investigate
                           </button>
                         </div>
+                        <span *ngIf="alert.status !== 'OPEN'" class="text-muted small">
+                          <i class="fas fa-check-circle me-1"></i>
+                          {{ alert.status === 'ESCALATED' ? 'Under Investigation' : 'Resolved' }}
+                        </span>
                       </td>
                     </tr>
                   </tbody>
@@ -270,7 +277,7 @@ export class AlertsManagementComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.complianceService.getAllOpenAlerts().subscribe({
+    this.complianceService.getAllAlerts().subscribe({
       next: (alerts) => {
         this.alerts = alerts;
         this.applyFilters();
