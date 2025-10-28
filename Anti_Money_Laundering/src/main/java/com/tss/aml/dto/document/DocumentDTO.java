@@ -10,9 +10,11 @@ import lombok.Data;
 public class DocumentDTO {
     private Long id;
     private Long customerId;
+    private String customerName;
     private String docType;
     private String storagePath;
     private DocumentStatus status;
     private Instant uploadedAt;
+    private String rejectionReason;
 }
 

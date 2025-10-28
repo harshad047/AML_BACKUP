@@ -50,4 +50,7 @@ public class Document {
     @Column(name="uploaded_at", nullable=false)
     private Instant uploadedAt = Instant.now();
 
+    @Column(name="rejection_reason", length=500)
+    private String rejectionReason;
+
 }

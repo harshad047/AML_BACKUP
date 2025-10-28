@@ -33,8 +33,7 @@ import com.tss.aml.entity.Document;
 import com.tss.aml.entity.Enums.DocumentStatus;
 import com.tss.aml.service.AdminService;
 import com.tss.aml.service.AuditLogService;
-import com.tss.aml.service.DocumentService;
-
+import com.tss.aml.service.*;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -251,8 +250,28 @@ public class AdminController {
     }
 
     @PostMapping("/kyc/documents/{documentId}/reject")
-    public ResponseEntity<DocumentDTO> rejectKycDocument(@PathVariable Long documentId) {
-        return ResponseEntity.ok(documentService.rejectDocument(documentId));
+    public ResponseEntity<DocumentDTO> rejectKycDocument(@PathVariable Long documentId,
+                                                         @RequestParam(name = "reason", required = false) String reason) {
+        return ResponseEntity.ok(documentService.rejectDocument(documentId, reason));
+    }
+
+    // Flexible admin document viewing
+    @GetMapping("/kyc/documents")
+    public ResponseEntity<List<DocumentDTO>> getKycDocumentsByStatus(@RequestParam(name = "status", required = false) String status) {
+        DocumentStatus docStatus = DocumentStatus.UPLOADED;
+        if (status != null) {
+            try {
+                docStatus = DocumentStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+        return ResponseEntity.ok(documentService.getDocumentsByStatus(docStatus));
+    }
+
+    @GetMapping("/kyc/documents/{documentId}")
+    public ResponseEntity<DocumentDTO> getKycDocumentById(@PathVariable Long documentId) {
+        return ResponseEntity.ok(documentService.getDocumentById(documentId));
     }
 }
 
