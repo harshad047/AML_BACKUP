@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map, timeout } from 'rxjs';
 import { Router } from '@angular/router';
-import { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse } from '../models/auth.models';
+import { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest } from '../models/auth.models';
 
 // Re-export types for easier importing
-export type { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse };
+export type { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest };
 
 @Injectable({
   providedIn: 'root'
@@ -131,6 +131,38 @@ export class AuthService {
     return this.http.post<ApiResponse<any>>(`${this.API_URL}/customer/change-password`, passwordData, {
       headers: this.getAuthHeaders()
     });
+  }
+
+  // Forgot Password Methods
+  sendForgotPasswordOtp(email: string): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/auth/forgot-password/send-otp`, null, {
+      params: { email }
+    });
+  }
+
+  verifyForgotPasswordOtp(email: string, otp: string): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/auth/forgot-password/verify-otp`, null, {
+      params: { email, otp }
+    });
+  }
+
+  resetPassword(request: ForgotPasswordRequest): Observable<any> {
+    console.log('Making reset password request:', {
+      url: `${this.API_URL}/auth/forgot-password/reset`,
+      method: 'POST',
+      data: request
+    });
+
+    return this.http.post<any>(`${this.API_URL}/auth/forgot-password/reset`, request, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    }).pipe(
+      tap({
+        next: (response) => console.log('Reset password success:', response),
+        error: (error) => console.error('Reset password error:', error)
+      })
+    );
   }
 
   logout(): void {

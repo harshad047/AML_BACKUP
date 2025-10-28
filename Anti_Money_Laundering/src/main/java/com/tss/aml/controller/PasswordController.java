@@ -22,6 +22,8 @@ import jakarta.validation.constraints.NotBlank;
 @RequestMapping("/api/auth")
 public class PasswordController {
 
+    private static final Logger log = LoggerFactory.getLogger(PasswordController.class);
+
     @Autowired private OtpService otpService;
     @Autowired private EmailService emailService;
     @Autowired private UserRepository userRepository;
@@ -34,7 +36,8 @@ public class PasswordController {
      */
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<?> sendForgotPasswordOtp(@RequestParam("email") String email) {
-        String normalized = email == null ? null : email.trim();
+        String normalized = email == null ? null : email.trim().toLowerCase();
+        log.debug("Send OTP request - original: '{}', normalized: '{}'", email, normalized);
         if (normalized == null || normalized.isBlank()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email is required"));
         }
@@ -48,16 +51,21 @@ public class PasswordController {
      */
     @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<?> verifyForgotPasswordOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
-        String normalized = email == null ? null : email.trim();
+        String normalized = email == null ? null : email.trim().toLowerCase();
+        log.debug("Verify OTP request - original: '{}', normalized: '{}', otp: '{}'", email, normalized, otp);
         if (normalized == null || normalized.isBlank() || otp == null || otp.isBlank()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email and OTP are required"));
         }
         
         boolean otpValid = otpService.verifyOtp(normalized, otp);
         if (!otpValid) {
+            // Consume the OTP even if verification failed to prevent reuse
+            otpService.consumeOtp(normalized);
+            log.debug("OTP verification failed for email: {}", normalized);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
         
+        log.debug("OTP verification successful for email: {}", normalized);
         return ResponseEntity.ok(java.util.Map.of("verified", true, "message", "OTP verified successfully"));
     }
 
@@ -69,12 +77,16 @@ public class PasswordController {
         if (req == null || req.email == null || req.otp == null || req.newPassword == null || req.confirmPassword == null) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
         }
-        String email = req.email.trim();
+        String email = req.email.trim().toLowerCase();
+        log.debug("Reset password request - email: '{}', otp: '{}'", email, req.otp);
         if (!req.newPassword.equals(req.confirmPassword)) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Passwords do not match"));
         }
         boolean otpValid = otpService.verifyOtp(email, req.otp);
         if (!otpValid) {
+            // Consume the OTP even if verification failed to prevent reuse
+            otpService.consumeOtp(email);
+            log.debug("Reset password OTP verification failed for email: {}", email);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
 
@@ -103,6 +115,10 @@ public class PasswordController {
             if (fullName.isBlank()) fullName = null;
         }
         emailService.sendPasswordChangeSuccessEmail(email, fullName);
+
+        // Consume/remove the OTP after successful password reset
+        otpService.consumeOtp(email);
+        log.debug("Password reset successful for email: {}", email);
 
         return ResponseEntity.ok(java.util.Map.of("message", "Password reset successfully"));
     }

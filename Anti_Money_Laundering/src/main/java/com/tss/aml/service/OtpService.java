@@ -32,8 +32,8 @@ public class OtpService {
             String key = email == null ? null : email.trim().toLowerCase();
             if (key != null) {
                 store.put(key, entry);
+                log.debug("OTP generated and stored for key={} otp={} expiresAt={}", key, otp, entry.expiresAt);
             }
-            log.debug("OTP generated and stored for key={} expiresAt={} (masked otp endsWith={})", key, entry.expiresAt, otp.substring(4));
 
             String htmlContent = """
                 <html>
@@ -95,35 +95,38 @@ public class OtpService {
 
 
     public boolean verifyOtp(String email, String otp) {
-        String key = email == null ? null : email.trim();
+        String key = email == null ? null : email.trim().toLowerCase();
         if (key == null) return false;
-        // Try exact key, then lowercase key for backward compatibility
+
         OtpEntry e = store.get(key);
         if (e == null) {
-            e = store.get(key.toLowerCase());
+            log.debug("No OTP found for email: {}", key);
+            return false;
         }
-        if (e == null) return false;
+
         if (Instant.now().isAfter(e.expiresAt)) {
             store.remove(key);
-            store.remove(key.toLowerCase());
             log.debug("OTP expired for key={} at {}", key, e.expiresAt);
             return false;
         }
+
         if (otp == null) return false;
         // Remove all whitespace from provided OTP and compare
         String provided = otp.replaceAll("\\s+", "");
         boolean ok = e.otp.equals(provided);
         log.debug("Verifying OTP for key={} providedEndsWith={} storedEndsWith={} result={}", key, provided.length()>=2?provided.substring(provided.length()-2):provided, e.otp.substring(4), ok);
         if (ok) {
-            store.remove(key);
-            store.remove(key.toLowerCase());
+            // Don't remove OTP here - let it be removed after successful password reset
+            // store.remove(key);
         }
         return ok;
     }
 
-    private static class OtpEntry {
-        final String otp;
-        final Instant expiresAt;
-        OtpEntry(String otp, Instant expiresAt) { this.otp = otp; this.expiresAt = expiresAt; }
+    public void consumeOtp(String email) {
+        String key = email == null ? null : email.trim().toLowerCase();
+        if (key != null) {
+            store.remove(key);
+            log.debug("OTP consumed/removed for key={}", key);
+        }
     }
 }
