@@ -19,6 +19,7 @@ import { CustomerNewTransactionComponent } from './customer/new-transaction/cust
 import { CustomerAlertsComponent } from './customer/customer-alerts/customer-alerts.component';
 import { ProfileComponent } from './customer/profile/profile.component';
 import { ChangePasswordComponent } from './customer/change-password/change-password.component';
+import { VerifyOtpComponent } from './customer/change-password/verify-otp.component';
 
 // Admin Components
 import { UsersComponent } from './admin/users/users.component';
@@ -82,6 +83,12 @@ export const routes: Routes = [
   {
     path: 'customer/change-password',
     component: ChangePasswordComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/change-password/verify',
+    component: VerifyOtpComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['CUSTOMER'] }
   },

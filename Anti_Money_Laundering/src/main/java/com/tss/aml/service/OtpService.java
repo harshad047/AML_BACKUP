@@ -1,6 +1,7 @@
 package com.tss.aml.service;
 
 import java.time.Instant;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -20,6 +21,7 @@ import jakarta.mail.internet.MimeMessage;
 public class OtpService {
 
     private final ConcurrentMap<String, OtpEntry> store = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ResetTokenEntry> resetTokens = new ConcurrentHashMap<>();
     private final int EXPIRY_SECONDS = 300; // 5 minutes
 
     private static final Logger log = LoggerFactory.getLogger(OtpService.class);
@@ -32,18 +34,16 @@ public class OtpService {
 
     public boolean sendOtpToEmail(String email) {
         try {
-            // First check if email exists
-            if (email == null || email.trim().isEmpty() || !userRepository.existsByEmail(email.trim().toLowerCase())) {
-                log.debug("Email not found in database: {}", email);
+            // For registration, allow sending OTP even if email is not yet in DB.
+            // Forgot-password flow performs its own existence check in the controller.
+            String key = email == null ? null : email.trim().toLowerCase();
+            if (key == null || key.isEmpty()) {
                 return false;
             }
             String otp = String.format("%06d", ThreadLocalRandom.current().nextInt(0, 1_000_000));
             OtpEntry entry = new OtpEntry(otp, Instant.now().plusSeconds(EXPIRY_SECONDS));
-            String key = email == null ? null : email.trim().toLowerCase();
-            if (key != null) {
-                store.put(key, entry);
-                log.debug("OTP generated and stored for key={} otp={} expiresAt={}", key, otp, entry.expiresAt);
-            }
+            store.put(key, entry);
+            log.debug("OTP generated and stored for key={} otp={} expiresAt={}", key, otp, entry.expiresAt);
 
             String htmlContent = """
                 <html>
@@ -92,7 +92,8 @@ public class OtpService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setTo(email);
+            helper.setTo(key);
+
             helper.setSubject("Your verification OTP");
             helper.setText(htmlContent, true); // true = HTML
 
@@ -134,11 +135,58 @@ public class OtpService {
         return ok;
     }
 
+    /**
+     * Issue a short-lived reset token after successful OTP verification.
+     * Consumes/removes the OTP to prevent reuse, returns a token string.
+     */
+    public String issueResetToken(String email) {
+        String key = email == null ? null : email.trim().toLowerCase();
+        if (key == null) return null;
+        // remove any existing token
+        resetTokens.remove(key);
+        // consume OTP once token is issued
+        store.remove(key);
+        String token = UUID.randomUUID().toString().replace("-", "");
+        ResetTokenEntry entry = new ResetTokenEntry(token, Instant.now().plusSeconds(EXPIRY_SECONDS));
+        resetTokens.put(key, entry);
+        log.debug("Reset token issued for key={} tokenEndsWith={} expiresAt={}", key, token.substring(token.length()-6), entry.expiresAt);
+        return token;
+    }
+
+    /**
+     * Validate the reset token and optionally consume it (one-time use).
+     */
+    public boolean validateResetToken(String email, String token, boolean consume) {
+        String key = email == null ? null : email.trim().toLowerCase();
+        if (key == null || token == null || token.isBlank()) return false;
+        ResetTokenEntry entry = resetTokens.get(key);
+        if (entry == null) return false;
+        if (Instant.now().isAfter(entry.expiresAt)) {
+            resetTokens.remove(key);
+            return false;
+        }
+        boolean ok = token.equals(entry.token);
+        if (ok && consume) {
+            resetTokens.remove(key);
+        }
+        return ok;
+    }
+
     public void consumeOtp(String email) {
         String key = email == null ? null : email.trim().toLowerCase();
         if (key != null) {
             store.remove(key);
             log.debug("OTP consumed/removed for key={}", key);
+        }
+    }
+
+    // Internal entry for reset token
+    static class ResetTokenEntry {
+        final String token;
+        final Instant expiresAt;
+        ResetTokenEntry(String token, Instant expiresAt) {
+            this.token = token;
+            this.expiresAt = expiresAt;
         }
     }
 }

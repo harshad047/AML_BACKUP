@@ -258,15 +258,15 @@ public class AdminController {
     // Flexible admin document viewing
     @GetMapping("/kyc/documents")
     public ResponseEntity<List<DocumentDTO>> getKycDocumentsByStatus(@RequestParam(name = "status", required = false) String status) {
-        DocumentStatus docStatus = DocumentStatus.UPLOADED;
-        if (status != null) {
-            try {
-                docStatus = DocumentStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                return ResponseEntity.badRequest().build();
-            }
+        if (status == null || "ALL".equalsIgnoreCase(status)) {
+            return ResponseEntity.ok(documentService.getAllDocuments());
         }
-        return ResponseEntity.ok(documentService.getDocumentsByStatus(docStatus));
+        try {
+            DocumentStatus docStatus = DocumentStatus.valueOf(status.toUpperCase());
+            return ResponseEntity.ok(documentService.getDocumentsByStatus(docStatus));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/kyc/documents/{documentId}")

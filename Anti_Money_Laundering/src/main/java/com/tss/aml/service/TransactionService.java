@@ -270,32 +270,71 @@ public class TransactionService {
 
         System.out.println("Calling rule engine with input: " + input.getCustomerId() + ", Amount: " + input.getAmount() + ", Country: " + countryCode);
         EvaluationResultDto ruleResult = ruleEngine.evaluate(input);
-        System.out.println("Rule engine result - Total Risk Score: " + ruleResult.getTotalRiskScore());
+        int ruleScore = ruleResult.getTotalRiskScore();
+        System.out.println("Rule engine result - Total Risk Score: " + ruleScore);
 
-        int combined = (int) (0.6*ruleResult.getTotalRiskScore() + 0.4*nlp);
-        System.out.println("Combined Risk Score (max of NLP and Rule): " + combined + " (NLP: " + nlp + ", Rule: " + ruleResult.getTotalRiskScore() + ")");
+        // ========== DOMINANT RISK LOGIC ==========
+        // Calculate both weighted average and maximum score
+        int weightedAverage = (int) (0.6 * ruleScore + 0.4 * nlp);
+        int maxScore = Math.max(ruleScore, nlp);
+        
+        // Use the HIGHER of the two (dominant risk wins)
+        int combined = Math.max(weightedAverage, maxScore);
+        
+        System.out.println("=== RISK CALCULATION ===");
+        System.out.println("NLP Score: " + nlp);
+        System.out.println("Rule Engine Score: " + ruleScore);
+        System.out.println("Weighted Average (60-40): " + weightedAverage);
+        System.out.println("Max Score (Dominant): " + maxScore);
+        System.out.println("Final Combined Score: " + combined);
+        System.out.println("========================");
+
+        // Determine status based on combined score with dominant logic
         String status;
-        if(nlp >= 60 && combined <=50)
-        {
-        	status = "FLAGGED";
+        String riskReason = "";
+        
+        if (combined >= 90) {
+            status = "BLOCKED";
+            if (nlp >= 90 && ruleScore >= 90) {
+                riskReason = "CRITICAL: Both suspicious keywords and rule violations detected";
+            } else if (nlp >= 90) {
+                riskReason = "CRITICAL: Highly suspicious keywords detected (NLP Score: " + nlp + ")";
+            } else if (ruleScore >= 90) {
+                riskReason = "CRITICAL: Severe rule violations detected (Rule Score: " + ruleScore + ")";
+            } else {
+                riskReason = "HIGH RISK: Combined factors indicate critical threat";
+            }
+        } else if (combined >= 60) {
+            status = "FLAGGED";
+            if (nlp >= 60 && ruleScore >= 60) {
+                riskReason = "MODERATE RISK: Both suspicious keywords and rule violations detected";
+            } else if (nlp >= 60) {
+                riskReason = "MODERATE RISK: Suspicious keywords detected (NLP Score: " + nlp + ")";
+            } else if (ruleScore >= 60) {
+                riskReason = "MODERATE RISK: Rule violations detected (Rule Score: " + ruleScore + ")";
+            } else {
+                riskReason = "MODERATE RISK: Combined factors exceed threshold";
+            }
+        } else {
+            status = "APPROVED";
+            riskReason = "LOW RISK: Transaction appears legitimate";
         }
-        else
-        {
-         status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
-        }
+        
+        System.out.println("Status: " + status + " | Reason: " + riskReason);
+        
         boolean exceeds = combined >= 60;
 
-        savedTx.setRuleEngineScore(ruleResult.getTotalRiskScore());
+        savedTx.setRuleEngineScore(ruleScore);
         savedTx.setCombinedRiskScore(combined);
         savedTx.setThresholdExceeded(exceeds);
         savedTx.setStatus(status);
         savedTx.setTransactionReference(generateTransactionReference(type));
         savedTx = txRepo.save(savedTx);
 
-        if (exceeds || nlp>=60) {
+        if (exceeds) {
             Alert alert = new Alert();
             alert.setTransactionId(savedTx.getId());
-            alert.setReason("Risk score of " + combined + " exceeded threshold.");
+            alert.setReason(riskReason + " | Combined Score: " + combined + " (NLP: " + nlp + ", Rules: " + ruleScore + ")");
             alert.setRiskScore(combined);
             alert.setStatus(Alert.AlertStatus.OPEN);
             alertRepo.save(alert);
@@ -840,24 +879,60 @@ public class TransactionService {
 
         EvaluationResultDto result = ruleEngine.evaluate(input);
         int ruleScore = result.getTotalRiskScore();
-        int combined = (int) (0.6*result.getTotalRiskScore() + 0.4*nlp);
+        
+        // ========== DOMINANT RISK LOGIC FOR INTERCURRENCY ==========
+        int weightedAverage = (int) (0.6 * ruleScore + 0.4 * nlp);
+        int maxScore = Math.max(ruleScore, nlp);
+        
+        // Use the HIGHER of the two (dominant risk wins)
+        int combined = Math.max(weightedAverage, maxScore);
 
-        System.out.println("Intercurrency Risk Assessment - NLP: " + nlp + ", Rule Engine: " + ruleScore + ", Combined: " + combined);
+        System.out.println("=== INTERCURRENCY RISK CALCULATION ===");
+        System.out.println("NLP Score: " + nlp);
+        System.out.println("Rule Engine Score: " + ruleScore);
+        System.out.println("Weighted Average (60-40): " + weightedAverage);
+        System.out.println("Max Score (Dominant): " + maxScore);
+        System.out.println("Final Combined Score: " + combined);
+        System.out.println("======================================");
 
+        // Determine status with dominant logic
         String status;
-        if(nlp >= 60 && combined <=50)
-        {
-        	status = "FLAGGED";
+        String riskReason = "";
+        
+        if (combined >= 90) {
+            status = "BLOCKED";
+            if (nlp >= 90 && ruleScore >= 90) {
+                riskReason = "CRITICAL INTERCURRENCY: Both suspicious keywords and rule violations";
+            } else if (nlp >= 90) {
+                riskReason = "CRITICAL INTERCURRENCY: Highly suspicious keywords (NLP: " + nlp + ")";
+            } else if (ruleScore >= 90) {
+                riskReason = "CRITICAL INTERCURRENCY: Severe rule violations (Rule: " + ruleScore + ")";
+            } else {
+                riskReason = "HIGH RISK INTERCURRENCY: Combined critical threat";
+            }
+        } else if (combined >= 60) {
+            status = "FLAGGED";
+            if (nlp >= 60 && ruleScore >= 60) {
+                riskReason = "MODERATE INTERCURRENCY: Both suspicious keywords and rule violations";
+            } else if (nlp >= 60) {
+                riskReason = "MODERATE INTERCURRENCY: Suspicious keywords (NLP: " + nlp + ")";
+            } else if (ruleScore >= 60) {
+                riskReason = "MODERATE INTERCURRENCY: Rule violations (Rule: " + ruleScore + ")";
+            } else {
+                riskReason = "MODERATE INTERCURRENCY: Combined factors exceed threshold";
+            }
+        } else {
+            status = "APPROVED";
+            riskReason = "LOW RISK INTERCURRENCY: Transaction appears legitimate";
         }
-        else
-        {
-         status = (combined >= 90) ? "BLOCKED" : (combined >= 60) ? "FLAGGED" : "APPROVED";
-        }
+        
+        System.out.println("Intercurrency Status: " + status + " | " + riskReason);
+        
         String alertId = null;
 
-        if (combined > 60 || nlp >=60) {
+        if (combined >= 60) {
             Alert alert = new Alert();
-            alert.setReason("HIGH_RISK_INTERCURRENCY_TRANSFER: Risk score of " + combined + " exceeded threshold. " +
+            alert.setReason(riskReason + " | Score: " + combined + " (NLP: " + nlp + ", Rules: " + ruleScore + ") | " +
                     "Conversion: " + conversionResult.getOriginalAmount() + " " + conversionResult.getOriginalCurrency() + 
                     " → " + conversionResult.getConvertedAmount() + " " + conversionResult.getConvertedCurrency());
             alert.setRiskScore(combined);

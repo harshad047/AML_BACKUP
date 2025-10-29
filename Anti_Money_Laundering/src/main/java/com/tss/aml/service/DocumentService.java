@@ -70,13 +70,23 @@ public class DocumentService {
         return documents.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
+    public List<DocumentDTO> getAllDocuments() {
+        List<Document> documents = documentRepository.findAll();
+        return documents.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
     public DocumentDTO verifyDocument(Long documentId) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new EntityNotFoundException("Document not found with ID: " + documentId));
-
+        
+        Customer customer = customerRepository.findById(document.getCustomer().getId())
+        		.orElseThrow(()->new EntityNotFoundException("Customer NOt Found"));
         document.setStatus(DocumentStatus.VERIFIED);
         document.setRejectionReason(null);
+        customer.setKycStatus(KycStatus.APPROVED);
+        
         documentRepository.save(document);
+        customerRepository.save(customer);
 
         return convertToDTO(document);
     }

@@ -89,9 +89,14 @@ public class PasswordController {
             log.debug("OTP verification failed for email: {}", normalized);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
-        
-        log.debug("OTP verification successful for email: {}", normalized);
-        return ResponseEntity.ok(java.util.Map.of("verified", true, "message", "OTP verified successfully"));
+        // Issue a short-lived reset token for step 2 (change password page)
+        String resetToken = otpService.issueResetToken(normalized);
+        log.debug("OTP verification successful for email: {}, token issued", normalized);
+        return ResponseEntity.ok(java.util.Map.of(
+            "verified", true,
+            "resetToken", resetToken,
+            "message", "OTP verified successfully"
+        ));
     }
 
     /**
@@ -99,7 +104,7 @@ public class PasswordController {
      */
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ForgotPasswordResetRequest req) {
-        if (req == null || req.email == null || req.otp == null || req.newPassword == null || req.confirmPassword == null) {
+        if (req == null || req.email == null || req.newPassword == null || req.confirmPassword == null) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
         }
         String email = req.email.trim().toLowerCase();
@@ -107,12 +112,20 @@ public class PasswordController {
         if (!req.newPassword.equals(req.confirmPassword)) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Passwords do not match"));
         }
-        boolean otpValid = otpService.verifyOtp(email, req.otp);
-        if (!otpValid) {
-            // Consume the OTP even if verification failed to prevent reuse
-            otpService.consumeOtp(email);
-            log.debug("Reset password OTP verification failed for email: {}", email);
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
+        // Two-step flow: prefer token validation; fallback to legacy OTP if token not provided
+        boolean allowed = false;
+        if (req.token != null && !req.token.isBlank()) {
+            allowed = otpService.validateResetToken(email, req.token, true);
+        } else if (req.otp != null && !req.otp.isBlank()) {
+            // Backward compatibility: validate OTP directly (single-step legacy)
+            allowed = otpService.verifyOtp(email, req.otp);
+            if (!allowed) {
+                otpService.consumeOtp(email);
+            }
+        }
+        if (!allowed) {
+            log.debug("Reset authorization failed for email: {}", email);
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired token/OTP. Please verify again."));
         }
 
         User user = userRepository.findByEmail(email)
@@ -150,7 +163,8 @@ public class PasswordController {
 
     public static class ForgotPasswordResetRequest {
         @NotBlank public String email;
-        @NotBlank public String otp;
+        public String otp; // legacy support
+        public String token; // preferred two-step flow
         @NotBlank public String newPassword;
         @NotBlank public String confirmPassword;
     }

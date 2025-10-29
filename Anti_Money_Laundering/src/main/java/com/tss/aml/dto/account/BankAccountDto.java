@@ -20,6 +20,8 @@ public class BankAccountDto {
     private AccountStatus status;
     private ApprovalStatus approvalStatus;
     private UserDto user;
+    private Long customerId;
+    private String customerName;
     private LocalDateTime createdAt;
     private LocalDateTime approvedAt;
     private LocalDateTime rejectedAt;

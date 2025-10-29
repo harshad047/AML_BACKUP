@@ -258,7 +258,7 @@ public class AdminService {
 
     public List<BankAccountDto> getPendingAccounts() {
         return bankAccountRepository.findByApprovalStatus(ApprovalStatus.PENDING).stream()
-                .map(account -> modelMapper.map(account, BankAccountDto.class))
+                .map(this::mapAccountToDto)
                 .collect(Collectors.toList());
     }
 
@@ -288,7 +288,7 @@ public class AdminService {
             System.err.println("Failed to send approval email: " + e.getMessage());
         }
         
-        return modelMapper.map(updatedAccount, BankAccountDto.class);
+        return mapAccountToDto(updatedAccount);
     }
 
     // Country Risk Management
@@ -337,6 +337,17 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    private BankAccountDto mapAccountToDto(BankAccount account) {
+        BankAccountDto dto = modelMapper.map(account, BankAccountDto.class);
+        if (account.getUser() != null) {
+            dto.setCustomerId(account.getUser().getId());
+            String first = account.getUser().getFirstName();
+            String last = account.getUser().getLastName();
+            dto.setCustomerName(((first != null ? first : "").trim() + " " + (last != null ? last : "").trim()).trim());
+        }
+        return dto;
+    }
+
     public BankAccountDto rejectAccount(Long accountId) {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("BankAccount", "id", accountId));
@@ -373,19 +384,19 @@ public class AdminService {
             System.err.println("Failed to send rejection email: " + e.getMessage());
         }
         
-        return modelMapper.map(updatedAccount, BankAccountDto.class);
+        return mapAccountToDto(updatedAccount);
     }
     
     public List<BankAccountDto> getAllAccounts() {
         return bankAccountRepository.findAll().stream()
-                .map(account -> modelMapper.map(account, BankAccountDto.class))
+                .map(this::mapAccountToDto)
                 .collect(Collectors.toList());
     }
     
     public BankAccountDto getAccountById(Long accountId) {
         BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("BankAccount", "id", accountId));
-        return modelMapper.map(account, BankAccountDto.class);
+        return mapAccountToDto(account);
     }
     
     public BankAccountDto suspendAccount(Long accountId) {
@@ -411,7 +422,7 @@ public class AdminService {
             System.err.println("Failed to send suspension email: " + e.getMessage());
         }
         
-        return modelMapper.map(updatedAccount, BankAccountDto.class);
+        return mapAccountToDto(updatedAccount);
     }
     
     public BankAccountDto activateAccount(Long accountId) {
@@ -441,7 +452,7 @@ public class AdminService {
             System.err.println("Failed to send activation email: " + e.getMessage());
         }
         
-        return modelMapper.map(updatedAccount, BankAccountDto.class);
+        return mapAccountToDto(updatedAccount);
     }
     
     // New methods for compliance officer management and customer blocking

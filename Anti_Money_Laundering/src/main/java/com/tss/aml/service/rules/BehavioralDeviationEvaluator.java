@@ -41,7 +41,7 @@ public class BehavioralDeviationEvaluator implements RuleEvaluator {
             LocalDateTime before = LocalDateTime.now();
 
             List<BigDecimal> amounts = transactionRepository.findHistoricalAmounts(customerId, after, before);
-            if (amounts.isEmpty()) {
+            if (amounts.size() < 5) {
                 System.out.println("    BehavioralDeviationEvaluator: no history, returning false");
                 return false;
             }

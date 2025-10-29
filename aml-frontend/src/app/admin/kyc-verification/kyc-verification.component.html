@@ -43,7 +43,7 @@
               <th>File</th>
               <th>Uploaded</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th *ngIf="selectedStatus === 'UPLOADED'">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -61,8 +61,8 @@
                 </a>
               </td>
               <td>{{ doc.uploadedAt | date:'short' }}</td>
-              <td><span class="badge bg-warning">{{ doc.status }}</span></td>
-              <td>
+              <td><span class="badge" [ngClass]="getStatusBadgeClass(doc.status)">{{ doc.status }}</span></td>
+              <td *ngIf="selectedStatus === 'UPLOADED'">
                 <div class="btn-group btn-group-sm">
                   <button class="btn btn-success" (click)="verifyDocument(doc)">
                     <i class="fas fa-check"></i> Verify
@@ -79,7 +79,7 @@
 
       <div *ngIf="!loading && pendingDocuments.length === 0" class="text-center py-4 text-muted">
         <i class="fas fa-id-card fa-3x mb-3"></i>
-        <p>No pending KYC documents</p>
+        <p>{{ emptyText }}</p>
       </div>
     </div>
   </div>
