@@ -305,7 +305,6 @@ public class AdminService {
                 .countryName(dto.getCountryName())
                 .riskScore(dto.getRiskScore() != null ? dto.getRiskScore() : 0)
                 .notes(dto.getNotes())
-                .isActive(dto.isActive())
                 .build();
         CountryRisk saved = countryRiskRepository.save(entity);
         return modelMapper.map(saved, CountryRiskDto.class);
@@ -319,7 +318,6 @@ public class AdminService {
         // Handle null riskScore safely
         existing.setRiskScore(dto.getRiskScore() != null ? dto.getRiskScore() : 0);
         existing.setNotes(dto.getNotes());
-        existing.setActive(dto.isActive());
         CountryRisk saved = countryRiskRepository.save(existing);
         return modelMapper.map(saved, CountryRiskDto.class);
     }

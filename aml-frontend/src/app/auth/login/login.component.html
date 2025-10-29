@@ -46,6 +46,41 @@
           </div>
         </div>
 
+        <!-- Captcha Section -->
+        <div class="mb-3">
+          <label for="captcha" class="form-label">Verification Code</label>
+          <div class="captcha-container mb-2">
+            <canvas #captchaCanvas class="captcha-canvas"></canvas>
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-refresh"
+              (click)="generateCaptcha()"
+              title="Refresh captcha">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <input
+            type="text"
+            class="form-control form-control-lg"
+            id="captcha"
+            formControlName="captcha"
+            placeholder="Enter the code shown above"
+            [class.is-invalid]="isFieldInvalid('captcha') || captchaError"
+            autocomplete="off"
+          >
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('captcha')">
+            Please enter the verification code
+          </div>
+          <div class="invalid-feedback" *ngIf="captchaError" style="display: block;">
+            Incorrect verification code. Please try again.
+          </div>
+        </div>
+
+        <div class="alert alert-danger" *ngIf="errorMessage" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
+          {{ errorMessage }}
+        </div>
+
         <div class="d-grid">
           <button
             type="submit"

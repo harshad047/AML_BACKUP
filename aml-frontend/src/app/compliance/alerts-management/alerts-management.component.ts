@@ -354,15 +354,18 @@ export class AlertsManagementComponent implements OnInit {
     this.complianceService.getAlertById(alert.id).subscribe({
       next: (fullAlert) => {
         this.selectedAlert = fullAlert;
-        // Show modal (you might want to use a proper modal service)
-        const modal = document.getElementById('alertDetailsModal');
-        if (modal) {
-          // Bootstrap modal show logic would go here
-          console.log('Show modal for alert:', fullAlert);
+        // Show Bootstrap modal
+        const modalElement = document.getElementById('alertDetailsModal');
+        if (modalElement) {
+          const modal = new (window as any).bootstrap.Modal(modalElement);
+          modal.show();
+        } else {
+          console.error('Modal element not found');
         }
       },
       error: (error) => {
         console.error('Error loading alert details:', error);
+        this.error = 'Failed to load alert details. Please try again.';
       }
     });
   }

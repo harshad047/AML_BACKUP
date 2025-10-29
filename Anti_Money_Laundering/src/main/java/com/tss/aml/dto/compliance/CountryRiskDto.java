@@ -33,16 +33,6 @@ public class CountryRiskDto {
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
 
-    private boolean isActive = true;
-
-    @Size(max = 100, message = "Created by cannot exceed 100 characters")
-    private String createdBy;
-
-    @Size(max = 100, message = "Updated by cannot exceed 100 characters")
-    private String updatedBy;
-
-    private Instant createdAt;
-    private Instant updatedAt;
 
     // Helper method to get risk level based on score
     public String getRiskLevel() {

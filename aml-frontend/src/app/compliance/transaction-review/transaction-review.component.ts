@@ -142,12 +142,11 @@ import { TransactionDto } from '../../core/models/compliance.models';
                       <th>Risk Score</th>
                       <th>Status</th>
                       <th>Created</th>
-                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr *ngIf="filteredTransactions.length === 0">
-                      <td [attr.colspan]="activeTab === 'review' || activeTab === 'flagged' ? 9 : 8" 
+                      <td [attr.colspan]="activeTab === 'review' || activeTab === 'flagged' ? 8 : 7" 
                           class="text-center py-4 text-muted">
                         No transactions found matching your criteria
                       </td>
@@ -192,35 +191,6 @@ import { TransactionDto } from '../../core/models/compliance.models';
                       </td>
                       <td>
                         <small>{{ transaction.createdAt | date:'short' }}</small>
-                      </td>
-                      <td>
-                        <div class="action-buttons">
-                          <!-- Generate SAR Button - Only after investigation started -->
-                          <button class="btn btn-sm btn-purple btn-action" 
-                                  (click)="generateSAR(transaction)"
-                                  *ngIf="hasActiveCase(transaction) && (activeTab === 'review' || activeTab === 'flagged' || activeTab === 'blocked')"
-                                  title="Generate Suspicious Activity Report">
-                            <i class="fas fa-file-alt me-1"></i>
-                            <span class="btn-text">Generate SAR</span>
-                          </button>
-                          <!-- Approve/Reject buttons always available -->
-                          <button class="btn btn-sm btn-success btn-action" 
-                                  (click)="approveTransaction(transaction)"
-                                  [disabled]="!canApproveReject(transaction.status)"
-                                  *ngIf="activeTab === 'review' || activeTab === 'flagged' || activeTab === 'blocked'"
-                                  title="Approve transaction and resolve case">
-                            <i class="fas fa-check me-1"></i>
-                            <span class="btn-text">Approve</span>
-                          </button>
-                          <button class="btn btn-sm btn-danger btn-action" 
-                                  (click)="rejectTransaction(transaction)"
-                                  [disabled]="!canApproveReject(transaction.status)"
-                                  *ngIf="activeTab === 'review' || activeTab === 'flagged' || activeTab === 'blocked'"
-                                  title="Reject transaction and resolve case">
-                            <i class="fas fa-times me-1"></i>
-                            <span class="btn-text">Reject</span>
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   </tbody>

@@ -44,6 +44,12 @@ public class ComplianceService {
                 .collect(Collectors.toList());
     }
 
+    public List<AlertDto> getAllAlerts() {
+        return alertRepository.findAll().stream()
+                .map(this::mapAlertWithTransaction)
+                .collect(Collectors.toList());
+    }
+
     public AlertDto getAlertById(Long id) {
         Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Alert", "id", id));

@@ -95,9 +95,19 @@ public class OtpService {
 
 
     public boolean verifyOtp(String email, String otp) {
+        return verifyOtp(email, otp, true);
+    }
+
+    /**
+     * Verify OTP with option to consume it or not.
+     * @param email The email address
+     * @param otp The OTP to verify
+     * @param consume If true, OTP will be removed after successful verification
+     * @return true if OTP is valid, false otherwise
+     */
+    public boolean verifyOtp(String email, String otp, boolean consume) {
         String key = email == null ? null : email.trim();
         if (key == null) return false;
-        // Try exact key, then lowercase key for backward compatibility
         OtpEntry e = store.get(key);
         if (e == null) {
             e = store.get(key.toLowerCase());
@@ -113,8 +123,9 @@ public class OtpService {
         // Remove all whitespace from provided OTP and compare
         String provided = otp.replaceAll("\\s+", "");
         boolean ok = e.otp.equals(provided);
-        log.debug("Verifying OTP for key={} providedEndsWith={} storedEndsWith={} result={}", key, provided.length()>=2?provided.substring(provided.length()-2):provided, e.otp.substring(4), ok);
-        if (ok) {
+        log.debug("Verifying OTP for key={} providedEndsWith={} storedEndsWith={} result={} consume={}", 
+                  key, provided.length()>=2?provided.substring(provided.length()-2):provided, e.otp.substring(4), ok, consume);
+        if (ok && consume) {
             store.remove(key);
             store.remove(key.toLowerCase());
         }

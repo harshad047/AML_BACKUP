@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../core/services/compliance.service';
+import { AuthService } from '../../core/services/auth.service';
 import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.models';
 
 @Component({
@@ -45,20 +46,13 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
 
       <!-- Filters -->
       <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-6">
           <input type="text" class="form-control" placeholder="Search cases..." 
                  [(ngModel)]="searchTerm" (input)="applyFilters()">
         </div>
-        <div class="col-md-3">
-          <select class="form-select" [(ngModel)]="assigneeFilter" (change)="applyFilters()">
-            <option value="">All Assignees</option>
-            <option *ngFor="let assignee of uniqueAssignees" [value]="assignee">
-              {{ assignee }}
-            </option>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <input type="date" class="form-control" [(ngModel)]="dateFilter" (change)="applyFilters()">
+        <div class="col-md-4">
+          <input type="date" class="form-control" placeholder="Filter by date" 
+                 [(ngModel)]="dateFilter" (change)="applyFilters()">
         </div>
         <div class="col-md-2">
           <button class="btn btn-primary w-100" (click)="loadCases()">
@@ -141,19 +135,11 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
             </div>
             <div class="card-footer">
               <div class="d-flex flex-column gap-2">
-                <div class="btn-group w-100">
-                  <button class="btn btn-outline-primary btn-sm" 
-                          (click)="viewCaseDetails(case)">
-                    <i class="fas fa-eye me-1"></i>
-                    View Details
-                  </button>
-                  <button class="btn btn-outline-success btn-sm" 
-                          (click)="addNote(case)"
-                          *ngIf="case.status === 'UNDER_INVESTIGATION'">
-                    <i class="fas fa-plus me-1"></i>
-                    Add Note
-                  </button>
-                </div>
+                <button class="btn btn-outline-primary btn-sm w-100" 
+                        (click)="viewCaseDetails(case)">
+                  <i class="fas fa-eye me-1"></i>
+                  View Details
+                </button>
                 <button class="btn btn-purple btn-sm w-100" 
                         (click)="generateSAR(case)"
                         *ngIf="case.status === 'UNDER_INVESTIGATION'"
@@ -161,6 +147,20 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
                   <i class="fas fa-file-alt me-1"></i>
                   Generate SAR
                 </button>
+                <div class="btn-group w-100" *ngIf="case.status === 'UNDER_INVESTIGATION'">
+                  <button class="btn btn-success btn-sm" 
+                          (click)="approveCaseFromCard(case)"
+                          title="Approve transaction and close case">
+                    <i class="fas fa-check me-1"></i>
+                    Approve
+                  </button>
+                  <button class="btn btn-danger btn-sm" 
+                          (click)="rejectCaseFromCard(case)"
+                          title="Reject transaction and close case">
+                    <i class="fas fa-times me-1"></i>
+                    Reject
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -246,48 +246,192 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
 
               <!-- Transaction Details -->
               <div class="mt-4" *ngIf="selectedCase.alert.transaction">
-                <h6>Transaction Details</h6>
-                <div class="row">
-                  <div class="col-md-6">
-                    <table class="table table-sm">
-                      <tr>
-                        <td><strong>Type:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.transactionType }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Amount:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.amount | currency:selectedCase.alert.transaction.currency }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>From Account:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.fromAccountNumber || 'N/A' }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>To Account:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.toAccountNumber || 'N/A' }}</td>
-                      </tr>
-                    </table>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Transaction Details</h6>
+                  <button class="btn btn-sm" 
+                          [ngClass]="showTransactionHistory ? 'btn-info' : 'btn-outline-info'"
+                          (click)="viewTransactionHistory(selectedCase.alert.transaction)"
+                          title="Toggle transaction history">
+                    <i class="fas" [ngClass]="showTransactionHistory ? 'fa-chevron-up' : 'fa-history'" class="me-1"></i>
+                    {{ showTransactionHistory ? 'Hide' : 'View' }} Transaction History
+                  </button>
+                </div>
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                          <tr>
+                            <td class="text-muted" style="width: 40%;"><strong>Transaction ID:</strong></td>
+                            <td><strong>#{{ selectedCase.alert.transaction.id }}</strong></td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Reference:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.transactionReference }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Type:</strong></td>
+                            <td><span class="badge bg-secondary">{{ selectedCase.alert.transaction.transactionType }}</span></td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Amount:</strong></td>
+                            <td><strong class="text-primary">{{ selectedCase.alert.transaction.amount | currency:selectedCase.alert.transaction.currency }}</strong></td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Currency:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.currency }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Status:</strong></td>
+                            <td><span class="badge" [ngClass]="getTransactionStatusClass(selectedCase.alert.transaction.status)">{{ selectedCase.alert.transaction.status }}</span></td>
+                          </tr>
+                        </table>
+                      </div>
+                      <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                          <tr>
+                            <td class="text-muted" style="width: 40%;"><strong>From Account:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.fromAccountNumber || 'N/A' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>To Account:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.toAccountNumber || 'N/A' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Description:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.description || 'N/A' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Created:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.createdAt | date:'medium' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Combined Risk:</strong></td>
+                            <td>
+                              <span class="badge" [ngClass]="getRiskScoreClass(selectedCase.alert.transaction.combinedRiskScore || 0)">
+                                {{ selectedCase.alert.transaction.combinedRiskScore || 0 }}
+                              </span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>NLP Score:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.nlpScore || 0 }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Rule Score:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.ruleEngineScore || 0 }}</td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                  <div class="col-md-6">
-                    <table class="table table-sm">
-                      <tr>
-                        <td><strong>Status:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.status }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Description:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.description || 'N/A' }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Reference:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.transactionReference }}</td>
-                      </tr>
-                      <tr>
-                        <td><strong>Created:</strong></td>
-                        <td>{{ selectedCase.alert.transaction.createdAt | date:'short' }}</td>
-                      </tr>
-                    </table>
+                </div>
+              </div>
+
+              <!-- Transaction History Section -->
+              <div class="mt-3" *ngIf="showTransactionHistory && selectedCase.alert.transaction">
+                <div class="card border-info">
+                  <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                      <i class="fas fa-history me-2"></i>
+                      Recent Transaction History (Last 5 Transactions)
+                      <span *ngIf="selectedCase.alert.transaction.fromAccountNumber && selectedCase.alert.transaction.toAccountNumber">
+                        - Accounts: {{ selectedCase.alert.transaction.fromAccountNumber }} & {{ selectedCase.alert.transaction.toAccountNumber }}
+                      </span>
+                      <span *ngIf="selectedCase.alert.transaction.toAccountNumber && !selectedCase.alert.transaction.fromAccountNumber">
+                        - Account: {{ selectedCase.alert.transaction.toAccountNumber }}
+                      </span>
+                      <span *ngIf="selectedCase.alert.transaction.fromAccountNumber && !selectedCase.alert.transaction.toAccountNumber">
+                        - Account: {{ selectedCase.alert.transaction.fromAccountNumber }}
+                      </span>
+                    </h6>
                   </div>
+                  <div class="card-body">
+                    <div *ngIf="loadingHistory" class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2 text-muted">Loading transaction history...</p>
+                    </div>
+                    
+                    <div *ngIf="!loadingHistory && transactionHistory.length === 0" class="text-center py-3 text-muted">
+                      <i class="fas fa-info-circle fa-2x mb-2"></i>
+                      <p>No previous transactions found for this account.</p>
+                    </div>
+
+                    <div *ngIf="!loadingHistory && transactionHistory.length > 0" class="table-responsive">
+                      <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>From/To</th>
+                            <th>Status</th>
+                            <th>Risk Score</th>
+                            <th>Description</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let txn of transactionHistory">
+                            <td><strong>#{{ txn.id }}</strong></td>
+                            <td class="small">{{ txn.createdAt | date:'short' }}</td>
+                            <td><span class="badge bg-secondary">{{ txn.transactionType }}</span></td>
+                            <td><strong>{{ txn.amount | currency:txn.currency }}</strong></td>
+                            <td class="small">
+                              <div *ngIf="txn.fromAccountNumber">From: {{ txn.fromAccountNumber }}</div>
+                              <div *ngIf="txn.toAccountNumber">To: {{ txn.toAccountNumber }}</div>
+                            </td>
+                            <td>
+                              <span class="badge" [ngClass]="getTransactionStatusClass(txn.status)">
+                                {{ txn.status }}
+                              </span>
+                            </td>
+                            <td>
+                              <span class="badge" [ngClass]="getRiskScoreClass(txn.combinedRiskScore || 0)">
+                                {{ txn.combinedRiskScore || 0 }}
+                              </span>
+                            </td>
+                            <td class="small">{{ txn.description || 'N/A' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Triggered Rules -->
+              <div class="mt-4" *ngIf="selectedCase.alert.transaction && selectedCase.alert.transaction.obstructedRules && selectedCase.alert.transaction.obstructedRules.length > 0">
+                <h6>Triggered Rules ({{ selectedCase.alert.transaction.obstructedRules.length }})</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Rule Name</th>
+                        <th>Action</th>
+                        <th>Risk Weight</th>
+                        <th>Priority</th>
+                        <th>Details</th>
+                        <th>Evaluated At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let rule of selectedCase.alert.transaction.obstructedRules">
+                        <td><strong>{{ rule.ruleName }}</strong></td>
+                        <td>
+                          <span class="badge" [ngClass]="rule.action === 'BLOCK' ? 'bg-danger' : 'bg-warning'">
+                            {{ rule.action }}
+                          </span>
+                        </td>
+                        <td><span class="badge bg-info">{{ rule.riskWeight }}</span></td>
+                        <td>{{ rule.priority }}</td>
+                        <td class="small">{{ rule.details }}</td>
+                        <td class="small">{{ rule.evaluatedAt | date:'short' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -324,29 +468,6 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
                       </button>
                     </div>
                   </div>
-                </div>
-
-                <!-- Case Actions -->
-                <div class="mt-4" *ngIf="selectedCase.status === 'UNDER_INVESTIGATION'">
-                  <div class="d-flex gap-2 mb-3">
-                    <button class="btn btn-purple" (click)="generateSAR(selectedCase)" [disabled]="loading">
-                      <i class="fas fa-file-alt me-1"></i>
-                      Generate SAR Report
-                    </button>
-                  </div>
-                  <div class="d-flex gap-2">
-                    <button class="btn btn-success" (click)="approveCase(selectedCase.id)" [disabled]="loading">
-                      <i class="fas fa-check me-1"></i>
-                      Approve Transaction & Close Case
-                    </button>
-                    <button class="btn btn-danger" (click)="rejectCase(selectedCase.id)" [disabled]="loading">
-                      <i class="fas fa-times me-1"></i>
-                      Reject Transaction & Close Case
-                    </button>
-                  </div>
-                  <small class="text-muted mt-2 d-block">
-                    Approving will automatically approve the associated transaction and resolve both the case and alert.
-                  </small>
                 </div>
 
                 <!-- Notes List -->
@@ -450,17 +571,21 @@ export class CaseManagementComponent implements OnInit {
   
   // Filters
   searchTerm = '';
-  assigneeFilter = '';
   dateFilter = '';
-  uniqueAssignees: string[] = [];
   
   // Add Note
   showAddNoteForm = false;
   newNoteContent = '';
 
+  // Transaction History
+  showTransactionHistory = false;
+  transactionHistory: any[] = [];
+  loadingHistory = false;
+
   constructor(
     private complianceService: ComplianceService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -471,16 +596,23 @@ export class CaseManagementComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
+    // Get current user's email
+    const currentUser = this.authService.getCurrentUser();
+    const currentUserEmail = currentUser?.email;
+
+    if (!currentUserEmail) {
+      this.error = 'Unable to identify current user';
+      this.loading = false;
+      return;
+    }
+
     Promise.all([
       this.complianceService.getCasesUnderInvestigation().toPromise(),
       this.complianceService.getResolvedCases().toPromise()
     ]).then(([active, resolved]) => {
-      this.activeCases = active || [];
-      this.resolvedCases = resolved || [];
-      
-      // Extract unique assignees for filter
-      const allCases = [...this.activeCases, ...this.resolvedCases];
-      this.uniqueAssignees = [...new Set(allCases.map(c => c.assignedTo))];
+      // Filter cases to show only those assigned to current user
+      this.activeCases = (active || []).filter(c => c.assignedTo === currentUserEmail);
+      this.resolvedCases = (resolved || []).filter(c => c.assignedTo === currentUserEmail);
       
       this.applyFilters();
       this.loading = false;
@@ -519,11 +651,6 @@ export class CaseManagementComponent implements OnInit {
           caseItem.alert.id.toString().includes(searchLower);
         
         if (!matchesSearch) return false;
-      }
-
-      // Assignee filter
-      if (this.assigneeFilter && caseItem.assignedTo !== this.assigneeFilter) {
-        return false;
       }
 
       // Date filter
@@ -571,6 +698,18 @@ export class CaseManagementComponent implements OnInit {
     }
   }
 
+  getTransactionStatusClass(status: string): string {
+    switch (status) {
+      case 'PENDING': return 'bg-warning';
+      case 'COMPLETED': return 'bg-success';
+      case 'FLAGGED': return 'bg-warning';
+      case 'BLOCKED': return 'bg-danger';
+      case 'APPROVED': return 'bg-success';
+      case 'REJECTED': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  }
+
   viewCaseDetails(caseItem: CaseDto): void {
     // Load full case details
     this.complianceService.getCaseById(caseItem.id).subscribe({
@@ -578,8 +717,14 @@ export class CaseManagementComponent implements OnInit {
         this.selectedCase = fullCase;
         this.showAddNoteForm = false;
         this.newNoteContent = '';
-        // Show modal logic would go here
-        console.log('Show case details modal for:', fullCase);
+        // Show Bootstrap modal
+        const modalElement = document.getElementById('caseDetailsModal');
+        if (modalElement) {
+          const modal = new (window as any).bootstrap.Modal(modalElement);
+          modal.show();
+        } else {
+          console.error('Modal element not found');
+        }
       },
       error: (error) => {
         console.error('Error loading case details:', error);
@@ -591,6 +736,79 @@ export class CaseManagementComponent implements OnInit {
   addNote(caseItem: CaseDto): void {
     this.viewCaseDetails(caseItem);
     // The form will be shown in the modal
+  }
+
+  viewTransactionHistory(transaction: any): void {
+    // Toggle the transaction history section
+    this.showTransactionHistory = !this.showTransactionHistory;
+    
+    // If opening, fetch transaction history
+    if (this.showTransactionHistory) {
+      this.loadingHistory = true;
+      this.transactionHistory = [];
+      
+      // Determine which accounts to search for
+      const accountsToSearch: string[] = [];
+      if (transaction.fromAccountNumber) {
+        accountsToSearch.push(transaction.fromAccountNumber);
+      }
+      if (transaction.toAccountNumber) {
+        accountsToSearch.push(transaction.toAccountNumber);
+      }
+      
+      if (accountsToSearch.length === 0) {
+        this.loadingHistory = false;
+        return;
+      }
+      
+      // Fetch all transactions and filter by account numbers
+      this.complianceService.getAllTransactions().subscribe({
+        next: (allTransactions) => {
+          // If both accounts exist, get 5 transactions per account
+          if (transaction.fromAccountNumber && transaction.toAccountNumber) {
+            const fromAccountTxns = allTransactions
+              .filter(t => 
+                t.id !== transaction.id && 
+                ((t.toAccountNumber && t.toAccountNumber === transaction.fromAccountNumber) || 
+                 (t.fromAccountNumber && t.fromAccountNumber === transaction.fromAccountNumber))
+              )
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 5);
+            
+            const toAccountTxns = allTransactions
+              .filter(t => 
+                t.id !== transaction.id && 
+                ((t.toAccountNumber && t.toAccountNumber === transaction.toAccountNumber) || 
+                 (t.fromAccountNumber && t.fromAccountNumber === transaction.toAccountNumber))
+              )
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 5);
+            
+            // Combine and remove duplicates, then sort by date
+            const combinedTxns = [...fromAccountTxns, ...toAccountTxns];
+            const uniqueTxns = Array.from(new Map(combinedTxns.map(t => [t.id, t])).values());
+            this.transactionHistory = uniqueTxns
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          } else {
+            // Single account - get 5 transactions
+            this.transactionHistory = allTransactions
+              .filter(t => 
+                t.id !== transaction.id && 
+                ((t.toAccountNumber && accountsToSearch.includes(t.toAccountNumber)) || 
+                 (t.fromAccountNumber && accountsToSearch.includes(t.fromAccountNumber)))
+              )
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .slice(0, 5);
+          }
+          this.loadingHistory = false;
+        },
+        error: (error) => {
+          console.error('Error loading transaction history:', error);
+          this.transactionHistory = [];
+          this.loadingHistory = false;
+        }
+      });
+    }
   }
 
   saveNote(): void {
@@ -629,7 +847,84 @@ export class CaseManagementComponent implements OnInit {
     if (caseItem.alert && caseItem.alert.transaction) {
       this.router.navigate(['/compliance/sar-report', caseItem.alert.transaction.id]);
     } else {
-      alert('Transaction information not available for this case.');
+      window.alert('Transaction information not available for this case.');
+    }
+  }
+
+  approveCaseFromCard(caseItem: CaseDto): void {
+    if (confirm('Are you sure you want to approve this case? This will approve the associated transaction and resolve the case.')) {
+      this.loading = true;
+      
+      if (caseItem.alert && caseItem.alert.transaction) {
+        // Approve the transaction
+        this.complianceService.approveTransaction(caseItem.alert.transaction.id).subscribe({
+          next: (approvedTransaction) => {
+            // Add a note about the approval
+            const approvalNote = {
+              content: `Case approved. Transaction ${approvedTransaction.id} has been approved and processed. Case resolved.`
+            };
+            
+            this.complianceService.addNoteToCase(caseItem.id, approvalNote).subscribe({
+              next: () => {
+                this.loading = false;
+                window.alert('Case approved successfully! Transaction has been approved and case is resolved.');
+                
+                // Refresh cases
+                this.loadCases();
+              },
+              error: (error) => {
+                this.loading = false;
+                console.error('Error adding approval note:', error);
+                window.alert('Transaction approved but failed to add note. Please refresh the page.');
+              }
+            });
+          },
+          error: (error) => {
+            this.loading = false;
+            console.error('Error approving transaction:', error);
+            window.alert('Failed to approve transaction. Please try again.');
+          }
+        });
+      }
+    }
+  }
+
+  rejectCaseFromCard(caseItem: CaseDto): void {
+    const reason = prompt('Please provide a reason for rejecting this case:');
+    if (reason && confirm('Are you sure you want to reject this case? This will reject the associated transaction and resolve the case.')) {
+      this.loading = true;
+      
+      if (caseItem.alert && caseItem.alert.transaction) {
+        // Reject the transaction
+        this.complianceService.rejectTransaction(caseItem.alert.transaction.id, reason).subscribe({
+          next: (rejectedTransaction) => {
+            // Add a note about the rejection
+            const rejectionNote = {
+              content: `Case rejected. Transaction ${rejectedTransaction.id} has been rejected. Reason: ${reason}. Case resolved.`
+            };
+            
+            this.complianceService.addNoteToCase(caseItem.id, rejectionNote).subscribe({
+              next: () => {
+                this.loading = false;
+                window.alert('Case rejected successfully! Transaction has been rejected and case is resolved.');
+                
+                // Refresh cases
+                this.loadCases();
+              },
+              error: (error) => {
+                this.loading = false;
+                console.error('Error adding rejection note:', error);
+                window.alert('Transaction rejected but failed to add note. Please refresh the page.');
+              }
+            });
+          },
+          error: (error) => {
+            this.loading = false;
+            console.error('Error rejecting transaction:', error);
+            window.alert('Failed to reject transaction. Please try again.');
+          }
+        });
+      }
     }
   }
 

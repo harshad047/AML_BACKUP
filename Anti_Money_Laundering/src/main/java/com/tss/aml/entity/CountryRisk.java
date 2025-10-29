@@ -13,5 +13,5 @@ public class CountryRisk {
     private int riskScore;
     private String category;
     private String notes;
-    private boolean isActive;
+
 }

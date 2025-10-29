@@ -45,6 +45,7 @@ public class PasswordController {
 
     /**
      * Verify OTP for forgot password flow.
+     * Does NOT consume the OTP - it will be consumed during password reset.
      */
     @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<?> verifyForgotPasswordOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
@@ -53,7 +54,8 @@ public class PasswordController {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email and OTP are required"));
         }
         
-        boolean otpValid = otpService.verifyOtp(normalized, otp);
+        // Verify WITHOUT consuming the OTP (false parameter)
+        boolean otpValid = otpService.verifyOtp(normalized, otp, false);
         if (!otpValid) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }

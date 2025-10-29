@@ -37,6 +37,11 @@ public class ComplianceController {
         return ResponseEntity.ok(complianceService.getAllOpenAlerts());
     }
 
+    @GetMapping("/alerts/all")
+    public ResponseEntity<List<AlertDto>> getAllAlerts() {
+        return ResponseEntity.ok(complianceService.getAllAlerts());
+    }
+
     @GetMapping("/alerts/{id}")
     public ResponseEntity<AlertDto> getAlertById(@PathVariable Long id) {
         return ResponseEntity.ok(complianceService.getAlertById(id));
