@@ -133,14 +133,22 @@ public class CustomerController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if (req == null || req.oldPassword == null || req.newPassword == null || req.otp == null) {
+        if (req == null || req.oldPassword == null || req.newPassword == null) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
         }
 
-        // Verify OTP sent to user's email before allowing password change
-        boolean otpValid = otpService.verifyOtp(user.getEmail(), req.otp);
-        if (!otpValid) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
+        // Verify either reset token (preferred) or OTP
+        boolean allowed = false;
+        if (req.token != null && !req.token.isBlank()) {
+            allowed = otpService.validateResetToken(user.getEmail(), req.token, true);
+        } else if (req.otp != null && !req.otp.isBlank()) {
+            allowed = otpService.verifyOtp(user.getEmail(), req.otp);
+            if (!allowed) {
+                otpService.consumeOtp(user.getEmail());
+            }
+        }
+        if (!allowed) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired verification. Please verify OTP again."));
         }
 
         if (!passwordEncoder.matches(req.oldPassword, customer.getPassword())) {
@@ -192,8 +200,8 @@ public class CustomerController {
         public String oldPassword;
         @NotBlank
         public String newPassword;
-        @NotBlank
-        public String otp;
+        public String otp; 
+        public String token; 
     }
     
     public static class KycStatusResponse {

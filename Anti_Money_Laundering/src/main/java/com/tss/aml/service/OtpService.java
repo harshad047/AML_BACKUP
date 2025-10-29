@@ -160,12 +160,21 @@ public class OtpService {
         String key = email == null ? null : email.trim().toLowerCase();
         if (key == null || token == null || token.isBlank()) return false;
         ResetTokenEntry entry = resetTokens.get(key);
-        if (entry == null) return false;
+        if (entry == null) {
+            log.debug("No reset token found for key={}", key);
+            return false;
+        }
         if (Instant.now().isAfter(entry.expiresAt)) {
             resetTokens.remove(key);
+            log.debug("Reset token expired for key={} at {}", key, entry.expiresAt);
             return false;
         }
         boolean ok = token.equals(entry.token);
+        log.debug("Validating reset token for key={} providedEndsWith={} storedEndsWith={} result={}",
+                key,
+                token.length()>=6?token.substring(token.length()-6):token,
+                entry.token.length()>=6?entry.token.substring(entry.token.length()-6):entry.token,
+                ok);
         if (ok && consume) {
             resetTokens.remove(key);
         }

@@ -24,6 +24,9 @@ export class ChangePasswordComponent implements OnInit {
   isLoading = false;
   successMessage = '';
   errorMessage = '';
+  showOld = false;
+  showNew = false;
+  showConfirm = false;
 
   constructor(
     private fb: FormBuilder,
@@ -43,6 +46,7 @@ export class ChangePasswordComponent implements OnInit {
 
   private initForm(): void {
     this.passwordForm = this.fb.group({
+      oldPassword: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
     }, {
@@ -70,15 +74,13 @@ export class ChangePasswordComponent implements OnInit {
 
       const formValue = this.passwordForm.value;
       const token = sessionStorage.getItem('reset_token') || '';
-      const email = sessionStorage.getItem('reset_email') || this.authService.getCurrentUser()?.email || '';
-      const request: ResetPasswordRequest = {
-        email,
-        token,
+      const payload = {
+        oldPassword: formValue.oldPassword,
         newPassword: formValue.newPassword,
-        confirmPassword: formValue.confirmPassword
+        token
       };
 
-      this.authService.resetPassword(request).subscribe({
+      this.authService.changePassword(payload).subscribe({
         next: (response: any) => {
           this.isLoading = false;
           // Handle both direct response and wrapped response formats
@@ -117,6 +119,10 @@ export class ChangePasswordComponent implements OnInit {
     const field = this.passwordForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
+
+  toggleOldVisibility(): void { this.showOld = !this.showOld; }
+  toggleNewVisibility(): void { this.showNew = !this.showNew; }
+  toggleConfirmVisibility(): void { this.showConfirm = !this.showConfirm; }
 
   private markFormGroupTouched(): void {
     Object.keys(this.passwordForm.controls).forEach(key => {
