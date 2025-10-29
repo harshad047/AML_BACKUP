@@ -53,3 +53,10 @@ export interface ApiResponse<T> {
   message?: string;
   error?: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
+}

@@ -12,6 +12,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.tss.aml.repository.UserRepository;
+
 import jakarta.mail.internet.MimeMessage;
 
 @Service
@@ -24,16 +26,24 @@ public class OtpService {
 
     @Autowired
     private JavaMailSender mailSender;
+    
+    @Autowired
+    private UserRepository userRepository;
 
-    public void sendOtpToEmail(String email) {
+    public boolean sendOtpToEmail(String email) {
         try {
+            // First check if email exists
+            if (email == null || email.trim().isEmpty() || !userRepository.existsByEmail(email.trim().toLowerCase())) {
+                log.debug("Email not found in database: {}", email);
+                return false;
+            }
             String otp = String.format("%06d", ThreadLocalRandom.current().nextInt(0, 1_000_000));
             OtpEntry entry = new OtpEntry(otp, Instant.now().plusSeconds(EXPIRY_SECONDS));
             String key = email == null ? null : email.trim().toLowerCase();
             if (key != null) {
                 store.put(key, entry);
+                log.debug("OTP generated and stored for key={} otp={} expiresAt={}", key, otp, entry.expiresAt);
             }
-            log.debug("OTP generated and stored for key={} expiresAt={} (masked otp endsWith={})", key, entry.expiresAt, otp.substring(4));
 
             String htmlContent = """
                 <html>
@@ -87,54 +97,48 @@ public class OtpService {
             helper.setText(htmlContent, true); // true = HTML
 
             mailSender.send(mimeMessage);
-
+            return true;
+            
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error sending OTP to {}", email, e);
+            return false;
         }
     }
 
 
     public boolean verifyOtp(String email, String otp) {
-        return verifyOtp(email, otp, true);
-    }
-
-    /**
-     * Verify OTP with option to consume it or not.
-     * @param email The email address
-     * @param otp The OTP to verify
-     * @param consume If true, OTP will be removed after successful verification
-     * @return true if OTP is valid, false otherwise
-     */
-    public boolean verifyOtp(String email, String otp, boolean consume) {
-        String key = email == null ? null : email.trim();
+        String key = email == null ? null : email.trim().toLowerCase();
         if (key == null) return false;
+
         OtpEntry e = store.get(key);
         if (e == null) {
-            e = store.get(key.toLowerCase());
+            log.debug("No OTP found for email: {}", key);
+            return false;
         }
-        if (e == null) return false;
+
         if (Instant.now().isAfter(e.expiresAt)) {
             store.remove(key);
-            store.remove(key.toLowerCase());
             log.debug("OTP expired for key={} at {}", key, e.expiresAt);
             return false;
         }
+
         if (otp == null) return false;
         // Remove all whitespace from provided OTP and compare
         String provided = otp.replaceAll("\\s+", "");
         boolean ok = e.otp.equals(provided);
-        log.debug("Verifying OTP for key={} providedEndsWith={} storedEndsWith={} result={} consume={}", 
-                  key, provided.length()>=2?provided.substring(provided.length()-2):provided, e.otp.substring(4), ok, consume);
-        if (ok && consume) {
-            store.remove(key);
-            store.remove(key.toLowerCase());
+        log.debug("Verifying OTP for key={} providedEndsWith={} storedEndsWith={} result={}", key, provided.length()>=2?provided.substring(provided.length()-2):provided, e.otp.substring(4), ok);
+        if (ok) {
+            // Don't remove OTP here - let it be removed after successful password reset
+            // store.remove(key);
         }
         return ok;
     }
 
-    private static class OtpEntry {
-        final String otp;
-        final Instant expiresAt;
-        OtpEntry(String otp, Instant expiresAt) { this.otp = otp; this.expiresAt = expiresAt; }
+    public void consumeOtp(String email) {
+        String key = email == null ? null : email.trim().toLowerCase();
+        if (key != null) {
+            store.remove(key);
+            log.debug("OTP consumed/removed for key={}", key);
+        }
     }
 }

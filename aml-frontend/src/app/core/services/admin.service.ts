@@ -93,13 +93,13 @@ export interface BankAccountDto {
 
 export interface DocumentDTO {
   id: number;
-  documentType: string;
-  fileName: string;
+  docType: string;
   storagePath: string;
   uploadedAt: string;
   status: string; // UPLOADED, VERIFIED, REJECTED
   customerId: number;
   customerName?: string;
+  rejectionReason?: string;
 }
 
 export interface TransactionDto {
@@ -281,7 +281,13 @@ export class AdminService {
     return this.http.post<DocumentDTO>(`${this.apiUrl}/kyc/documents/${documentId}/verify`, null);
   }
 
-  rejectKycDocument(documentId: number): Observable<DocumentDTO> {
-    return this.http.post<DocumentDTO>(`${this.apiUrl}/kyc/documents/${documentId}/reject`, null);
+  rejectKycDocument(documentId: number, reason?: string): Observable<DocumentDTO> {
+    const params = reason ? new HttpParams().set('reason', reason) : undefined;
+    return this.http.post<DocumentDTO>(`${this.apiUrl}/kyc/documents/${documentId}/reject`, null, { params });
+  }
+
+  getKycDocuments(status?: string): Observable<DocumentDTO[]> {
+    const params = status ? new HttpParams().set('status', status) : undefined;
+    return this.http.get<DocumentDTO[]>(`${this.apiUrl}/kyc/documents`, { params });
   }
 }

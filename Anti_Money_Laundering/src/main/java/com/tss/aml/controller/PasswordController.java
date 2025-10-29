@@ -1,13 +1,11 @@
 package com.tss.aml.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.User;
@@ -22,11 +20,15 @@ import jakarta.validation.constraints.NotBlank;
 @RequestMapping("/api/auth")
 public class PasswordController {
 
+    private static final Logger log = LoggerFactory.getLogger(PasswordController.class);
+
     @Autowired private OtpService otpService;
     @Autowired private EmailService emailService;
     @Autowired private UserRepository userRepository;
     @Autowired private CustomerRepository customerRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+
+    
 
     /**
      * Initiate forgot password by sending an OTP to the provided email.
@@ -34,32 +36,61 @@ public class PasswordController {
      */
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<?> sendForgotPasswordOtp(@RequestParam("email") String email) {
-        String normalized = email == null ? null : email.trim();
+        String normalized = email == null ? null : email.trim().toLowerCase();
+        log.debug("Send OTP request - original: '{}', normalized: '{}'", email, normalized);
         if (normalized == null || normalized.isBlank()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email is required"));
         }
-        // If user exists, send OTP. If not, still return success to avoid enumeration.
-        userRepository.findByEmail(normalized).ifPresent(u -> otpService.sendOtpToEmail(normalized));
-        return ResponseEntity.ok(java.util.Map.of("sent", true, "message", "If the email exists, an OTP has been sent."));
+        
+        // Check if user exists
+        boolean userExists = userRepository.existsByEmail(normalized);
+        
+        if (!userExists) {
+            log.debug("Email not found in database: {}", normalized);
+            return ResponseEntity.ok(java.util.Map.of(
+                "sent", false,
+                "message", "No account found with this email address."
+            ));
+        }
+        
+        // Only send OTP if user exists
+        boolean otpSent = otpService.sendOtpToEmail(normalized);
+        
+        if (otpSent) {
+            log.debug("OTP sent to email: {}", normalized);
+            return ResponseEntity.ok(java.util.Map.of(
+                "sent", true,
+                "message", "OTP has been sent to your email."
+            ));
+        } else {
+            log.warn("Failed to send OTP to email: {}", normalized);
+            return ResponseEntity.ok(java.util.Map.of(
+                "sent", false,
+                "message", "Failed to send OTP. Please try again later."
+            ));
+        }
     }
 
     /**
      * Verify OTP for forgot password flow.
-     * Does NOT consume the OTP - it will be consumed during password reset.
      */
     @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<?> verifyForgotPasswordOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
-        String normalized = email == null ? null : email.trim();
+        String normalized = email == null ? null : email.trim().toLowerCase();
+        log.debug("Verify OTP request - original: '{}', normalized: '{}', otp: '{}'", email, normalized, otp);
         if (normalized == null || normalized.isBlank() || otp == null || otp.isBlank()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email and OTP are required"));
         }
         
-        // Verify WITHOUT consuming the OTP (false parameter)
-        boolean otpValid = otpService.verifyOtp(normalized, otp, false);
+        boolean otpValid = otpService.verifyOtp(normalized, otp);
         if (!otpValid) {
+            // Consume the OTP even if verification failed to prevent reuse
+            otpService.consumeOtp(normalized);
+            log.debug("OTP verification failed for email: {}", normalized);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
         
+        log.debug("OTP verification successful for email: {}", normalized);
         return ResponseEntity.ok(java.util.Map.of("verified", true, "message", "OTP verified successfully"));
     }
 
@@ -71,12 +102,16 @@ public class PasswordController {
         if (req == null || req.email == null || req.otp == null || req.newPassword == null || req.confirmPassword == null) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
         }
-        String email = req.email.trim();
+        String email = req.email.trim().toLowerCase();
+        log.debug("Reset password request - email: '{}', otp: '{}'", email, req.otp);
         if (!req.newPassword.equals(req.confirmPassword)) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Passwords do not match"));
         }
         boolean otpValid = otpService.verifyOtp(email, req.otp);
         if (!otpValid) {
+            // Consume the OTP even if verification failed to prevent reuse
+            otpService.consumeOtp(email);
+            log.debug("Reset password OTP verification failed for email: {}", email);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
 
@@ -105,6 +140,10 @@ public class PasswordController {
             if (fullName.isBlank()) fullName = null;
         }
         emailService.sendPasswordChangeSuccessEmail(email, fullName);
+
+        // Consume/remove the OTP after successful password reset
+        otpService.consumeOtp(email);
+        log.debug("Password reset successful for email: {}", email);
 
         return ResponseEntity.ok(java.util.Map.of("message", "Password reset successfully"));
     }

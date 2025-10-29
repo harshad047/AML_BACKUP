@@ -107,6 +107,12 @@ export class CustomerDashboardComponent implements OnInit {
 
         this.pendingDocuments = pendingDocs;
         this.approvedDocuments = approvedDocs;
+
+        // Dynamically compute KYC status from documents unless it's explicitly REJECTED
+        const currentKyc = (this.kycStatus || 'PENDING').toUpperCase();
+        if (currentKyc !== 'REJECTED') {
+          this.kycStatus = approvedDocs > 0 ? 'VERIFIED' : 'PENDING';
+        }
       },
       error: () => {
         this.totalDocuments = 0;

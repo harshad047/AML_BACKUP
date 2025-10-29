@@ -75,16 +75,18 @@ public class DocumentService {
                 .orElseThrow(() -> new EntityNotFoundException("Document not found with ID: " + documentId));
 
         document.setStatus(DocumentStatus.VERIFIED);
+        document.setRejectionReason(null);
         documentRepository.save(document);
 
         return convertToDTO(document);
     }
 
-    public DocumentDTO rejectDocument(Long documentId) {
+    public DocumentDTO rejectDocument(Long documentId, String reason) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new EntityNotFoundException("Document not found with ID: " + documentId));
 
         document.setStatus(DocumentStatus.REJECTED);
+        document.setRejectionReason(reason);
         documentRepository.save(document);
 
         return convertToDTO(document);
@@ -94,10 +96,20 @@ public class DocumentService {
 	    DocumentDTO dto = new DocumentDTO();
 	    dto.setId(doc.getId());
 	    dto.setCustomerId(doc.getCustomer().getId());
+	    String first = doc.getCustomer().getFirstName();
+	    String last = doc.getCustomer().getLastName();
+	    dto.setCustomerName(((first != null ? first : "").trim() + " " + (last != null ? last : "").trim()).trim());
 	    dto.setDocType(doc.getDocType());
 	    dto.setStoragePath(doc.getStoragePath());
 	    dto.setStatus(doc.getStatus());
 	    dto.setUploadedAt(doc.getUploadedAt());
+	    dto.setRejectionReason(doc.getRejectionReason());
 	    return dto;
 	}
+
+    public DocumentDTO getDocumentById(Long documentId) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new EntityNotFoundException("Document not found with ID: " + documentId));
+        return convertToDTO(document);
+    }
 }

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
-import { OtpVerificationComponent } from './auth/otp-verification/otp-verification.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
+import { OtpVerificationComponent } from './auth/otp-verification/otp-verification.component';
 import { CustomerDashboardComponent } from './customer/customer-dashboard/customer-dashboard.component';
 import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
 import { ComplianceDashboardComponent } from './compliance/compliance-dashboard/compliance-dashboard.component';
@@ -33,6 +33,7 @@ import { KycVerificationComponent } from './admin/kyc-verification/kyc-verificat
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'otp-verification', component: OtpVerificationComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },

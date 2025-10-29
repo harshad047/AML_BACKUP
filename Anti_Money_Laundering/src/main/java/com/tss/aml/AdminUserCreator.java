@@ -16,14 +16,14 @@ public class AdminUserCreator {
     // --- Database Configuration ---
     private static final String DB_URL = "jdbc:mysql://localhost:3306/aml";
     private static final String DB_USER = "root"; // Replace with your DB username
-    private static final String DB_PASSWORD = "Fggv@676"; // Replace with your DB password
+    private static final String DB_PASSWORD = "Dhyey1212"; // Replace with your DB password
 
     public static void main(String[] args) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
         // --- Admin User Details ---
-        String adminEmail = "admin2@aml.com";
-        String plainPassword = "admin123";
+        String adminEmail = "admin@aml.com";
+        String plainPassword = "admin";
         String hashedPassword = passwordEncoder.encode(plainPassword);
 
         String sql = "INSERT INTO users (first_name, last_name, email, username, password, role, is_enabled) VALUES (?, ?, ?, ?, ?, ?, ?)";

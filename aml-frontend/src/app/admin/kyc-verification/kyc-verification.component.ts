@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AdminService, DocumentDTO } from '../../core/services/admin.service';
 
 @Component({
   selector: 'app-kyc-verification',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './kyc-verification.component.html',
   styleUrls: ['./kyc-verification.component.css']
 })
@@ -14,36 +15,39 @@ export class KycVerificationComponent implements OnInit {
   loading = false;
   error = '';
   success = '';
+  statuses: string[] = ['UPLOADED', 'VERIFIED', 'REJECTED'];
+  selectedStatus: string = 'UPLOADED';
 
   constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
-    this.loadPendingDocuments();
+    this.loadDocuments();
   }
 
-  loadPendingDocuments(): void {
+  loadDocuments(): void {
     this.loading = true;
     this.error = '';
     
-    this.adminService.getPendingKycDocuments().subscribe({
+    this.adminService.getKycDocuments(this.selectedStatus).subscribe({
       next: (documents) => {
         this.pendingDocuments = documents;
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to load pending KYC documents';
+        this.error = err.error?.message || 'Failed to load KYC documents';
         this.loading = false;
       }
     });
   }
 
   verifyDocument(document: DocumentDTO): void {
-    if (!confirm(`Verify document "${document.fileName}"?`)) return;
+    const name = this.getFileNameFromUrl(document.storagePath) || document.docType;
+    if (!confirm(`Verify document "${name}"?`)) return;
 
     this.adminService.verifyKycDocument(document.id).subscribe({
       next: () => {
-        this.success = `Document "${document.fileName}" verified successfully`;
-        this.loadPendingDocuments();
+        this.success = `Document "${name}" verified successfully`;
+        this.loadDocuments();
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to verify document';
@@ -52,12 +56,15 @@ export class KycVerificationComponent implements OnInit {
   }
 
   rejectDocument(document: DocumentDTO): void {
-    if (!confirm(`Reject document "${document.fileName}"?`)) return;
+    const name = this.getFileNameFromUrl(document.storagePath) || document.docType;
+    const proceed = confirm(`Reject document "${name}"?`);
+    if (!proceed) return;
+    const reason = prompt('Enter rejection reason (optional):') || undefined;
 
-    this.adminService.rejectKycDocument(document.id).subscribe({
+    this.adminService.rejectKycDocument(document.id, reason).subscribe({
       next: () => {
-        this.success = `Document "${document.fileName}" rejected`;
-        this.loadPendingDocuments();
+        this.success = `Document "${name}" rejected`;
+        this.loadDocuments();
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to reject document';
@@ -73,5 +80,22 @@ export class KycVerificationComponent implements OnInit {
       case 'UTILITY_BILL': return 'bg-warning';
       default: return 'bg-secondary';
     }
+  }
+
+  getFileNameFromUrl(url?: string): string {
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      const name = u.pathname.split('/').pop();
+      return name || '';
+    } catch {
+      const parts = url.split('?')[0].split('/');
+      return parts.pop() || '';
+    }
+  }
+
+  onStatusChange(status: string) {
+    this.selectedStatus = status;
+    this.loadDocuments();
   }
 }
