@@ -10,14 +10,19 @@ import { filter } from 'rxjs/operators';
   imports: [RouterOutlet, NavbarComponent, CommonModule],
   template: `
     <app-navbar *ngIf="showNavbar"></app-navbar>
-    <main class="container-fluid">
+    <main [class.with-navbar]="showNavbar" [class.auth-page]="!showNavbar">
       <router-outlet></router-outlet>
     </main>
   `,
   styles: [`
-    main {
+    main.with-navbar {
       min-height: calc(100vh - 56px);
       padding-top: 1rem;
+    }
+    
+    main.auth-page {
+      min-height: 100vh;
+      padding: 0;
     }
   `]
 })
@@ -27,11 +32,23 @@ export class AppComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+    // Check initial route
+    this.checkRoute(this.router.url);
+    
+    // Listen to route changes
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      // Show navbar for all routes except login, register, and OTP verification
-      this.showNavbar = !['/login', '/register', '/otp-verification'].includes(event.url);
+      this.checkRoute(event.url);
     });
+  }
+
+  private checkRoute(url: string): void {
+    // Get the URL without query parameters
+    const urlWithoutParams = url.split('?')[0];
+    
+    // Hide navbar for authentication routes
+    const authRoutes = ['/login', '/register', '/otp-verification', '/forgot-password'];
+    this.showNavbar = !authRoutes.includes(urlWithoutParams);
   }
 }

@@ -113,28 +113,12 @@ import { TransactionDto } from '../../core/models/compliance.models';
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="mb-0">{{ getTabTitle() }} ({{ filteredTransactions.length }})</h5>
-              <div class="btn-group btn-group-sm" *ngIf="activeTab === 'review' || activeTab === 'flagged'">
-                <button class="btn btn-success" (click)="bulkApprove()" 
-                        [disabled]="selectedTransactions.length === 0">
-                  <i class="fas fa-check me-1"></i>
-                  Approve Selected ({{ selectedTransactions.length }})
-                </button>
-                <button class="btn btn-danger" (click)="bulkReject()" 
-                        [disabled]="selectedTransactions.length === 0">
-                  <i class="fas fa-times me-1"></i>
-                  Reject Selected
-                </button>
-              </div>
             </div>
             <div class="card-body p-0">
               <div class="table-responsive">
                 <table class="table table-hover mb-0">
                   <thead class="table-light">
                     <tr>
-                      <th *ngIf="activeTab === 'review' || activeTab === 'flagged'">
-                        <input type="checkbox" (change)="toggleSelectAll($event)" 
-                               [checked]="isAllSelected()">
-                      </th>
                       <th>Transaction ID</th>
                       <th>Type</th>
                       <th>Amount</th>
@@ -146,18 +130,12 @@ import { TransactionDto } from '../../core/models/compliance.models';
                   </thead>
                   <tbody>
                     <tr *ngIf="filteredTransactions.length === 0">
-                      <td [attr.colspan]="activeTab === 'review' || activeTab === 'flagged' ? 8 : 7" 
-                          class="text-center py-4 text-muted">
+                      <td colspan="7" class="text-center py-4 text-muted">
                         No transactions found matching your criteria
                       </td>
                     </tr>
                     <tr *ngFor="let transaction of filteredTransactions" 
                         [class]="getTransactionRowClass(transaction)">
-                      <td *ngIf="activeTab === 'review' || activeTab === 'flagged'">
-                        <input type="checkbox" [value]="transaction.id" 
-                               (change)="toggleTransactionSelection(transaction.id, $event)"
-                               [checked]="isTransactionSelected(transaction.id)">
-                      </td>
                       <td>
                         <strong>#{{ transaction.id }}</strong>
                         <br>
@@ -665,7 +643,6 @@ export class TransactionReviewComponent implements OnInit {
   filteredTransactions: TransactionDto[] = [];
   
   selectedTransaction: TransactionDto | null = null;
-  selectedTransactions: number[] = [];
   
   // Track transactions with active cases
   transactionsWithCases: Set<number> = new Set();
@@ -718,7 +695,6 @@ export class TransactionReviewComponent implements OnInit {
 
   switchTab(tab: string): void {
     this.activeTab = tab;
-    this.selectedTransactions = [];
     this.applyFilters();
   }
 
@@ -824,31 +800,6 @@ export class TransactionReviewComponent implements OnInit {
     return this.transactionsWithCases.has(transaction.id);
   }
 
-  // Selection methods
-  toggleSelectAll(event: any): void {
-    if (event.target.checked) {
-      this.selectedTransactions = this.filteredTransactions.map(t => t.id);
-    } else {
-      this.selectedTransactions = [];
-    }
-  }
-
-  toggleTransactionSelection(transactionId: number, event: any): void {
-    if (event.target.checked) {
-      this.selectedTransactions.push(transactionId);
-    } else {
-      this.selectedTransactions = this.selectedTransactions.filter(id => id !== transactionId);
-    }
-  }
-
-  isTransactionSelected(transactionId: number): boolean {
-    return this.selectedTransactions.includes(transactionId);
-  }
-
-  isAllSelected(): boolean {
-    return this.filteredTransactions.length > 0 && 
-           this.selectedTransactions.length === this.filteredTransactions.length;
-  }
 
   // Transaction actions
   viewTransactionDetails(transaction: TransactionDto): void {
@@ -1002,40 +953,6 @@ export class TransactionReviewComponent implements OnInit {
     }
   }
 
-  bulkApprove(): void {
-    if (this.selectedTransactions.length === 0) return;
-
-    Promise.all(
-      this.selectedTransactions.map(id => 
-        this.complianceService.approveTransaction(id).toPromise()
-      )
-    ).then(() => {
-      console.log('Bulk approval completed');
-      this.selectedTransactions = [];
-      this.loadTransactions();
-    }).catch(error => {
-      console.error('Error in bulk approval:', error);
-      this.error = 'Failed to approve some transactions';
-    });
-  }
-
-  bulkReject(): void {
-    if (this.selectedTransactions.length === 0) return;
-
-    const reason = 'Bulk rejection by compliance officer';
-    Promise.all(
-      this.selectedTransactions.map(id => 
-        this.complianceService.rejectTransaction(id, reason).toPromise()
-      )
-    ).then(() => {
-      console.log('Bulk rejection completed');
-      this.selectedTransactions = [];
-      this.loadTransactions();
-    }).catch(error => {
-      console.error('Error in bulk rejection:', error);
-      this.error = 'Failed to reject some transactions';
-    });
-  }
 
   confirmReject(): void {
     if (this.transactionToReject && this.rejectionReason.trim()) {

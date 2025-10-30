@@ -19,20 +19,24 @@ public class BehavioralDeviationEvaluator implements RuleEvaluator {
 
     private final TransactionRepository transactionRepository;
 
-    // condition conventions:
-    // - condition.type = BEHAVIORAL_DEVIATION
-    // - condition.field = "amount_percentile"
-    // - condition.operator = one of >, >= (current amount vs percentile amount)
-    // - condition.value = "lookbackDays|percentile"
-    //   e.g. "90|95" means: current amount >= 95th percentile of user's amounts over last 90 days
+    /**
+     * Condition conventions:
+     * - condition.type = BEHAVIORAL_DEVIATION
+     * - condition.field = "amount_percentile"
+     * - condition.operator = one of >, >=, <, <=, ==
+     * - condition.value = "lookbackDays|percentile"
+     *   e.g. "90|95" means: current amount >= 95th percentile of user's amounts over last 90 days
+     */
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
         try {
+            // Parse "lookbackDays|percentile"
             String[] parts = condition.getValue().split("\\|");
             if (parts.length < 2) {
-                System.out.println("    BehavioralDeviationEvaluator: invalid value format: " + condition.getValue());
+                System.out.println("BehavioralDeviationEvaluator: invalid value format: " + condition.getValue());
                 return false;
             }
+
             int lookbackDays = Integer.parseInt(parts[0].trim());
             int percentile = Integer.parseInt(parts[1].trim());
 
@@ -40,14 +44,23 @@ public class BehavioralDeviationEvaluator implements RuleEvaluator {
             LocalDateTime after = LocalDateTime.now().minusDays(lookbackDays);
             LocalDateTime before = LocalDateTime.now();
 
+            // ✅ Use existing method
             List<BigDecimal> amounts = transactionRepository.findHistoricalAmounts(customerId, after, before);
-            if (amounts.isEmpty()) {
-                System.out.println("    BehavioralDeviationEvaluator: no history, returning false");
+
+            // ✅ Exclude current transaction (if same amount just inserted)
+            if (amounts != null && !amounts.isEmpty()) {
+                amounts.removeIf(a -> a.compareTo(input.getAmount()) == 0);
+            }
+
+            // ✅ If no meaningful history, skip behavioral deviation
+            if (amounts == null || amounts.size() < 3) {
+                System.out.println("BehavioralDeviationEvaluator: insufficient history, skipping behavioral deviation");
                 return false;
             }
-            Collections.sort(amounts);
 
+            Collections.sort(amounts);
             BigDecimal percentileValue = computePercentile(amounts, percentile);
+
             int cmp = input.getAmount().compareTo(percentileValue);
             boolean result = switch (condition.getOperator()) {
                 case ">" -> cmp > 0;
@@ -58,12 +71,16 @@ public class BehavioralDeviationEvaluator implements RuleEvaluator {
                 default -> false;
             };
 
-            System.out.println("    BehavioralDeviationEvaluator: current=" + input.getAmount() + 
-                ", percentile(" + percentile + ")=" + percentileValue + 
-                ", operator=" + condition.getOperator() + " => " + result);
+            System.out.println("BehavioralDeviationEvaluator: customerId=" + customerId +
+                    ", current=" + input.getAmount() +
+                    ", percentile(" + percentile + ")=" + percentileValue +
+                    ", operator=" + condition.getOperator() +
+                    " => " + result);
+
             return result;
+
         } catch (Exception ex) {
-            System.out.println("    BehavioralDeviationEvaluator error: " + ex.getMessage());
+            System.out.println("BehavioralDeviationEvaluator error: " + ex.getMessage());
             return false;
         }
     }
@@ -71,8 +88,7 @@ public class BehavioralDeviationEvaluator implements RuleEvaluator {
     private BigDecimal computePercentile(List<BigDecimal> sorted, int percentile) {
         if (sorted.isEmpty()) return BigDecimal.ZERO;
         double rank = Math.ceil((percentile / 100.0) * sorted.size());
-        int index = Math.min(Math.max((int)rank - 1, 0), sorted.size() - 1);
+        int index = Math.min(Math.max((int) rank - 1, 0), sorted.size() - 1);
         return sorted.get(index);
     }
 }
-

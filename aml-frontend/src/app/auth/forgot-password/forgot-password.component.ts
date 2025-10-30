@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
@@ -56,9 +56,33 @@ export class ForgotPasswordComponent {
     });
 
     this.passwordForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8), this.strongPasswordValidator]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  // Strong password validator: 1 uppercase, 1 lowercase, 1 digit, 1 special character
+  strongPasswordValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value) {
+      return null;
+    }
+
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumeric = /[0-9]/.test(value);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+
+    const passwordValid = hasUpperCase && hasLowerCase && hasNumeric && hasSpecialChar;
+
+    return !passwordValid ? {
+      strongPassword: {
+        hasUpperCase,
+        hasLowerCase,
+        hasNumeric,
+        hasSpecialChar
+      }
+    } : null;
   }
 
   passwordMatchValidator(form: FormGroup) {

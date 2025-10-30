@@ -60,6 +60,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("after") LocalDateTime after,
             @Param("before") LocalDateTime before
     );
+    
+
 
     // Daily total across types in a time window
     @Query("select coalesce(sum(t.amount), 0) from Transaction t where t.customerId = :customerId and t.createdAt > :after and t.transactionType in :types")
