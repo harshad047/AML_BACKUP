@@ -112,6 +112,8 @@ export interface TransactionDto {
   toAccountNumber?: string;
   description?: string;
   createdAt: string;
+  combinedRiskScore?: number;
+  transactionReference?: string;
 }
 
 export interface AdminCustomerDetailsDto {
@@ -281,6 +283,13 @@ export class AdminService {
 
   getActiveCustomers(): Observable<UserDto[]> {
     return this.http.get<UserDto[]>(`${this.apiUrl}/customers/active`);
+  }
+
+  // ===== ADMIN TRANSACTIONS =====
+  getAdminTransactions(status?: string): Observable<TransactionDto[]> {
+    const url = `${this.apiUrl}/transactions`;
+    const params = status ? new HttpParams().set('status', status) : undefined;
+    return this.http.get<TransactionDto[]>(url, { params });
   }
 
   // ===== AUDIT LOGS =====

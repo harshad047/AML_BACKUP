@@ -34,6 +34,7 @@ import { AuditLogsComponent } from './admin/audit-logs/audit-logs.component';
 import { KycVerificationComponent } from './admin/kyc-verification/kyc-verification.component';
 import { AdminUserDetailsComponent } from './admin/user-details/user-details.component';
 import { AdminCustomersComponent } from './admin/customers/customers.component';
+import { AdminTransactionsComponent } from './admin/transactions/transactions.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -117,6 +118,12 @@ export const routes: Routes = [
   {
     path: 'admin/customers',
     component: AdminCustomersComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/transactions',
+    component: AdminTransactionsComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
   },

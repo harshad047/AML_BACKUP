@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -232,6 +233,13 @@ public class AdminController {
     @GetMapping("/customers/active")
     public ResponseEntity<List<UserDto>> getActiveCustomers() {
         return ResponseEntity.ok(adminService.getActiveCustomers());
+    }
+
+    // Admin: Transactions list with optional status filter (APPROVED, PENDING, FLAGGED, BLOCKED, REJECTED)
+    @GetMapping("/transactions")
+    public ResponseEntity<List<com.tss.aml.dto.transaction.TransactionDto>> getAdminTransactions(
+            @RequestParam(value = "status", required = false) String status) {
+        return ResponseEntity.ok(adminService.getAdminTransactions(status));
     }
     
     // Audit Log Endpoints

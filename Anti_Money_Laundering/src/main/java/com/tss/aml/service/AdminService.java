@@ -37,6 +37,7 @@ import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.RuleRepository;
 import com.tss.aml.repository.SuspiciousKeywordRepository;
 import com.tss.aml.repository.TransactionRepository;
+import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -116,6 +117,15 @@ public class AdminService {
         return userRepository.findByRole(Role.CUSTOMER).stream()
                 .filter(User::isEnabled)
                 .map(u -> modelMapper.map(u, UserDto.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<TransactionDto> getAdminTransactions(String status) {
+        var list = (status == null || status.isBlank())
+                ? transactionRepository.findAllByOrderByCreatedAtDesc()
+                : transactionRepository.findByStatusOrderByCreatedAtDesc(status.toUpperCase());
+        return list.stream()
+                .map(tx -> modelMapper.map(tx, TransactionDto.class))
                 .collect(Collectors.toList());
     }
 
