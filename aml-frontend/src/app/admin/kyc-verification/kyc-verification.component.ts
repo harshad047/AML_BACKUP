@@ -15,7 +15,7 @@ export class KycVerificationComponent implements OnInit {
   loading = false;
   error = '';
   success = '';
-  statuses: string[] = ['UPLOADED', 'VERIFIED', 'REJECTED'];
+  statuses: string[] = ['ALL', 'UPLOADED', 'VERIFIED', 'REJECTED'];
   selectedStatus: string = 'UPLOADED';
 
   constructor(private adminService: AdminService) {}
@@ -28,7 +28,7 @@ export class KycVerificationComponent implements OnInit {
     this.loading = true;
     this.error = '';
     
-    this.adminService.getKycDocuments(this.selectedStatus).subscribe({
+    this.adminService.getKycDocuments(this.selectedStatus === 'ALL' ? undefined : this.selectedStatus).subscribe({
       next: (documents) => {
         this.pendingDocuments = documents;
         this.loading = false;
@@ -97,5 +97,24 @@ export class KycVerificationComponent implements OnInit {
   onStatusChange(status: string) {
     this.selectedStatus = status;
     this.loadDocuments();
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'VERIFIED': return 'bg-success';
+      case 'REJECTED': return 'bg-danger';
+      case 'UPLOADED': return 'bg-warning text-dark';
+      default: return 'bg-secondary';
+    }
+  }
+
+  get emptyText(): string {
+    switch (this.selectedStatus) {
+      case 'UPLOADED': return 'No pending KYC documents';
+      case 'VERIFIED': return 'No verified documents';
+      case 'REJECTED': return 'No rejected documents';
+      case 'ALL':
+      default: return 'No documents to display';
+    }
   }
 }

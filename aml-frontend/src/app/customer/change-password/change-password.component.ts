@@ -5,10 +5,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
-interface PasswordChangeRequest {
-  oldPassword: string;
+interface ResetPasswordRequest {
+  email: string;
+  token: string;
   newPassword: string;
-  otp: string;
+  confirmPassword: string;
 }
 
 @Component({
@@ -21,9 +22,11 @@ interface PasswordChangeRequest {
 export class ChangePasswordComponent implements OnInit {
   passwordForm!: FormGroup;
   isLoading = false;
-  otpSent = false;
   successMessage = '';
   errorMessage = '';
+  showOld = false;
+  showNew = false;
+  showConfirm = false;
 
   constructor(
     private fb: FormBuilder,
@@ -32,12 +35,17 @@ export class ChangePasswordComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Ensure reset token exists; if not, redirect to verify step
+    const token = sessionStorage.getItem('reset_token');
+    if (!token) {
+      this.router.navigate(['/customer/change-password/verify']);
+      return;
+    }
     this.initForm();
   }
 
   private initForm(): void {
     this.passwordForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
       oldPassword: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
@@ -58,31 +66,6 @@ export class ChangePasswordComponent implements OnInit {
     return null;
   }
 
-  sendOtp(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.sendChangePasswordOtp().subscribe({
-      next: (response: any) => {
-        this.isLoading = false;
-        // Handle both direct response and wrapped response formats
-        const responseData = response.data || response;
-
-        if ((responseData && responseData.sent) || (response && response.sent)) {
-          this.otpSent = true;
-          this.successMessage = 'Verification code sent to your email successfully!';
-        } else {
-          this.errorMessage = 'Failed to send verification code. Please try again.';
-        }
-      },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Failed to send verification code. Please try again.';
-        console.error('OTP send error:', error);
-      }
-    });
-  }
-
   changePassword(): void {
     if (this.passwordForm.valid) {
       this.isLoading = true;
@@ -90,13 +73,14 @@ export class ChangePasswordComponent implements OnInit {
       this.errorMessage = '';
 
       const formValue = this.passwordForm.value;
-      const passwordData: PasswordChangeRequest = {
+      const token = sessionStorage.getItem('reset_token') || '';
+      const payload = {
         oldPassword: formValue.oldPassword,
         newPassword: formValue.newPassword,
-        otp: formValue.otp
+        token
       };
 
-      this.authService.changePassword(passwordData).subscribe({
+      this.authService.changePassword(payload).subscribe({
         next: (response: any) => {
           this.isLoading = false;
           // Handle both direct response and wrapped response formats
@@ -110,6 +94,7 @@ export class ChangePasswordComponent implements OnInit {
 
           // Redirect to profile page after successful password change
           setTimeout(() => {
+            sessionStorage.removeItem('reset_token');
             this.router.navigate(['/customer/profile']);
           }, 2000);
         },
@@ -125,7 +110,6 @@ export class ChangePasswordComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.otpSent = false;
     this.successMessage = '';
     this.errorMessage = '';
     this.initForm();
@@ -135,6 +119,10 @@ export class ChangePasswordComponent implements OnInit {
     const field = this.passwordForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
+
+  toggleOldVisibility(): void { this.showOld = !this.showOld; }
+  toggleNewVisibility(): void { this.showNew = !this.showNew; }
+  toggleConfirmVisibility(): void { this.showConfirm = !this.showConfirm; }
 
   private markFormGroupTouched(): void {
     Object.keys(this.passwordForm.controls).forEach(key => {

@@ -46,15 +46,8 @@ public class BehavioralDeviationEvaluator implements RuleEvaluator {
 
             // ✅ Use existing method
             List<BigDecimal> amounts = transactionRepository.findHistoricalAmounts(customerId, after, before);
-
-            // ✅ Exclude current transaction (if same amount just inserted)
-            if (amounts != null && !amounts.isEmpty()) {
-                amounts.removeIf(a -> a.compareTo(input.getAmount()) == 0);
-            }
-
-            // ✅ If no meaningful history, skip behavioral deviation
-            if (amounts == null || amounts.size() < 3) {
-                System.out.println("BehavioralDeviationEvaluator: insufficient history, skipping behavioral deviation");
+            if (amounts.size() < 5) {
+                System.out.println("    BehavioralDeviationEvaluator: no history, returning false");
                 return false;
             }
 

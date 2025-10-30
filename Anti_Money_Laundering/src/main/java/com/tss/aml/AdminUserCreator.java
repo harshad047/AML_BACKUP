@@ -23,7 +23,7 @@ public class AdminUserCreator {
 
         // --- Admin User Details ---
         String adminEmail = "admin@aml.com";
-        String plainPassword = "admin";
+        String plainPassword = "admin123";
         String hashedPassword = passwordEncoder.encode(plainPassword);
 
         String sql = "INSERT INTO users (first_name, last_name, email, username, password, role, is_enabled) VALUES (?, ?, ?, ?, ?, ?, ?)";

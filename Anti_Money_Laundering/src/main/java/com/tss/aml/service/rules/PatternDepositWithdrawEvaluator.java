@@ -19,20 +19,20 @@ public class PatternDepositWithdrawEvaluator implements RuleEvaluator {
 
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
-        // --- Step 1: Parse the parameters from the rule condition's 'value' field ---
+
         int consecutiveCount;
         BigDecimal amountMultiplier;
+
         try {
-            String[] params = condition.getValue().split("\\|"); // Split "3|1.0"
-            if (params.length != 2) return false; // Ensure we have exactly two parameters
-            
+            String[] params = condition.getValue().split("\\|"); 
+            if (params.length != 2) return false;
             consecutiveCount = Integer.parseInt(params[0]);
             amountMultiplier = new BigDecimal(params[1]);
-        } catch (NumberFormatException | NullPointerException e) {
-            // If the value is malformed, the rule cannot be evaluated.
+        } catch (Exception e) {
             return false;
         }
 
+        // --- Step 2: Parse customer ID ---
         Long customerId;
         try {
             customerId = Long.parseLong(input.getCustomerId());
@@ -40,18 +40,21 @@ public class PatternDepositWithdrawEvaluator implements RuleEvaluator {
             return false;
         }
 
-        List<Transaction> recentTransactions = transactionRepository
-                .findTop20ByCustomerIdOrderByCreatedAtDesc(customerId);
-        
+        // --- Step 3: Fetch recent transactions ---
+        List<Transaction> recentTransactions =
+                transactionRepository.findTop20ByCustomerIdOrderByCreatedAtDesc(customerId);
+
+        // Sort chronologically
         recentTransactions.sort(Comparator.comparing(Transaction::getCreatedAt));
 
         if (recentTransactions.size() < consecutiveCount) {
             return false;
         }
 
-        // --- Step 2: Use the parsed 'consecutiveCount' variable ---
+        // --- Step 4: Detect continuous deposit or withdrawal pattern ---
         int depositStreak = 0;
         int withdrawStreak = 0;
+
         for (Transaction t : recentTransactions) {
             if (t.getTransactionType() == Transaction.TransactionType.DEPOSIT) {
                 depositStreak++;
@@ -64,20 +67,29 @@ public class PatternDepositWithdrawEvaluator implements RuleEvaluator {
                 withdrawStreak = 0;
             }
 
-            if (depositStreak >= consecutiveCount || withdrawStreak >= consecutiveCount) {
+            // ✅ Flag only when streak completes (not before)
+            if (depositStreak == consecutiveCount &&
+                t.getTransactionType() == Transaction.TransactionType.DEPOSIT) {
+                return true;
+            }
+
+            if (withdrawStreak == consecutiveCount &&
+                t.getTransactionType() == Transaction.TransactionType.WITHDRAWAL) {
                 return true;
             }
         }
 
-        // --- Step 3: Use the parsed 'amountMultiplier' variable ---
+        // --- Step 5: Detect deposit immediately followed by large withdrawal ---
         for (int i = 1; i < recentTransactions.size(); i++) {
             Transaction previous = recentTransactions.get(i - 1);
             Transaction current = recentTransactions.get(i);
 
             if (previous.getTransactionType() == Transaction.TransactionType.DEPOSIT &&
                 current.getTransactionType() == Transaction.TransactionType.WITHDRAWAL) {
-                
+
                 BigDecimal requiredAmount = previous.getAmount().multiply(amountMultiplier);
+
+                // ✅ Flag only if withdrawal ≥ deposit × multiplier
                 if (current.getAmount().compareTo(requiredAmount) >= 0) {
                     return true;
                 }

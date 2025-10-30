@@ -56,7 +56,8 @@ export interface ApiResponse<T> {
 
 export interface ForgotPasswordRequest {
   email: string;
-  otp: string;
+  otp?: string; // legacy single-step support
+  token?: string; // preferred two-step token
   newPassword: string;
   confirmPassword: string;
 }
