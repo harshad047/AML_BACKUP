@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DocumentService, DocumentDto } from '../../core/services/document.service';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 interface DocumentWithStatus {
   id: number;
@@ -39,7 +40,19 @@ interface DocumentWithStatus {
   standalone: true,
   imports: [CommonModule, DatePipe, ReactiveFormsModule],
   templateUrl: './customer-documents.component.html',
-  styleUrls: ['./customer-documents.component.css']
+  styleUrls: ['./customer-documents.component.css'],
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: '0', opacity: 0, overflow: 'hidden' }),
+        animate('300ms ease-out', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        style({ height: '*', opacity: 1, overflow: 'hidden' }),
+        animate('300ms ease-in', style({ height: '0', opacity: 0 }))
+      ])
+    ])
+  ]
 })
 export class CustomerDocumentsComponent implements OnInit {
   documents: DocumentWithStatus[] = [];
@@ -51,6 +64,8 @@ export class CustomerDocumentsComponent implements OnInit {
   uploadSuccess = '';
   selectedFileName = '';
   selectedFile: File | null = null;
+  isDragOver = false;
+  isUploadFormExpanded = false;
 
   constructor(private docs: DocumentService, private fb: FormBuilder) {
     this.uploadForm = this.fb.group({
@@ -256,6 +271,26 @@ export class CustomerDocumentsComponent implements OnInit {
     }
   }
 
+  // Status count methods for tiles
+  getTotalDocumentsCount(): number {
+    return this.documents.length;
+  }
+
+  getPendingDocumentsCount(): number {
+    return this.documents.filter(d => {
+      const status = this.getStatus(d).toUpperCase();
+      return status === 'PENDING' || status === 'UNDER_REVIEW' || status === 'IN_REVIEW' || status === 'UPLOADED';
+    }).length;
+  }
+
+  getVerifiedDocumentsCount(): number {
+    return this.documents.filter(d => this.isVerified(d)).length;
+  }
+
+  getRejectedDocumentsCount(): number {
+    return this.documents.filter(d => this.isRejected(d)).length;
+  }
+
   viewDocument(doc: DocumentWithStatus): void {
     console.log('Viewing document with ID:', doc.id);
 
@@ -316,26 +351,7 @@ export class CustomerDocumentsComponent implements OnInit {
     const file = target.files?.[0];
 
     if (file) {
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        this.uploadError = 'File size must be less than 5MB';
-        this.selectedFileName = '';
-        this.selectedFile = null;
-        return;
-      }
-
-      // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-      if (!allowedTypes.includes(file.type)) {
-        this.uploadError = 'Please select a valid file (PDF, JPG, PNG)';
-        this.selectedFileName = '';
-        this.selectedFile = null;
-        return;
-      }
-
-      this.selectedFileName = file.name;
-      this.selectedFile = file;
-      this.uploadError = '';
+      this.validateAndSetFile(file);
     } else {
       this.selectedFileName = '';
       this.selectedFile = null;
@@ -425,5 +441,90 @@ export class CustomerDocumentsComponent implements OnInit {
       next: () => console.log('Document service is working'),
       error: (err) => console.log('Document service error:', err)
     });
+  }
+
+  // Toggle upload form visibility
+  toggleUploadForm(): void {
+    this.isUploadFormExpanded = !this.isUploadFormExpanded;
+  }
+
+  // Drag and Drop handlers
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      this.validateAndSetFile(file);
+    }
+  }
+
+  private validateAndSetFile(file: File): void {
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadError = 'File size must be less than 5MB';
+      this.selectedFileName = '';
+      this.selectedFile = null;
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      this.uploadError = 'Please select a valid file (PDF, JPG, PNG)';
+      this.selectedFileName = '';
+      this.selectedFile = null;
+      return;
+    }
+
+    this.selectedFileName = file.name;
+    this.selectedFile = file;
+    this.uploadError = '';
+  }
+
+  removeFile(event: Event): void {
+    event.stopPropagation();
+    this.selectedFileName = '';
+    this.selectedFile = null;
+    this.uploadError = '';
+  }
+
+  getFileIcon(): string {
+    if (!this.selectedFileName) return 'fa-file';
+    
+    const extension = this.selectedFileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return 'fa-file-pdf';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+        return 'fa-file-image';
+      default:
+        return 'fa-file';
+    }
+  }
+
+  getFileSize(): string {
+    if (!this.selectedFile) return '';
+    
+    const bytes = this.selectedFile.size;
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   }
 }

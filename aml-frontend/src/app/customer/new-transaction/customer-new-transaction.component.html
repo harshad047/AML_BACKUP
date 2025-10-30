@@ -1,82 +1,176 @@
 <div class="container py-3">
-  <h3 class="mb-3">New Transaction</h3>
+  <!-- Header with Back Button -->
+  <div class="page-header mb-4">
+    <div class="header-content">
+      <h3 class="page-title">New Transaction</h3>
+      <p class="page-subtitle">Create a new deposit, withdrawal, or transfer</p>
+    </div>
+    <button class="btn btn-outline-secondary btn-back" (click)="goBack()" type="button">
+      <i class="fas fa-arrow-left me-2"></i>Back
+    </button>
+  </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="card p-3">
-    <div class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label">Type</label>
-        <select class="form-select" formControlName="type">
-          <option value="DEPOSIT">Deposit</option>
-          <option value="WITHDRAWAL">Withdrawal</option>
-          <option value="TRANSFER">Transfer</option>
-        </select>
+  <!-- Transaction Form Card -->
+  <div class="transaction-form-card">
+    <div class="form-header">
+      <div class="form-icon">
+        <i class="fas fa-money-bill-wave"></i>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Amount</label>
-        <input type="number" class="form-control" formControlName="amount" min="0" step="0.01" />
+      <h5 class="mb-0">Transaction Details</h5>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-exchange-alt me-2"></i>Transaction Type
+          </label>
+          <select class="form-select modern-select" formControlName="type">
+            <option value="DEPOSIT">💰 Deposit</option>
+            <option value="WITHDRAWAL">💸 Withdrawal</option>
+            <option value="TRANSFER">🔄 Transfer</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-rupee-sign me-2"></i>Amount
+          </label>
+          <div class="input-group">
+            <span class="input-group-text">₹</span>
+            <input type="number" class="form-control modern-input" formControlName="amount" min="0" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+        <!-- Currency auto-detected from account by backend -->
+        <!-- Account identifiers per type -->
+        <div class="col-md-12" *ngIf="form.value.type === 'DEPOSIT'">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-university me-2"></i>To Account
+          </label>
+          <select class="form-select modern-select" formControlName="toAccountNumber">
+            <option [ngValue]="''" disabled>Select destination account</option>
+            <option *ngFor="let acc of activeAccounts" [ngValue]="acc.accountNumber">
+              {{ acc.accountNumber }} — {{ acc.accountType }} ({{ acc.currency }})
+            </option>
+          </select>
+          <div class="alert alert-warning mt-2" *ngIf="activeAccounts.length === 0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No active accounts available. Please ensure your account is approved and active.
+          </div>
+        </div>
+        <div class="col-md-12" *ngIf="form.value.type === 'WITHDRAWAL'">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-university me-2"></i>From Account
+          </label>
+          <select class="form-select modern-select" formControlName="fromAccountNumber">
+            <option [ngValue]="''" disabled>Select source account</option>
+            <option *ngFor="let acc of activeAccounts" [ngValue]="acc.accountNumber">
+              {{ acc.accountNumber }} — {{ acc.accountType }} ({{ acc.currency }})
+            </option>
+          </select>
+          <div class="alert alert-warning mt-2" *ngIf="activeAccounts.length === 0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No active accounts available. Please ensure your account is approved and active.
+          </div>
+        </div>
+        <div class="col-md-6" *ngIf="form.value.type === 'TRANSFER'">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-university me-2"></i>From Account
+          </label>
+          <select class="form-select modern-select" formControlName="fromAccountNumber">
+            <option [ngValue]="''" disabled>Select source account</option>
+            <option *ngFor="let acc of activeAccounts" [ngValue]="acc.accountNumber">
+              {{ acc.accountNumber }} — {{ acc.accountType }} ({{ acc.currency }})
+            </option>
+          </select>
+          <div class="alert alert-warning mt-2" *ngIf="activeAccounts.length === 0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No active accounts available.
+          </div>
+        </div>
+        <div class="col-md-6" *ngIf="form.value.type === 'TRANSFER'">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-university me-2"></i>To Account Number
+          </label>
+          <input type="text" class="form-control modern-input" formControlName="toAccountNumber" placeholder="e.g. ACC987" />
+        </div>
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-comment-alt me-2"></i>Description (optional)
+          </label>
+          <textarea class="form-control modern-input" formControlName="description" rows="3" placeholder="Add a note or description for this transaction..."></textarea>
+        </div>
       </div>
-      <!-- Currency auto-detected from account by backend -->
-      <!-- Account identifiers per type -->
-      <div class="col-md-6" *ngIf="form.value.type === 'DEPOSIT'">
-        <label class="form-label">To Account</label>
-        <select class="form-select" formControlName="toAccountNumber">
-          <option [ngValue]="''" disabled>Select account</option>
-          <option *ngFor="let acc of activeAccounts" [ngValue]="acc.accountNumber">
-            {{ acc.accountNumber }} — {{ acc.accountType }} ({{ acc.currency }})
-          </option>
-        </select>
-        <small class="text-muted" *ngIf="activeAccounts.length === 0">
-          No active accounts available. Please ensure your account is approved and active.
-        </small>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button class="btn btn-primary btn-submit" type="submit" [disabled]="form.invalid || loading">
+          <span *ngIf="!loading">
+            <i class="fas fa-paper-plane me-2"></i>Submit Transaction
+          </span>
+          <span *ngIf="loading">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Processing...
+          </span>
+        </button>
+        <button class="btn btn-outline-secondary" type="button" (click)="resetForm()">
+          <i class="fas fa-redo me-2"></i>Reset
+        </button>
       </div>
-      <div class="col-md-6" *ngIf="form.value.type === 'WITHDRAWAL'">
-        <label class="form-label">From Account</label>
-        <select class="form-select" formControlName="fromAccountNumber">
-          <option [ngValue]="''" disabled>Select account</option>
-          <option *ngFor="let acc of activeAccounts" [ngValue]="acc.accountNumber">
-            {{ acc.accountNumber }} — {{ acc.accountType }} ({{ acc.currency }})
-          </option>
-        </select>
-        <small class="text-muted" *ngIf="activeAccounts.length === 0">
-          No active accounts available. Please ensure your account is approved and active.
-        </small>
+
+      <!-- Messages -->
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
       </div>
-      <div class="col-md-6" *ngIf="form.value.type === 'TRANSFER'">
-        <label class="form-label">From Account</label>
-        <select class="form-select" formControlName="fromAccountNumber">
-          <option [ngValue]="''" disabled>Select account</option>
-          <option *ngFor="let acc of activeAccounts" [ngValue]="acc.accountNumber">
-            {{ acc.accountNumber }} — {{ acc.accountType }} ({{ acc.currency }})
-          </option>
-        </select>
-        <small class="text-muted" *ngIf="activeAccounts.length === 0">
-          No active accounts available. Please ensure your account is approved and active.
-        </small>
+      <div *ngIf="success" class="alert alert-success mt-3">
+        <i class="fas fa-check-circle me-2"></i>Transaction submitted successfully!
       </div>
-      <div class="col-md-6" *ngIf="form.value.type === 'TRANSFER'">
-        <label class="form-label">To Account Number</label>
-        <input type="text" class="form-control" formControlName="toAccountNumber" placeholder="e.g. ACC987" />
+    </form>
+  </div>
+
+  <!-- Success Card -->
+  <div *ngIf="created" class="success-card mt-4">
+    <div class="success-header">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
       </div>
-      <div class="col-md-12">
-        <label class="form-label">Description (optional)</label>
-        <input type="text" class="form-control" formControlName="description" />
+      <h5 class="mb-0">Transaction Created Successfully!</h5>
+    </div>
+    <div class="success-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Transaction Type</label>
+            <div class="detail-value">{{ created.transactionType }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Amount</label>
+            <div class="detail-value amount">₹{{ created.amount | number:'1.2-2' }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Status</label>
+            <div class="detail-value">
+              <span class="badge bg-success">{{ created.status }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Date</label>
+            <div class="detail-value">{{ created.createdAt | date:'short' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-primary" (click)="createAnother()">
+          <i class="fas fa-plus me-2"></i>Create Another Transaction
+        </button>
+        <button class="btn btn-outline-primary ms-2" (click)="goBack()">
+          <i class="fas fa-list me-2"></i>View All Transactions
+        </button>
       </div>
     </div>
-
-    <div class="mt-3 d-flex gap-2 align-items-center">
-      <button class="btn btn-primary" type="submit" [disabled]="form.invalid || loading">
-        {{ loading ? 'Submitting...' : 'Submit' }}
-      </button>
-      <div *ngIf="error" class="text-danger">{{ error }}</div>
-      <div *ngIf="success" class="text-success">Transaction submitted!</div>
-    </div>
-  </form>
-
-  <div *ngIf="created" class="card p-3 mt-3">
-    <h5 class="mb-2">Created Transaction</h5>
-    <div>Transaction Type: {{ created.transactionType }}</div>
-    <div>Amount: {{ created.amount }}</div>
-    <div>Status: {{ created.status }}</div>
-    <div>Date: {{ created.createdAt }}</div>
   </div>
 </div>

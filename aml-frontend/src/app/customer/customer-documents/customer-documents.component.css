@@ -1,17 +1,456 @@
+/* Upload Card Styling */
+.upload-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.upload-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.upload-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  padding: 1.5rem;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.upload-header:hover {
+  background: linear-gradient(135deg, #0b5ed7 0%, #084298 100%);
+}
+
+.upload-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.toggle-arrow {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.toggle-arrow:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+.toggle-arrow i {
+  transition: transform 0.3s ease;
+}
+
+.toggle-arrow.expanded i {
+  transform: rotate(180deg);
+}
+
+.upload-body {
+  padding: 2rem;
+}
+
+/* Document Type Section */
+.document-type-section .form-label {
+  color: #495057;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.modern-select {
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.modern-select:focus {
+  border-color: #0d6efd;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+/* Upload Zone */
+.upload-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 2.5rem;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.upload-zone:hover {
+  border-color: #0d6efd;
+  background: #f0f7ff;
+}
+
+.upload-zone.drag-over {
+  border-color: #0d6efd;
+  background: #e7f3ff;
+  transform: scale(1.02);
+}
+
+.upload-zone.has-file {
+  border-style: solid;
+  border-color: #198754;
+  background: #f0fdf4;
+}
+
+/* Upload Placeholder */
+.upload-placeholder .upload-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.upload-placeholder h6 {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.upload-placeholder .file-info {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* File Preview */
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.file-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.file-details {
+  flex: 1;
+  text-align: left;
+}
+
+.file-details h6 {
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.remove-file {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Messages */
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff5f5;
+  border-left: 3px solid #dc3545;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.success-message {
+  color: #198754;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  background: #f0fdf4;
+  border-left: 3px solid #198754;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+/* KYC Status Tiles */
+.kyc-status-section {
+  margin-top: 2rem;
+}
+
+.section-header h5 {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.status-tile {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.status-tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.status-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.status-tile:hover::before {
+  width: 100%;
+  opacity: 0.05;
+}
+
+.tile-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.status-tile:hover .tile-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.tile-content {
+  flex: 1;
+}
+
+.tile-count {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.tile-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0.25rem 0 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Uploaded Tile */
+.uploaded-tile::before {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.uploaded-tile .tile-icon {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+}
+
+.uploaded-tile .tile-count {
+  color: #0d6efd;
+}
+
+.uploaded-tile .tile-label {
+  color: #6c757d;
+}
+
+/* Pending Tile */
+.pending-tile::before {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+.pending-tile .tile-icon {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: white;
+}
+
+.pending-tile .tile-count {
+  color: #ffc107;
+}
+
+.pending-tile .tile-label {
+  color: #6c757d;
+}
+
+/* Verified Tile */
+.verified-tile::before {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+}
+
+.verified-tile .tile-icon {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+  color: white;
+}
+
+.verified-tile .tile-count {
+  color: #198754;
+}
+
+.verified-tile .tile-label {
+  color: #6c757d;
+}
+
+/* Rejected Tile */
+.rejected-tile::before {
+  background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+}
+
+.rejected-tile .tile-icon {
+  background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+  color: white;
+}
+
+.rejected-tile .tile-count {
+  color: #dc3545;
+}
+
+.rejected-tile .tile-label {
+  color: #6c757d;
+}
+
+/* Upload Actions */
+.upload-actions .btn-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 0.875rem;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.upload-actions .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+}
+
+.upload-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Document Table Styling */
 .document-row {
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .document-row:hover {
   background-color: #f8f9fa;
+  transform: translateX(4px);
 }
 
 .badge {
   font-size: 0.75rem;
   padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 .card {
   border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+  padding: 1rem;
+}
+
+.table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .upload-body {
+    padding: 1.5rem;
+  }
+  
+  .upload-zone {
+    padding: 1.5rem;
+  }
+  
+  .upload-placeholder .upload-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .status-tile {
+    padding: 1.25rem;
+  }
+
+  .tile-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.25rem;
+  }
+
+  .tile-count {
+    font-size: 1.75rem;
+  }
+
+  .tile-label {
+    font-size: 0.8rem;
+  }
 }

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
 import { AccountService, AccountDto } from '../../core/services/account.service';
 
@@ -8,7 +10,8 @@ import { AccountService, AccountDto } from '../../core/services/account.service'
   selector: 'app-customer-new-transaction',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './customer-new-transaction.component.html'
+  templateUrl: './customer-new-transaction.component.html',
+  styleUrls: ['./customer-new-transaction.component.css']
 })
 export class CustomerNewTransactionComponent implements OnInit {
   form: FormGroup;
@@ -25,7 +28,13 @@ export class CustomerNewTransactionComponent implements OnInit {
     );
   }
 
-  constructor(private fb: FormBuilder, private tx: TransactionService, private accountService: AccountService) {
+  constructor(
+    private fb: FormBuilder, 
+    private tx: TransactionService, 
+    private accountService: AccountService,
+    private router: Router,
+    private location: Location
+  ) {
     this.form = this.fb.group({
       type: ['DEPOSIT', Validators.required],
       amount: [0, [Validators.required, Validators.min(0.01)]],
@@ -115,5 +124,27 @@ export class CustomerNewTransactionComponent implements OnInit {
         this.error = err?.error?.message || 'Failed to submit transaction';
       }
     });
+  }
+
+  goBack(): void {
+    this.location.back();
+  }
+
+  resetForm(): void {
+    this.form.reset({
+      type: 'DEPOSIT',
+      amount: 0,
+      description: '',
+      toAccountNumber: '',
+      fromAccountNumber: ''
+    });
+    this.error = '';
+    this.success = false;
+    this.created = null;
+  }
+
+  createAnother(): void {
+    this.resetForm();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

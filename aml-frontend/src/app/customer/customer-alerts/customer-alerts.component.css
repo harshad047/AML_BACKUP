@@ -1,40 +1,355 @@
-.card {
-  border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border-radius: 0.5rem;
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
 }
 
-.badge {
-  font-size: 0.75rem;
-  padding: 0.35rem 0.6rem;
-  letter-spacing: 0.3px;
+.header-content {
+  flex: 1;
 }
 
-.table th {
-  border-top: none;
-  font-weight: 600;
-  color: #495057;
-  background-color: #f8f9fa;
-}
-
-.table td {
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
   color: #212529;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+  color: #6c757d;
+  margin-bottom: 0;
+  line-height: 1.4;
+}
+
+/* Back Button */
+.btn-back {
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid #6c757d;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  background: #6c757d;
+  color: white;
+  transform: translateX(-4px);
+}
+
+/* Statistics Cards */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-count {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0.25rem 0 0 0;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Card Variants */
+.total-card {
+  border-left-color: #ffc107;
+}
+
+.total-card .stat-icon {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+.total-card .stat-count {
+  color: #ffc107;
+}
+
+.high-priority-card {
+  border-left-color: #dc3545;
+}
+
+.high-priority-card .stat-icon {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+.high-priority-card .stat-count {
+  color: #dc3545;
+}
+
+.pending-card {
+  border-left-color: #17a2b8;
+}
+
+.pending-card .stat-icon {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+.pending-card .stat-count {
+  color: #17a2b8;
+}
+
+.resolved-card {
+  border-left-color: #198754;
+}
+
+.resolved-card .stat-icon {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+}
+
+.resolved-card .stat-count {
+  color: #198754;
+}
+
+/* Alerts Section */
+.alerts-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.section-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  padding: 1rem 1.5rem;
+  color: white;
+}
+
+.section-header h5 {
+  font-weight: 600;
+}
+
+.section-body {
+  padding: 1.5rem;
+}
+
+/* Modern Table */
+.modern-table {
+  margin: 0;
+}
+
+.modern-table thead {
+  background: #f8f9fa;
+}
+
+.modern-table thead th {
+  border: none;
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #495057;
+}
+
+.modern-table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.modern-table tbody td {
+  padding: 1rem;
   vertical-align: middle;
 }
 
-.alert-row {
-  transition: background-color 0.2s ease;
-}
-
-.alert-row:hover {
-  background-color: #f8f9fa;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
+.row-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #e9ecef;
+  border-radius: 50%;
+  font-weight: 600;
   font-size: 0.875rem;
+  color: #495057;
 }
 
-.text-dark {
-  color: #212529 !important;
+.alert-title strong {
+  color: #212529;
+  font-size: 0.95rem;
+}
+
+/* Badges */
+.type-badge,
+.status-badge {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* View Button */
+.btn-view {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  color: white;
+}
+
+/* Modal Styling */
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+  padding: 1.25rem 1.5rem;
+  border-bottom: none;
+}
+
+.modal-header .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.info-item {
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid #0d6efd;
+}
+
+.info-item label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: #212529;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .btn-back {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .stat-count {
+    font-size: 1.5rem;
+  }
+
+  .modern-table {
+    font-size: 0.875rem;
+  }
+
+  .modern-table thead th,
+  .modern-table tbody td {
+    padding: 0.75rem 0.5rem;
+  }
 }

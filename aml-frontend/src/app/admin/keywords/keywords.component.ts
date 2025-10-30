@@ -30,6 +30,7 @@ export class KeywordsComponent implements OnInit {
   showCreateForm = false;
   keywordForm: FormGroup;
   savingKeyword = false;
+  editingKeyword: SuspiciousKeywordDto | null = null;
 
   constructor(
     private adminService: AdminService,
@@ -145,6 +146,7 @@ export class KeywordsComponent implements OnInit {
 
   toggleCreateForm(): void {
     this.showCreateForm = !this.showCreateForm;
+    this.editingKeyword = null;
     if (!this.showCreateForm) {
       this.resetForm();
     }
@@ -160,6 +162,22 @@ export class KeywordsComponent implements OnInit {
     });
   }
 
+  editKeyword(keyword: SuspiciousKeywordDto): void {
+    this.editingKeyword = keyword;
+    this.showCreateForm = true;
+    
+    this.keywordForm.patchValue({
+      keyword: keyword.keyword,
+      riskLevel: keyword.riskLevel,
+      riskScore: keyword.riskScore,
+      category: keyword.category,
+      description: keyword.description,
+      active: keyword.active,
+      caseSensitive: keyword.caseSensitive,
+      wholeWordOnly: keyword.wholeWordOnly
+    });
+  }
+
   onSaveKeyword(): void {
     if (this.keywordForm.invalid) return;
 
@@ -169,16 +187,21 @@ export class KeywordsComponent implements OnInit {
 
     const keywordDto: SuspiciousKeywordDto = this.keywordForm.value;
 
-    this.adminService.addKeyword(keywordDto).subscribe({
+    const request = this.editingKeyword
+      ? this.adminService.updateKeyword(this.editingKeyword.id!, keywordDto)
+      : this.adminService.addKeyword(keywordDto);
+
+    request.subscribe({
       next: (keyword) => {
-        this.success = `Keyword "${keyword.keyword}" added successfully!`;
+        this.success = `Keyword "${keyword.keyword}" ${this.editingKeyword ? 'updated' : 'added'} successfully!`;
         this.savingKeyword = false;
         this.resetForm();
         this.showCreateForm = false;
+        this.editingKeyword = null;
         this.loadKeywords();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to add keyword';
+        this.error = err.error?.message || `Failed to ${this.editingKeyword ? 'update' : 'add'} keyword`;
         this.savingKeyword = false;
       }
     });

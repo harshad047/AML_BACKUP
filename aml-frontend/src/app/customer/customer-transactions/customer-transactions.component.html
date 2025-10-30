@@ -1,32 +1,94 @@
 <div class="container py-3">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">All Transactions</h3>
-    <a class="btn btn-primary" [routerLink]="['/customer/new-transaction']">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-1">All Transactions</h3>
+      <p class="text-muted small mb-0">View and manage your transaction history</p>
+    </div>
+    <a class="btn btn-primary btn-modern" [routerLink]="['/customer/new-transaction']">
       <i class="fas fa-plus me-2"></i>
       New Transaction
     </a>
   </div>
 
-  <div class="row g-2 mb-3">
-    <div class="col-auto">
-      <label class="col-form-label">Show:</label>
+  <!-- Transaction Statistics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card total-card">
+        <div class="stat-icon">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getTotalTransactions() }}</h4>
+          <p class="stat-label">Total</p>
+        </div>
+      </div>
     </div>
-    <div class="col-auto">
-      <select class="form-select" [ngModel]="filterStatus" (ngModelChange)="onFilterChange($event)">
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card approved-card">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getApprovedTransactions() }}</h4>
+          <p class="stat-label">Approved</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card flagged-card">
+        <div class="stat-icon">
+          <i class="fas fa-flag"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getFlaggedTransactionsOnly() }}</h4>
+          <p class="stat-label">Flagged</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card blocked-card">
+        <div class="stat-icon">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getBlockedTransactions() }}</h4>
+          <p class="stat-label">Blocked</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <label class="filter-label">
+        <i class="fas fa-filter me-2"></i>Filter:
+      </label>
+      <select class="form-select filter-select" [ngModel]="filterStatus" (ngModelChange)="onFilterChange($event)">
         <option value="all">All transactions</option>
+        <option value="approved">Approved transactions</option>
         <option value="flagged">Flagged transactions</option>
         <option value="blocked">Blocked transactions</option>
+        <option value="pending">Pending transactions</option>
       </select>
     </div>
   </div>
 
-  <div class="card">
+  <!-- Transactions Table -->
+  <div class="transactions-card">
     <div class="card-body p-0">
-      <div class="text-center text-muted py-4" *ngIf="loading">Loading...</div>
-      <div class="text-danger p-3" *ngIf="error">{{ error }}</div>
+      <div class="text-center text-muted py-5" *ngIf="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading transactions...</p>
+      </div>
+      <div class="alert alert-danger m-3" *ngIf="error">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+      </div>
       <div class="table-responsive" *ngIf="!loading && transactions.length > 0">
-        <table class="table table-striped mb-0">
-          <thead class="table-light">
+        <table class="table modern-table mb-0">
+          <thead>
             <tr>
               <th>#</th>
               <th>Type</th>
@@ -34,41 +96,180 @@
               <th>Status</th>
               <th>Date</th>
               <th>Description</th>
+              <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let t of transactions; index as i">
-              <td>{{ i + 1 }}</td>
-              <td><strong class="text-dark">{{ getTransactionType(t) }}</strong></td>
-              <td class="text-dark">{{ t.amount | currency:'INR':'symbol':'1.2-2' }}</td>
+            <tr *ngFor="let t of transactions; index as i" class="transaction-row">
+              <td><span class="row-number">{{ i + 1 }}</span></td>
               <td>
-                <span class="badge" [ngClass]="statusClass(t.status)">{{ getStatusText(t) }}</span>
+                <div class="transaction-type">
+                  <div class="type-icon" [ngClass]="getTypeIconClass(t)">
+                    <i class="fas" [ngClass]="getTypeIcon(t)"></i>
+                  </div>
+                  <strong>{{ getTransactionType(t) }}</strong>
+                </div>
               </td>
-              <td class="text-dark">{{ t.createdAt | date:'medium' }}</td>
-              <td class="text-dark">{{ t.description || '-' }}</td>
+              <td>
+                <span class="amount-text" [ngClass]="getAmountClass(t)">
+                  {{ t.amount | currency:'INR':'symbol':'1.2-2' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge status-badge" [ngClass]="statusClass(t.status)">
+                  {{ getStatusText(t) }}
+                </span>
+              </td>
+              <td class="text-muted">{{ t.createdAt | date:'short' }}</td>
+              <td class="text-muted">{{ t.description || '-' }}</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-view" (click)="viewTransactionDetails(t)" title="View Details">
+                  <i class="fas fa-eye me-1"></i>View
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="text-center text-muted py-4" *ngIf="!loading && transactions.length === 0">
-        No transactions found.
+      <div class="empty-state" *ngIf="!loading && transactions.length === 0">
+        <div class="empty-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h5>No transactions found</h5>
+        <p class="text-muted">Start by creating a new transaction</p>
       </div>
     </div>
   </div>
 
-  <!-- Flagged/Blocked Transactions Alerts -->
-  <div class="card mt-3" *ngIf="flaggedTransactions.length > 0">
-    <div class="card-header">
-      <h5 class="mb-0">Transaction Alerts</h5>
-    </div>
-    <div class="list-group list-group-flush">
-      <div class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let t of flaggedTransactions">
-        <div>
-          <div class="tx-item-title text-dark">{{ getTransactionType(t) }} - {{ t.amount | currency:'INR':'symbol':'1.2-2' }}</div>
-          <div class="tx-item-sub">{{ t.description || 'No description' }} ({{ t.createdAt | date:'short' }})</div>
+  <!-- Transaction Details Modal -->
+  <div class="modal fade" id="transactionModal" tabindex="-1" *ngIf="selectedTransaction">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title">
+              <i class="fas fa-file-invoice me-2"></i>Transaction Details
+            </h5>
+            <p class="text-muted small mb-0">Transaction ID: #{{ selectedTransaction.id }}</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="badge" [ngClass]="statusClass(t.status)">
-          {{ getStatusText(t) }}
+        <div class="modal-body">
+          <!-- Transaction Overview -->
+          <div class="detail-section">
+            <h6 class="section-title">
+              <i class="fas fa-info-circle me-2"></i>Overview
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Transaction Type</label>
+                  <div class="detail-value">
+                    <span class="type-badge" [ngClass]="getTypeIconClass(selectedTransaction)">
+                      <i class="fas" [ngClass]="getTypeIcon(selectedTransaction)"></i>
+                      {{ getTransactionType(selectedTransaction) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Amount</label>
+                  <div class="detail-value amount-large">
+                    {{ selectedTransaction.amount | currency:'INR':'symbol':'1.2-2' }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Status</label>
+                  <div class="detail-value">
+                    <span class="badge status-badge" [ngClass]="statusClass(selectedTransaction.status)">
+                      {{ getStatusText(selectedTransaction) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Date & Time</label>
+                  <div class="detail-value">{{ selectedTransaction.createdAt | date:'medium' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Information -->
+          <div class="detail-section">
+            <h6 class="section-title">
+              <i class="fas fa-university me-2"></i>Account Information
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>From Account</label>
+                  <div class="detail-value">{{ selectedTransaction.fromAccountNumber || 'N/A' }}</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>To Account</label>
+                  <div class="detail-value">{{ selectedTransaction.toAccountNumber || 'N/A' }}</div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="detail-item">
+                  <label>Description</label>
+                  <div class="detail-value">{{ selectedTransaction.description || 'No description provided' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Obstructed Rules -->
+          <div class="detail-section" *ngIf="selectedTransaction.obstructedRules && selectedTransaction.obstructedRules.length > 0">
+            <h6 class="section-title">
+              <i class="fas fa-exclamation-circle me-2"></i>Triggered Rules
+            </h6>
+            <div class="rules-list">
+              <div class="rule-item" *ngFor="let rule of selectedTransaction.obstructedRules">
+                <div class="rule-header">
+                  <span class="rule-name">{{ rule.ruleName }}</span>
+                  <span class="badge" [ngClass]="getRuleActionClass(rule.action)">{{ rule.action }}</span>
+                </div>
+                <div class="rule-details">
+                  <span class="rule-meta">Risk Weight: {{ rule.riskWeight }} | Priority: {{ rule.priority }}</span>
+                </div>
+                <div class="rule-description" *ngIf="rule.details">{{ rule.details }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="detail-section" *ngIf="selectedTransaction.transactionReference || selectedTransaction.alertId">
+            <h6 class="section-title">
+              <i class="fas fa-clipboard-list me-2"></i>Additional Information
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6" *ngIf="selectedTransaction.transactionReference">
+                <div class="detail-item">
+                  <label>Transaction Reference</label>
+                  <div class="detail-value">{{ selectedTransaction.transactionReference }}</div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngIf="selectedTransaction.alertId">
+                <div class="detail-item">
+                  <label>Alert ID</label>
+                  <div class="detail-value">{{ selectedTransaction.alertId }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Close
+          </button>
         </div>
       </div>
     </div>

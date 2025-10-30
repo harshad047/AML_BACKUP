@@ -7,70 +7,177 @@
   </div>
 
   <!-- Document Upload Section -->
-  <div class="card mb-3">
-    <div class="card-header">
-      <h5 class="mb-0">Upload New Document</h5>
-    </div>
-    <div class="card-body">
-      <form [formGroup]="uploadForm" (ngSubmit)="onUpload()">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Document Type</label>
-            <select class="form-select" formControlName="documentType">
-              <option value="">Select document type</option>
-              <option value="AADHAAR">Aadhaar Card</option>
-              <option value="PAN">PAN Card</option>
-              <option value="PASSPORT">Passport</option>
-              <option value="DRIVING_LICENSE">Driving License</option>
-              <option value="VOTER_ID">Voter ID</option>
-              <option value="BANK_STATEMENT">Bank Statement</option>
-              <option value="UTILITY_BILL">Utility Bill</option>
-              <option value="OTHER">Other</option>
-            </select>
-            <div *ngIf="uploadForm.get('documentType')?.invalid && uploadForm.get('documentType')?.touched" class="text-danger small">
-              Document type is required
-            </div>
+  <div class="upload-card mb-4">
+    <div class="upload-header" (click)="toggleUploadForm()" style="cursor: pointer;">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="upload-icon-wrapper me-3">
+            <i class="fas fa-cloud-upload-alt"></i>
           </div>
-          <div class="col-md-6">
-            <label class="form-label">File</label>
-            <input type="file" class="form-control" #fileInput (change)="onFileSelected($event)" accept=".pdf,.jpg,.jpeg,.png" />
-            <div *ngIf="selectedFileName" class="text-success small mt-1">
-              Selected: {{ selectedFileName }}
-            </div>
-            <div *ngIf="!selectedFileName && uploadForm.get('documentType')?.touched" class="text-danger small">
-              Please select a file (PDF, JPG, PNG)
-            </div>
-            <div class="form-text">Supported formats: PDF, JPG, PNG. Max size: 5MB</div>
+          <div>
+            <h5 class="mb-0">Upload New Document</h5>
+            <p class="text-muted small mb-0">Upload your identity and verification documents</p>
           </div>
         </div>
-        <div class="mt-3">
-          <button class="btn btn-primary" type="submit" [disabled]="!selectedFile || uploading">
+        <div class="toggle-arrow" [class.expanded]="isUploadFormExpanded">
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+    </div>
+    <div class="upload-body" *ngIf="isUploadFormExpanded" [@slideDown]>
+      <form [formGroup]="uploadForm" (ngSubmit)="onUpload()">
+        <!-- Document Type Selection -->
+        <div class="document-type-section mb-4">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-file-alt me-2"></i>Document Type
+          </label>
+          <select class="form-select modern-select" formControlName="documentType">
+            <option value="">Select document type</option>
+            <option value="AADHAAR">🪪 Aadhaar Card</option>
+            <option value="PAN">💳 PAN Card</option>
+            <option value="PASSPORT">🛂 Passport</option>
+            <option value="DRIVING_LICENSE">🚗 Driving License</option>
+            <option value="VOTER_ID">🗳️ Voter ID</option>
+            <option value="BANK_STATEMENT">🏦 Bank Statement</option>
+            <option value="UTILITY_BILL">📄 Utility Bill</option>
+            <option value="OTHER">📎 Other</option>
+          </select>
+          <div *ngIf="uploadForm.get('documentType')?.invalid && uploadForm.get('documentType')?.touched" class="error-message">
+            <i class="fas fa-exclamation-circle me-1"></i>Document type is required
+          </div>
+        </div>
+
+        <!-- File Upload Area -->
+        <div class="file-upload-section mb-4">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-paperclip me-2"></i>Choose File
+          </label>
+          <div class="upload-zone" 
+               [class.has-file]="selectedFileName"
+               [class.drag-over]="isDragOver"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave($event)"
+               (drop)="onDrop($event)"
+               (click)="fileInput.click()">
+            <input type="file" 
+                   class="d-none" 
+                   #fileInput 
+                   (change)="onFileSelected($event)" 
+                   accept=".pdf,.jpg,.jpeg,.png" />
+            
+            <div *ngIf="!selectedFileName" class="upload-placeholder">
+              <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+              </div>
+              <h6 class="mt-3 mb-2">Drag & drop your file here</h6>
+              <p class="text-muted mb-2">or</p>
+              <button type="button" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-folder-open me-2"></i>Browse Files
+              </button>
+              <p class="file-info mt-3">
+                <i class="fas fa-info-circle me-1"></i>
+                Supported: PDF, JPG, PNG • Max size: 5MB
+              </p>
+            </div>
+
+            <div *ngIf="selectedFileName" class="file-preview">
+              <div class="file-icon">
+                <i class="fas" [ngClass]="getFileIcon()"></i>
+              </div>
+              <div class="file-details">
+                <h6 class="mb-1">{{ selectedFileName }}</h6>
+                <p class="text-muted small mb-0">{{ getFileSize() }}</p>
+              </div>
+              <button type="button" 
+                      class="btn btn-sm btn-outline-danger remove-file" 
+                      (click)="removeFile($event)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="uploadError" class="error-message mt-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>{{ uploadError }}
+          </div>
+          <div *ngIf="uploadSuccess" class="success-message mt-2">
+            <i class="fas fa-check-circle me-1"></i>{{ uploadSuccess }}
+          </div>
+        </div>
+
+        <!-- Upload Button -->
+        <div class="upload-actions">
+          <button class="btn btn-primary btn-lg w-100" 
+                  type="submit" 
+                  [disabled]="!selectedFile || uploading || uploadForm.invalid">
             <span *ngIf="!uploading">
               <i class="fas fa-upload me-2"></i>Upload Document
             </span>
             <span *ngIf="uploading">
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Uploading...
             </span>
           </button>
-          <div *ngIf="uploadError" class="text-danger mt-2">{{ uploadError }}</div>
-          <div *ngIf="uploadSuccess" class="text-success mt-2">{{ uploadSuccess }}</div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- KYC Status Card -->
-  <div class="card mb-3" *ngIf="hasKycStatus()">
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-8">
-          <h6 class="card-title">KYC Verification Status</h6>
-          <p class="card-text text-muted">{{ getKycStatusMessage() }}</p>
+  <!-- KYC Verification Status Tiles -->
+  <div class="kyc-status-section mb-4" *ngIf="hasKycStatus()">
+    <div class="section-header mb-3">
+      <h5 class="mb-1">KYC Verification Status</h5>
+      <p class="text-muted small mb-0">{{ getKycStatusMessage() }}</p>
+    </div>
+    
+    <div class="row g-3">
+      <!-- Uploaded Tile -->
+      <div class="col-md-3 col-sm-6">
+        <div class="status-tile uploaded-tile">
+          <div class="tile-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <div class="tile-content">
+            <h3 class="tile-count">{{ getTotalDocumentsCount() }}</h3>
+            <p class="tile-label">Uploaded</p>
+          </div>
         </div>
-        <div class="col-md-4 text-end">
-          <span class="badge fs-6" [ngClass]="getKycStatusBadgeClass()">
-            {{ getKycStatusText() }}
-          </span>
+      </div>
+
+      <!-- Pending Tile -->
+      <div class="col-md-3 col-sm-6">
+        <div class="status-tile pending-tile">
+          <div class="tile-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="tile-content">
+            <h3 class="tile-count">{{ getPendingDocumentsCount() }}</h3>
+            <p class="tile-label">Pending</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verified Tile -->
+      <div class="col-md-3 col-sm-6">
+        <div class="status-tile verified-tile">
+          <div class="tile-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="tile-content">
+            <h3 class="tile-count">{{ getVerifiedDocumentsCount() }}</h3>
+            <p class="tile-label">Verified</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rejected Tile -->
+      <div class="col-md-3 col-sm-6">
+        <div class="status-tile rejected-tile">
+          <div class="tile-icon">
+            <i class="fas fa-times-circle"></i>
+          </div>
+          <div class="tile-content">
+            <h3 class="tile-count">{{ getRejectedDocumentsCount() }}</h3>
+            <p class="tile-label">Rejected</p>
+          </div>
         </div>
       </div>
     </div>

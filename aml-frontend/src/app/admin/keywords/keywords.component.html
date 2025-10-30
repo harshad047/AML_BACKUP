@@ -21,10 +21,13 @@
     <button type="button" class="btn-close" (click)="error = ''"></button>
   </div>
 
-  <!-- Create Keyword Form -->
+  <!-- Create/Edit Keyword Form -->
   <div class="card mb-4" *ngIf="showCreateForm">
     <div class="card-header bg-primary text-white">
-      <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Add New Keyword</h5>
+      <h5 class="mb-0">
+        <i class="fas fa-{{ editingKeyword ? 'edit' : 'plus' }} me-2"></i>
+        {{ editingKeyword ? 'Edit Keyword' : 'Add New Keyword' }}
+      </h5>
     </div>
     <div class="card-body">
       <form [formGroup]="keywordForm" (ngSubmit)="onSaveKeyword()">
@@ -86,7 +89,7 @@
         <div class="d-flex gap-2">
           <button type="submit" class="btn btn-primary" [disabled]="keywordForm.invalid || savingKeyword">
             <span *ngIf="savingKeyword" class="spinner-border spinner-border-sm me-2"></span>
-            {{ savingKeyword ? 'Adding...' : 'Add Keyword' }}
+            {{ savingKeyword ? (editingKeyword ? 'Updating...' : 'Adding...') : (editingKeyword ? 'Update Keyword' : 'Add Keyword') }}
           </button>
           <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">Cancel</button>
         </div>
@@ -160,9 +163,14 @@
                 </span>
               </td>
               <td class="text-center">
-                <button class="btn btn-sm btn-outline-danger" (click)="deleteKeyword(keyword)" title="Delete Keyword">
-                  <i class="fas fa-trash"></i>
-                </button>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-sm btn-outline-primary" (click)="editKeyword(keyword)" title="Edit Keyword">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteKeyword(keyword)" title="Delete Keyword">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

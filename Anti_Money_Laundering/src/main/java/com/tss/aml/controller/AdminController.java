@@ -97,6 +97,13 @@ public class AdminController {
         adminService.deleteKeyword(id);
         return ResponseEntity.noContent().build();
     }
+    
+    @PutMapping("/keywords/{id}")
+    public ResponseEntity<SuspiciousKeywordDto> updateKeyword(@PathVariable Long id,@RequestBody SuspiciousKeywordDto keywordDto){
+        return new ResponseEntity<>(adminService.updateKeyword(id,keywordDto), HttpStatus.CREATED);
+    }
+    
+    
 
     @GetMapping("/accounts/pending")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN') or hasAnyRole('ADMIN', 'SUPER_ADMIN')")

@@ -1,51 +1,91 @@
 <div class="container py-3">
-  <h3 class="mb-3">Account Management</h3>
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="header-content">
+      <h3 class="page-title">Account Management</h3>
+      <p class="page-subtitle">View and manage your bank accounts</p>
+    </div>
+  </div>
 
   <!-- Existing Accounts Section -->
-  <div class="card mb-4" *ngIf="existingAccounts.length > 0">
-    <div class="card-header">
-      <h5 class="mb-0">Your Accounts</h5>
+  <div class="accounts-section mb-4">
+    <div class="section-header" (click)="toggleAccountsSection()" style="cursor: pointer;">
+      <div class="d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">
+          <i class="fas fa-university me-2"></i>Your Accounts
+        </h5>
+        <div class="toggle-arrow" [class.expanded]="isAccountsSectionExpanded">
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="row" *ngIf="loadingAccounts">
-        <div class="col-12 text-center">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2">Loading your accounts...</p>
+    <div class="accounts-body" *ngIf="isAccountsSectionExpanded">
+      <!-- Filter Dropdown Inside -->
+      <div class="filter-section-inline mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <label class="filter-label">
+            <i class="fas fa-filter me-2"></i>Filter:
+          </label>
+          <select class="form-select filter-select" [(ngModel)]="accountFilter" (ngModelChange)="onFilterChange()">
+            <option value="all">All Accounts</option>
+            <option value="active">Active Accounts</option>
+            <option value="pending">Pending Approval</option>
+            <option value="savings">Savings Accounts</option>
+            <option value="current">Current Accounts</option>
+          </select>
         </div>
       </div>
 
-      <div class="row" *ngIf="!loadingAccounts && accountsError">
-        <div class="col-12">
-          <div class="alert alert-danger">{{ accountsError }}</div>
+      <div class="text-center py-5" *ngIf="loadingAccounts">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
+        <p class="mt-3 text-muted">Loading your accounts...</p>
       </div>
 
-      <div class="row" *ngIf="!loadingAccounts && !accountsError && existingAccounts.length > 0">
-        <div class="col-md-4 mb-3" *ngFor="let account of existingAccounts">
-          <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="card-title mb-0">{{ getAccountTypeDisplay(account.accountType) }}</h6>
-                <span class="badge" [ngClass]="getAccountStatusClass(account)">
-                  {{ getAccountStatusText(account) }}
-                </span>
+      <div *ngIf="!loadingAccounts && accountsError" class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ accountsError }}
+      </div>
+
+      <div class="row g-3" *ngIf="!loadingAccounts && !accountsError && filteredAccounts.length > 0">
+        <div class="col-md-4 mb-3" *ngFor="let account of filteredAccounts">
+          <div class="account-card">
+            <div class="account-header" [ngClass]="getAccountHeaderClass(account)">
+              <div class="account-icon">
+                <i class="fas" [ngClass]="getAccountIcon(account.accountType)"></i>
               </div>
-              <div class="mb-2">
-                <small class="text-muted">Account Number</small>
-                <div class="fw-bold text-dark">{{ account.accountNumber }}</div>
+              <div class="flex-grow-1">
+                <h6 class="account-title">{{ getAccountTypeDisplay(account.accountType) }}</h6>
+                <p class="account-number">{{ account.accountNumber }}</p>
               </div>
-              <div class="mb-2">
-                <small class="text-muted">Balance</small>
-                <div class="h5 text-success mb-0">{{ account.balance | currency:account.currency:'symbol':'1.2-2' }}</div>
+              <span class="badge status-badge" [ngClass]="getAccountStatusClass(account)">
+                {{ getAccountStatusText(account) }}
+              </span>
+            </div>
+            <div class="account-body">
+              <div class="balance-section">
+                <label>Current Balance</label>
+                <div class="balance-amount">{{ account.balance | currency:account.currency:'symbol':'1.2-2' }}</div>
               </div>
-              <div class="mb-2" *ngIf="account.approvalStatus">
-                <small class="text-muted">Approval Status</small>
-                <div class="badge bg-info">{{ getApprovalStatusText(account) }}</div>
-              </div>
-              <div *ngIf="account.createdAt" class="text-muted small">
-                Created: {{ account.createdAt | date:'mediumDate' }}
+              <div class="account-details">
+                <div class="detail-row">
+                  <span class="detail-label">
+                    <i class="fas fa-money-bill-wave me-1"></i>Currency
+                  </span>
+                  <span class="detail-value">{{ account.currency }}</span>
+                </div>
+                <div class="detail-row" *ngIf="account.approvalStatus">
+                  <span class="detail-label">
+                    <i class="fas fa-clipboard-check me-1"></i>Approval
+                  </span>
+                  <span class="badge" [ngClass]="getApprovalStatusClass(account)">{{ getApprovalStatusText(account) }}</span>
+                </div>
+                <div class="detail-row" *ngIf="account.createdAt">
+                  <span class="detail-label">
+                    <i class="fas fa-calendar me-1"></i>Created
+                  </span>
+                  <span class="detail-value">{{ account.createdAt | date:'mediumDate' }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -55,71 +95,106 @@
   </div>
 
   <!-- Account Creation Form -->
-  <div class="card">
-    <div class="card-header">
-      <h5 class="mb-0">Open New Account</h5>
+  <div class="account-form-card">
+    <div class="form-header">
+      <h5 class="mb-0">
+        <i class="fas fa-plus-circle me-2"></i>Open New Account
+      </h5>
     </div>
-    <div class="card-body">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Account Type</label>
-            <select class="form-select" formControlName="accountType">
-              <option value="SAVINGS">Savings Account</option>
-              <option value="CURRENT">Current Account</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Initial Balance</label>
-            <input type="number" class="form-control" formControlName="initialBalance" min="0" step="0.01" placeholder="0.00" />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Currency</label>
-            <select class="form-select" formControlName="currency">
-              <option value="INR">Indian Rupee (INR)</option>
-              <option value="USD">US Dollar (USD)</option>
-              <option value="EUR">Euro (EUR)</option>
-            </select>
-          </div>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-university me-2"></i>Account Type
+          </label>
+          <select class="form-select modern-select" formControlName="accountType">
+            <option value="SAVINGS">💰 Savings Account</option>
+            <option value="CURRENT">💼 Current Account</option>
+          </select>
         </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-rupee-sign me-2"></i>Initial Balance
+          </label>
+          <input type="number" class="form-control modern-input" formControlName="initialBalance" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-money-bill-wave me-2"></i>Currency
+          </label>
+          <select class="form-select modern-select" formControlName="currency">
+            <option value="INR">🇮🇳 Indian Rupee (INR)</option>
+            <option value="USD">🇺🇸 US Dollar (USD)</option>
+            <option value="EUR">🇪🇺 Euro (EUR)</option>
+          </select>
+        </div>
+      </div>
 
-        <div class="mt-3 d-flex gap-2">
-          <button class="btn btn-primary" type="submit" [disabled]="form.invalid || loading">
-            {{ loading ? 'Creating...' : 'Create Account' }}
-          </button>
-          <div *ngIf="error" class="text-danger">{{ error }}</div>
-          <div *ngIf="success" class="text-success">Account created successfully!</div>
-        </div>
-      </form>
-    </div>
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button class="btn btn-primary btn-submit" type="submit" [disabled]="form.invalid || loading">
+          <span *ngIf="!loading">
+            <i class="fas fa-plus-circle me-2"></i>Create Account
+          </span>
+          <span *ngIf="loading">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Creating...
+          </span>
+        </button>
+        <button class="btn btn-outline-secondary" type="button" (click)="resetForm()">
+          <i class="fas fa-redo me-2"></i>Reset
+        </button>
+      </div>
+
+      <!-- Messages -->
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+      </div>
+      <div *ngIf="success" class="alert alert-success mt-3">
+        <i class="fas fa-check-circle me-2"></i>Account created successfully!
+      </div>
+    </form>
   </div>
 
   <!-- New Account Details -->
-  <div *ngIf="created" class="card mt-3 border-success">
-    <div class="card-header bg-success text-white">
+  <div *ngIf="created" class="success-card mt-4">
+    <div class="success-header">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
       <h5 class="mb-0">Account Created Successfully!</h5>
     </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="mb-2">
-            <strong>Account Number:</strong>
-            <div class="h6 text-dark">{{ created.accountNumber }}</div>
-          </div>
-          <div class="mb-2">
-            <strong>Account Type:</strong>
-            <div>{{ getAccountTypeDisplay(created.accountType) }}</div>
+    <div class="success-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Account Number</label>
+            <div class="detail-value">{{ created.accountNumber }}</div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="mb-2">
-            <strong>Initial Balance:</strong>
-            <div class="h5 text-success">{{ created.balance | currency:created.currency:'symbol':'1.2-2' }}</div>
-          </div>
-          <div *ngIf="created.createdAt" class="text-muted small">
-            Created: {{ created.createdAt | date:'medium' }}
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Account Type</label>
+            <div class="detail-value">{{ getAccountTypeDisplay(created.accountType) }}</div>
           </div>
         </div>
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Initial Balance</label>
+            <div class="detail-value amount">₹{{ created.balance | number:'1.2-2' }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="detail-item">
+            <label>Currency</label>
+            <div class="detail-value">{{ created.currency }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3" *ngIf="created.createdAt">
+        <small class="text-muted">
+          <i class="fas fa-calendar me-1"></i>Created: {{ created.createdAt | date:'medium' }}
+        </small>
       </div>
     </div>
   </div>

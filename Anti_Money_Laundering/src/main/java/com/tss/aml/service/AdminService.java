@@ -2,6 +2,7 @@ package com.tss.aml.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -170,10 +171,20 @@ public class AdminService {
         existing.setRiskWeight(ruleDto.getRiskWeight());
         existing.setActive(ruleDto.isActive());
         
-        // Handle conditions update
+        // Handle conditions update - properly manage orphan removal
         if (ruleDto.getConditions() != null) {
-            // Clear existing conditions
-            existing.getConditions().clear();
+            // Remove all existing conditions properly to trigger orphan removal
+            if (existing.getConditions() != null && !existing.getConditions().isEmpty()) {
+                // Create a copy to avoid ConcurrentModificationException
+                List<RuleCondition> conditionsToRemove = new ArrayList<>(existing.getConditions());
+                conditionsToRemove.forEach(condition -> {
+                    existing.getConditions().remove(condition);
+                    condition.setRule(null); // Break the relationship
+                });
+            }
+            
+            // Flush to ensure deletions are processed before adding new ones
+            ruleRepository.flush();
             
             // Add new conditions with automatic activation/deactivation based on rule status
             List<RuleCondition> newConditions = ruleDto.getConditions().stream()
@@ -188,7 +199,8 @@ public class AdminService {
                             .build())
                     .collect(Collectors.toList());
             
-            existing.setConditions(newConditions);
+            // Add all new conditions to the existing collection
+            existing.getConditions().addAll(newConditions);
         } else {
             // If no conditions provided in update, just update existing conditions based on rule status
             if (existing.getConditions() != null) {
@@ -202,6 +214,7 @@ public class AdminService {
         auditLogService.logRuleCreation("ADMIN", "Updated: " + saved.getName());
         return mapRuleToDto(saved);
     }
+
 
     public RuleDto toggleRuleStatus(Long id, boolean isActive) {
         Rule existing = ruleRepository.findById(id)
@@ -255,6 +268,22 @@ public class AdminService {
         suspiciousKeywordRepository.delete(existing);
         auditLogService.logRuleCreation("ADMIN", "Deleted keyword: " + existing.getKeyword());
     }
+    
+    public SuspiciousKeywordDto updateKeyword(Long id, SuspiciousKeywordDto keywordDto) {
+        SuspiciousKeyword existing = suspiciousKeywordRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("SuspiciousKeyword", "id", id));
+
+        // Prevent overwriting ID
+        modelMapper.typeMap(SuspiciousKeywordDto.class, SuspiciousKeyword.class)
+                   .addMappings(mapper -> mapper.skip(SuspiciousKeyword::setId));
+
+        modelMapper.map(keywordDto, existing);
+        existing.setUpdatedAt(LocalDateTime.now());
+
+        SuspiciousKeyword updated = suspiciousKeywordRepository.save(existing);
+        return modelMapper.map(updated, SuspiciousKeywordDto.class);
+    }
+
 
     public List<BankAccountDto> getPendingAccounts() {
         return bankAccountRepository.findByApprovalStatus(ApprovalStatus.PENDING).stream()
@@ -602,6 +631,8 @@ public class AdminService {
         
         return modelMapper.map(newOfficer, UserDto.class);
     }
+
+	
     
 }
 

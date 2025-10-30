@@ -82,31 +82,63 @@
           </div>
 
           <div formArrayName="conditions">
-            <div *ngFor="let condition of conditions.controls; let i = index" [formGroupName]="i" class="condition-row mb-2">
+            <div *ngFor="let condition of conditions.controls; let i = index" [formGroupName]="i" class="condition-row mb-3 p-3 border rounded bg-light">
               <div class="row g-2">
-                <div class="col-md-4">
-                  <select class="form-select" formControlName="field">
-                    <option value="amount">Amount</option>
-                    <option value="currency">Currency</option>
-                    <option value="country">Country</option>
-                    <option value="transactionType">Transaction Type</option>
-                    <option value="description">Description</option>
+                <div class="col-md-3">
+                  <label class="form-label small fw-bold">Condition Type</label>
+                  <select class="form-select form-select-sm" formControlName="type">
+                    <option value="AMOUNT">Amount</option>
+                    <option value="COUNTRY_RISK">Country Risk</option>
+                    <option value="NLP_SCORE">NLP Score</option>
+                    <option value="KEYWORD_MATCH">Keyword Match</option>
+                    <option value="PAST_TRANSACTIONS">Past Transactions</option>
+                    <option value="VELOCITY">Velocity</option>
+                    <option value="STRUCTURING">Structuring</option>
+                    <option value="BEHAVIORAL_DEVIATION">Behavioral Deviation</option>
+                    <option value="AMOUNT_BALANCE_RATIO">Amount Balance Ratio</option>
+                    <option value="DAILY_TOTAL">Daily Total</option>
+                    <option value="NEW_COUNTERPARTY">New Counterparty</option>
+                    <option value="PATTERN_DEPOSIT_WITHDRAW">Pattern Deposit/Withdraw</option>
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <select class="form-select" formControlName="operator">
-                    <option value=">">Greater Than</option>
-                    <option value="<">Less Than</option>
-                    <option value="=">Equals</option>
-                    <option value="!=">Not Equals</option>
-                    <option value="contains">Contains</option>
+                  <label class="form-label small fw-bold">Field</label>
+                  <select class="form-select form-select-sm" formControlName="field">
+                    <option value="amount">amount (numeric)</option>
+                    <option value="countryCode">countryCode (risk score)</option>
+                    <option value="nlpScore">nlpScore (0-100)</option>
+                    <option value="text">text (description/keywords)</option>
+                    <option value="count">count (velocity)</option>
+                    <option value="ratio">ratio (balance ratio)</option>
+                    <option value="transactionType">transactionType</option>
+                    <option value="customerId">customerId</option>
                   </select>
                 </div>
-                <div class="col-md-4">
-                  <input type="text" class="form-control" formControlName="value" placeholder="Value" />
+                <div class="col-md-2">
+                  <label class="form-label small fw-bold">Operator</label>
+                  <select class="form-select form-select-sm" formControlName="operator">
+                    <option value=">">></option>
+                    <option value=">=">>=</option>
+                    <option value="<"><</option>
+                    <option value="<="><=</option>
+                    <option value="==">==</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small fw-bold">Value</label>
+                  <input type="text" class="form-control form-control-sm" formControlName="value" 
+                         placeholder="See help below" 
+                         title="Format depends on condition type" />
                 </div>
                 <div class="col-md-1">
-                  <button type="button" class="btn btn-danger btn-sm w-100" (click)="removeCondition(i)">
+                  <label class="form-label small fw-bold">Active</label>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" formControlName="active" [id]="'cond-active-' + i">
+                  </div>
+                </div>
+                <div class="col-md-1">
+                  <label class="form-label small fw-bold">&nbsp;</label>
+                  <button type="button" class="btn btn-danger btn-sm w-100" (click)="removeCondition(i)" title="Remove Condition">
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
@@ -116,6 +148,24 @@
 
           <div *ngIf="conditions.length === 0" class="text-muted text-center py-3 border rounded">
             No conditions added. Click "Add Condition" to create rule conditions.
+          </div>
+
+          <!-- Condition Value Format Guide -->
+          <div class="alert alert-info mt-3" *ngIf="conditions.length > 0">
+            <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Value Format Guide</h6>
+            <small>
+              <ul class="mb-0 small">
+                <li><strong>AMOUNT:</strong> Numeric value (e.g., <code>15000</code>)</li>
+                <li><strong>COUNTRY_RISK:</strong> Risk score 0-100 (e.g., <code>70</code>)</li>
+                <li><strong>NLP_SCORE:</strong> Score 0-100 (e.g., <code>80</code>)</li>
+                <li><strong>KEYWORD_MATCH:</strong> Keyword text (e.g., <code>suspicious</code>)</li>
+                <li><strong>VELOCITY:</strong> Format: <code>minAmount|minCount|windowHours|txType</code> (e.g., <code>100000|3|24|DEPOSIT</code>)</li>
+                <li><strong>AMOUNT_BALANCE_RATIO:</strong> Decimal ratio (e.g., <code>0.8</code> for 80%)</li>
+                <li><strong>NEW_COUNTERPARTY:</strong> Format: <code>lookbackDays|minAmount|txTypes</code> (e.g., <code>30|50000|TRANSFER</code>)</li>
+                <li><strong>DAILY_TOTAL:</strong> Format: <code>maxAmount|windowHours|txTypes</code> (e.g., <code>500000|24|DEPOSIT,TRANSFER</code>)</li>
+                <li><strong>PAST_TRANSACTIONS:</strong> Format: <code>minCount|windowDays|minAmount|txType</code> (e.g., <code>5|30|10000|TRANSFER</code>)</li>
+              </ul>
+            </small>
           </div>
         </div>
 

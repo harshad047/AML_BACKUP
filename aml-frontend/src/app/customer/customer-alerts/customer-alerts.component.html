@@ -1,175 +1,219 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">My Alerts</h1>
-        <a class="btn btn-outline-primary" routerLink="/customer">
-          <i class="fas fa-arrow-left me-2"></i>
-          Back to Dashboard
-        </a>
-      </div>
-      <p class="text-muted">View and manage your transaction alerts and notifications</p>
+<div class="container py-3">
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="header-content">
+      <h3 class="page-title">My Alerts</h3>
+      <p class="page-subtitle">View and manage your transaction alerts and notifications</p>
     </div>
+    <a class="btn btn-outline-secondary btn-back" routerLink="/customer">
+      <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
   </div>
 
   <!-- Alerts Summary Cards -->
-  <div class="row mb-4" *ngIf="alerts.length > 0">
-    <div class="col-md-3">
-      <div class="card bg-warning text-white">
-        <div class="card-body text-center">
-          <h5 class="card-title">Total Alerts</h5>
-          <h2>{{ alerts.length }}</h2>
+  <div class="row g-3 mb-4" *ngIf="alerts.length > 0">
+    <div class="col-md-3 col-sm-6" *ngFor="let stat of [
+      { icon: 'fa-bell', label: 'Total Alerts', value: alerts.length, class: 'total-card' },
+      { icon: 'fa-exclamation-triangle', label: 'High Priority', value: highPriorityCount, class: 'high-priority-card' },
+      { icon: 'fa-clock', label: 'Pending Actions', value: pendingActionsCount, class: 'pending-card' },
+      { icon: 'fa-check-circle', label: 'Resolved', value: resolvedCount, class: 'resolved-card' }
+    ]">
+      <div class="stat-card {{stat.class}}">
+        <div class="stat-icon">
+          <i class="fas {{stat.icon}}"></i>
         </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-danger text-white">
-        <div class="card-body text-center">
-          <h5 class="card-title">High Priority</h5>
-          <h2>{{ highPriorityCount }}</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-info text-white">
-        <div class="card-body text-center">
-          <h5 class="card-title">Pending Actions</h5>
-          <h2>{{ pendingActionsCount }}</h2>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card bg-success text-white">
-        <div class="card-body text-center">
-          <h5 class="card-title">Resolved</h5>
-          <h2>{{ resolvedCount }}</h2>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ stat.value }}</h4>
+          <p class="stat-label">{{ stat.label }}</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Alerts List -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">Alert History</h5>
-        </div>
-        <div class="card-body">
-          <!-- Loading State -->
-          <div class="text-center py-4" *ngIf="isLoading">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading alerts...</p>
-          </div>
+  <div class="alerts-section">
+    <div class="section-header">
+      <h5 class="mb-0">
+        <i class="fas fa-history me-2"></i>Alert History
+      </h5>
+    </div>
 
-          <!-- Empty State -->
-          <div class="text-center text-muted py-4" *ngIf="!isLoading && alerts.length === 0">
-            <i class="fas fa-bell-slash fa-3x mb-3"></i>
-            <p>No alerts found</p>
-            <small>All your alerts will appear here when they are generated.</small>
-          </div>
-
-          <!-- Alerts Table -->
-          <div class="table-responsive" *ngIf="!isLoading && alerts.length > 0">
-            <table class="table table-hover">
-              <thead class="table-light">
-                <tr>
-                  <th>Date</th>
-                  <th>Title</th>
-                  <th>Message</th>
-                  <th>Type</th>
-                  <th>Severity</th>
-                  <th>Status</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let alert of alerts" [class]="'alert-row ' + getSeverityClass(alert.severity)">
-                  <td>{{ alert.createdAt | date:'medium' }}</td>
-                  <td>
-                    <strong class="text-dark">{{ alert.title }}</strong>
-                    <div class="text-muted small" *ngIf="alert.category">{{ alert.category }}</div>
-                    <div class="text-muted small" *ngIf="alert.transactionId">TX: {{ alert.transactionId }}</div>
-                  </td>
-                  <td class="text-dark">{{ alert.message }}</td>
-                  <td>
-                    <span class="badge bg-secondary">{{ alert.type }}</span>
-                  </td>
-                  <td>
-                    <span class="badge" [ngClass]="getSeverityBadgeClass(alert.severity)">
-                      {{ alert.severity }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge" [ngClass]="getStatusBadgeClass(alert.status)">
-                      {{ alert.status }}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="text-muted small">
-                      {{ getReasonText(alert) || 'No specific reason provided' }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <div class="section-body">
+      <!-- Loading State -->
+      <div class="text-center py-4" *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
+        <p class="mt-2">Loading alerts...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="text-center text-muted py-4" *ngIf="!isLoading && alerts.length === 0">
+        <i class="fas fa-bell-slash fa-3x mb-3"></i>
+        <p>No alerts found</p>
+        <small>All your alerts will appear here when they are generated.</small>
+      </div>
+
+      <!-- Alerts Table -->
+      <div class="table-responsive" *ngIf="!isLoading && alerts.length > 0">
+        <table class="table modern-table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Title</th>
+              <th>Message</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let alert of alerts; index as i" class="alert-row">
+              <td><span class="row-number">{{ i + 1 }}</span></td>
+              <td class="text-muted">{{ alert.createdAt | date:'short' }}</td>
+              <td>
+                <div class="alert-title">
+                  <strong>{{ alert.title }}</strong>
+                  <div class="text-muted small" *ngIf="alert.transactionId">
+                    <i class="fas fa-exchange-alt me-1"></i>TX: {{ alert.transactionId }}
+                  </div>
+                </div>
+              </td>
+              <td class="text-muted">{{ alert.message }}</td>
+              <td>
+                <span class="badge type-badge" [ngClass]="getTypeBadgeClass(alert.type || '')">
+                  {{ alert.type || 'UNKNOWN' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge status-badge" [ngClass]="getStatusBadgeClass(alert.status || '')">
+                  {{ alert.status || 'UNKNOWN' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-view" (click)="viewAlertDetails(alert)" title="View Details">
+                  <i class="fas fa-eye me-1"></i>View
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Alert Details Modal (placeholder for future enhancement) -->
-  <div class="row" *ngIf="selectedAlert">
-    <div class="col-12">
-      <div class="card mt-3">
-        <div class="card-header">
-          <h5 class="mb-0">Alert Details</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <h6>Alert Information</h6>
-              <table class="table table-sm">
-                <tr>
-                  <td><strong>ID:</strong></td>
-                  <td>{{ selectedAlert.id }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Title:</strong></td>
-                  <td>{{ selectedAlert.title }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Type:</strong></td>
-                  <td>{{ selectedAlert.type }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Transaction ID:</strong></td>
-                  <td>{{ selectedAlert.transactionId || 'N/A' }}</td>
-                </tr>
-                <tr>
-                  <td><strong>Account:</strong></td>
-                  <td>{{ selectedAlert.accountNumber || 'N/A' }}</td>
-                </tr>
-              </table>
+<!-- Alert Details Modal -->
+<div class="modal fade" id="alertDetailsModal" tabindex="-1" *ngIf="selectedAlert">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-info-circle me-2"></i>Alert Details
+        </h5>
+        <button type="button" class="btn-close" (click)="closeAlertDetails()"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Alert Overview -->
+        <div class="detail-section">
+          <h6 class="section-title">
+            <i class="fas fa-bell me-2"></i>Alert Information
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6" *ngFor="let field of [
+              { label: 'Alert ID', value: selectedAlert.id },
+              { label: 'Type', value: selectedAlert.type, badge: getTypeBadgeClass(selectedAlert.type) },
+              { label: 'Status', value: selectedAlert.status, badge: getStatusBadgeClass(selectedAlert.status) },
+              { label: 'Severity', value: selectedAlert.severity, badge: getSeverityBadgeClass(selectedAlert.severity) }
+            ]">
+              <div class="info-item">
+                <label>{{ field.label }}</label>
+                <div class="info-value">
+                  <ng-container *ngIf="field.badge; else plainValue">
+                    <span class="badge" [ngClass]="field.badge">{{ field.value }}</span>
+                  </ng-container>
+                  <ng-template #plainValue>{{ field.value }}</ng-template>
+                </div>
+              </div>
             </div>
-            <div class="col-md-6">
-              <h6>Description & Resolution</h6>
-              <p><strong>Description:</strong></p>
-              <p>{{ selectedAlert.description || 'No description provided' }}</p>
-              <p><strong>Message:</strong></p>
-              <p>{{ selectedAlert.message }}</p>
-              <p *ngIf="selectedAlert.resolvedAt">
-                <strong>Resolved At:</strong> {{ selectedAlert.resolvedAt | date:'medium' }}
-              </p>
-              <p *ngIf="selectedAlert.resolvedBy">
-                <strong>Resolved By:</strong> {{ selectedAlert.resolvedBy }}
-              </p>
+
+            <div class="col-12">
+              <div class="info-item">
+                <label>Title</label>
+                <div class="info-value">{{ selectedAlert.title }}</div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="info-item">
+                <label>Message</label>
+                <div class="info-value">{{ selectedAlert.message }}</div>
+              </div>
+            </div>
+
+            <div class="col-12" *ngIf="getReasonText(selectedAlert)">
+              <div class="info-item">
+                <label>Reason</label>
+                <div class="info-value">{{ getReasonText(selectedAlert) }}</div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Transaction Details -->
+        <div class="detail-section" *ngIf="selectedAlert.transactionId">
+          <h6 class="section-title">
+            <i class="fas fa-exchange-alt me-2"></i>Transaction Details
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="info-item">
+                <label>Transaction ID</label>
+                <div class="info-value">{{ selectedAlert.transactionId }}</div>
+              </div>
+            </div>
+            <div class="col-md-6" *ngIf="selectedAlert.accountNumber">
+              <div class="info-item">
+                <label>Account Number</label>
+                <div class="info-value">{{ selectedAlert.accountNumber }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="detail-section">
+          <h6 class="section-title">
+            <i class="fas fa-calendar me-2"></i>Timeline
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="info-item">
+                <label>Created At</label>
+                <div class="info-value">{{ selectedAlert.createdAt | date:'medium' }}</div>
+              </div>
+            </div>
+            <div class="col-md-6" *ngIf="selectedAlert.resolvedAt">
+              <div class="info-item">
+                <label>Resolved At</label>
+                <div class="info-value">{{ selectedAlert.resolvedAt | date:'medium' }}</div>
+              </div>
+            </div>
+            <div class="col-md-6" *ngIf="selectedAlert.resolvedBy">
+              <div class="info-item">
+                <label>Resolved By</label>
+                <div class="info-value">{{ selectedAlert.resolvedBy }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAlertDetails()">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
       </div>
     </div>
   </div>

@@ -175,9 +175,11 @@ export class RulesComponent implements OnInit {
 
   addCondition(): void {
     const conditionGroup = this.fb.group({
+      type: ['AMOUNT', Validators.required],
       field: ['amount', Validators.required],
       operator: ['>', Validators.required],
-      value: ['', Validators.required]
+      value: ['', Validators.required],
+      active: [true]
     });
     this.conditions.push(conditionGroup);
   }
@@ -203,9 +205,11 @@ export class RulesComponent implements OnInit {
     if (rule.conditions && rule.conditions.length > 0) {
       rule.conditions.forEach(cond => {
         const conditionGroup = this.fb.group({
+          type: [cond.type || 'AMOUNT', Validators.required],
           field: [cond.field, Validators.required],
           operator: [cond.operator, Validators.required],
-          value: [cond.value, Validators.required]
+          value: [cond.value, Validators.required],
+          active: [cond.active !== undefined ? cond.active : true]
         });
         this.conditions.push(conditionGroup);
       });

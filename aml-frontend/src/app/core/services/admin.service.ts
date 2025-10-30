@@ -29,9 +29,11 @@ export interface CreateUserDto {
 
 export interface RuleConditionDto {
   id?: number;
+  type: string; // AMOUNT, COUNTRY_RISK, NLP_SCORE, etc.
   field: string;
   operator: string;
   value: string;
+  active: boolean;
 }
 
 export interface RuleDto {
@@ -164,6 +166,10 @@ export class AdminService {
 
   addKeyword(keywordDto: SuspiciousKeywordDto): Observable<SuspiciousKeywordDto> {
     return this.http.post<SuspiciousKeywordDto>(`${this.apiUrl}/keywords`, keywordDto);
+  }
+
+  updateKeyword(id: number, keywordDto: SuspiciousKeywordDto): Observable<SuspiciousKeywordDto> {
+    return this.http.put<SuspiciousKeywordDto>(`${this.apiUrl}/keywords/${id}`, keywordDto);
   }
 
   deleteKeyword(id: number): Observable<void> {

@@ -1,0 +1,553 @@
+/* Statistics Cards */
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-count {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0.25rem 0 0 0;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Card Variants */
+.total-card {
+  border-left-color: #0d6efd;
+}
+
+.total-card .stat-icon {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.total-card .stat-count {
+  color: #0d6efd;
+}
+
+.approved-card {
+  border-left-color: #198754;
+}
+
+.approved-card .stat-icon {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+}
+
+.approved-card .stat-count {
+  color: #198754;
+}
+
+.flagged-card {
+  border-left-color: #ffc107;
+}
+
+.flagged-card .stat-icon {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+}
+
+.flagged-card .stat-count {
+  color: #ffc107;
+}
+
+.blocked-card {
+  border-left-color: #dc3545;
+}
+
+.blocked-card .stat-icon {
+  background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+}
+
+.blocked-card .stat-count {
+  color: #dc3545;
+}
+
+/* Filter Section */
+.filter-section {
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.filter-select {
+  max-width: 250px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+/* Transactions Card */
+.transactions-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Modern Table */
+.modern-table {
+  margin: 0;
+}
+
+.modern-table thead {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+}
+
+.modern-table thead th {
+  border: none;
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modern-table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.transaction-row {
+  transition: all 0.2s ease;
+}
+
+.transaction-row:hover {
+  background-color: #f8f9fa;
+}
+
+.row-number {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  background: #e9ecef;
+  border-radius: 50%;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* Transaction Type */
+.transaction-type {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.type-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+}
+
+.icon-deposit {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+}
+
+.icon-withdrawal {
+  background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+}
+
+.icon-transfer {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.icon-intercurrency {
+  background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+}
+
+.icon-default {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+/* Amount Styling */
+.amount-text {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.amount-positive {
+  color: #198754;
+}
+
+.amount-negative {
+  color: #dc3545;
+}
+
+.amount-neutral {
+  color: #0d6efd;
+}
+
+/* Status Badge */
+.status-badge {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Risk Score */
+.risk-score {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.risk-low {
+  background: #d1f4e0;
+  color: #198754;
+}
+
+.risk-medium {
+  background: #fff3cd;
+  color: #ffc107;
+}
+
+.risk-high {
+  background: #f8d7da;
+  color: #dc3545;
+}
+
+.risk-na {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+/* View Button */
+.btn-view {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  color: white;
+}
+
+/* Modern Button */
+.btn-modern {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #6c757d;
+}
+
+.empty-state h5 {
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+/* Modal Styling */
+.modern-modal .modal-header {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  color: white;
+  border-bottom: none;
+  padding: 1.5rem;
+}
+
+.modern-modal .modal-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.modern-modal .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.modern-modal .modal-body {
+  padding: 2rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modern-modal .modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+/* Detail Sections */
+.detail-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.section-title {
+  color: #0d6efd;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.detail-item {
+  margin-bottom: 1rem;
+}
+
+.detail-item label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.detail-value {
+  font-size: 1rem;
+  color: #212529;
+  font-weight: 500;
+}
+
+.amount-large {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0d6efd;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  color: white;
+}
+
+/* Risk Cards in Modal */
+.risk-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.risk-card:hover {
+  border-color: #0d6efd;
+  transform: translateY(-2px);
+}
+
+.risk-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+.risk-value {
+  font-size: 2rem;
+  font-weight: 700;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.score-low {
+  color: #198754;
+  background: #d1f4e0;
+}
+
+.score-medium {
+  color: #ffc107;
+  background: #fff3cd;
+}
+
+.score-high {
+  color: #dc3545;
+  background: #f8d7da;
+}
+
+.score-na {
+  color: #6c757d;
+  background: #e9ecef;
+}
+
+/* Rules List */
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rule-item {
+  background: #f8f9fa;
+  border-left: 4px solid #dc3545;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.rule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.rule-name {
+  font-weight: 600;
+  color: #212529;
+  font-size: 1rem;
+}
+
+.rule-details {
+  margin-bottom: 0.5rem;
+}
+
+.rule-meta {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.rule-description {
+  font-size: 0.875rem;
+  color: #495057;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .stat-count {
+    font-size: 1.5rem;
+  }
+
+  .filter-select {
+    max-width: 100%;
+  }
+
+  .modern-table thead th,
+  .modern-table tbody td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .type-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  .modern-modal .modal-body {
+    padding: 1rem;
+  }
+
+  .risk-value {
+    font-size: 1.5rem;
+  }
+}

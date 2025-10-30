@@ -142,14 +142,38 @@ export class CustomerAlertsComponent implements OnInit {
 
   viewAlertDetails(alert: AlertDto): void {
     this.selectedAlert = alert;
+    // Open Bootstrap modal
+    const modalElement = document.getElementById('alertDetailsModal');
+    if (modalElement) {
+      const modal = new (window as any).bootstrap.Modal(modalElement);
+      modal.show();
+    }
   }
 
   closeAlertDetails(): void {
     this.selectedAlert = null;
+    // Close Bootstrap modal
+    const modalElement = document.getElementById('alertDetailsModal');
+    if (modalElement) {
+      const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
   }
 
   getReasonText(alert: AlertDto): string {
     // Try multiple possible field names for the reason
     return alert.reason || alert.flaggedReason || alert.description || '';
+  }
+
+  getTypeBadgeClass(type: string): string {
+    switch (type?.toUpperCase()) {
+      case 'TRANSACTION': return 'bg-primary';
+      case 'SECURITY': return 'bg-danger';
+      case 'ACCOUNT': return 'bg-info';
+      case 'SYSTEM': return 'bg-warning';
+      default: return 'bg-secondary';
+    }
   }
 }
