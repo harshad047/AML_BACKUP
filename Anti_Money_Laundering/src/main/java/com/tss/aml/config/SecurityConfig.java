@@ -57,6 +57,8 @@ public class SecurityConfig {
                 // admin and compliance
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/compliance/**").hasAnyRole("ADMIN", "OFFICER", "SUPER_ADMIN")
+                // helpdesk endpoints
+                .requestMatchers("/api/helpdesk/**").hasAnyRole("CUSTOMER", "ADMIN", "OFFICER", "SUPER_ADMIN")
                 // customer specific
                 .requestMatchers("/api/transactions/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/accounts/**").hasRole("CUSTOMER")

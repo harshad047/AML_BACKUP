@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
+import { HelpdeskApiService } from '../../core/services/helpdesk.service';
 import { AccountDto, AccountService } from '../../core/services/account.service';
 
 @Component({
@@ -21,8 +22,12 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   selectedAccountNumber?: string;
   filterStatus = 'all';
   accountOptions: { accountNumber: string; label: string }[] = [];
+  // Helpdesk ticket modal state
+  currentTxId?: number;
+  ticketSubject = '';
+  ticketMessage = '';
 
-  constructor(private tx: TransactionService, private accountsApi: AccountService) {}
+  constructor(private tx: TransactionService, private accountsApi: AccountService, private helpdesk: HelpdeskApiService) {}
 
   ngOnInit(): void {
     if (!this.accounts || this.accounts.length === 0) {
@@ -43,6 +48,48 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
       this.buildAccountOptions();
       this.fetch();
     }
+  }
+
+  openTicketModal(t: TransactionDto): void {
+    const status = String(t.status || '').toLowerCase();
+    if (!(status === 'blocked' || status === 'flagged' || status === 'pending_review')) {
+      alert('Tickets can only be raised for blocked/flagged transactions.');
+      return;
+    }
+    this.currentTxId = t.id;
+    this.ticketSubject = `Issue with transaction #${t.id}`;
+    this.ticketMessage = t.description || '';
+    // Show modal via Bootstrap
+    const el = document.getElementById('raiseTicketModal');
+    if (el && (window as any).bootstrap) {
+      const modal = new (window as any).bootstrap.Modal(el);
+      modal.show();
+    }
+  }
+
+  submitTicket(): void {
+    if (!this.currentTxId) return;
+    const subject = (this.ticketSubject || '').trim();
+    const message = (this.ticketMessage || '').trim();
+    if (!subject || !message) {
+      alert('Please provide subject and message.');
+      return;
+    }
+    this.helpdesk.createTicket(this.currentTxId, { subject, message }).subscribe({
+      next: (_: any) => {
+        alert('Ticket created successfully.');
+        // Hide modal
+        const el = document.getElementById('raiseTicketModal');
+        if (el && (window as any).bootstrap) {
+          const modal = (window as any).bootstrap.Modal.getInstance(el) || new (window as any).bootstrap.Modal(el);
+          modal.hide();
+        }
+        this.ticketSubject = '';
+        this.ticketMessage = '';
+        this.currentTxId = undefined;
+      },
+      error: (err: any) => alert(err?.error?.message || 'Failed to create ticket')
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

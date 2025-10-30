@@ -1,0 +1,55 @@
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">My Helpdesk Tickets</h3>
+    <a class="btn btn-secondary" routerLink="/customer/transactions">Back to Transactions</a>
+  </div>
+
+  <div class="row g-2 mb-3 align-items-center">
+    <div class="col-auto"><label class="col-form-label">Status:</label></div>
+    <div class="col-auto">
+      <select class="form-select" [(ngModel)]="statusFilter" (change)="pageIndex = 0; load()">
+        <option value="">All</option>
+        <option value="OPEN">Open</option>
+        <option value="RESPONDED">Responded</option>
+        <option value="RESOLVED">Resolved</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="text-center text-muted py-4" *ngIf="loading">Loading...</div>
+      <div class="text-danger p-3" *ngIf="error">{{ error }}</div>
+      <div class="table-responsive" *ngIf="!loading && tickets.length > 0">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Transaction</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of tickets; index as i">
+              <td>{{ (pageIndex * pageSize) + i + 1 }}</td>
+              <td class="text-dark"><a [routerLink]="['/customer/helpdesk', t.id]">{{ t.subject }}</a></td>
+              <td><span class="badge bg-secondary">{{ t.status }}</span></td>
+              <td>#{{ t.transactionId }}</td>
+              <td>{{ t.createdAt | date:'medium' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-center text-muted py-4" *ngIf="!loading && tickets.length === 0">No tickets found.</div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-outline-secondary" [disabled]="pageIndex===0" (click)="onPageChange(-1)">Prev</button>
+    <div>Page {{ pageIndex + 1 }} of {{ Math.max(1, Math.ceil(total / pageSize)) }}</div>
+    <button class="btn btn-outline-secondary" [disabled]="(pageIndex+1)*pageSize >= total" (click)="onPageChange(1)">Next</button>
+  </div>
+</div>

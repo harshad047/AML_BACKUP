@@ -22,6 +22,10 @@ import { ChangePasswordComponent } from './customer/change-password/change-passw
 import { VerifyOtpComponent } from './customer/change-password/verify-otp.component';
 import { EnterOtpComponent } from './customer/change-password/enter-otp.component';
 import { ResetTokenGuard } from './core/guards/reset-token.guard';
+import { MyTicketsComponent } from './customer/helpdesk/my-tickets.component';
+import { CustomerTicketThreadComponent } from './customer/helpdesk/ticket-thread.component';
+import { OpenTicketsComponent } from './compliance/helpdesk/open-tickets.component';
+import { OfficerTicketThreadComponent } from './compliance/helpdesk/ticket-thread.component';
 
 // Admin Components
 import { UsersComponent } from './admin/users/users.component';
@@ -46,6 +50,18 @@ export const routes: Routes = [
   {
     path: 'customer',
     component: CustomerDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/helpdesk',
+    component: MyTicketsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/helpdesk/:ticketId',
+    component: CustomerTicketThreadComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['CUSTOMER'] }
   },
@@ -178,6 +194,18 @@ export const routes: Routes = [
   {
     path: 'compliance',
     component: ComplianceDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  {
+    path: 'compliance/helpdesk/open',
+    component: OpenTicketsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  {
+    path: 'compliance/helpdesk/tickets/:ticketId',
+    component: OfficerTicketThreadComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['OFFICER'] }
   },
