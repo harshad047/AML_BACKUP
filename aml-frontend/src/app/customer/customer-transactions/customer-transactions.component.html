@@ -7,8 +7,17 @@
     </a>
   </div>
 
-  <div class="row g-2 mb-3">
+  <div class="row g-2 mb-3 align-items-center">
     <div class="col-auto">
+      <label class="col-form-label">Account:</label>
+    </div>
+    <div class="col-auto">
+      <select class="form-select" [ngModel]="selectedAccountNumber" (ngModelChange)="onAccountChange($event)">
+        <option [ngValue]="undefined">All accounts</option>
+        <option *ngFor="let a of accountOptions" [ngValue]="a.accountNumber">{{ a.label }}</option>
+      </select>
+    </div>
+    <div class="col-auto ms-3">
       <label class="col-form-label">Show:</label>
     </div>
     <div class="col-auto">
@@ -40,7 +49,7 @@
             <tr *ngFor="let t of transactions; index as i">
               <td>{{ i + 1 }}</td>
               <td><strong class="text-dark">{{ getTransactionType(t) }}</strong></td>
-              <td class="text-dark">{{ t.amount | currency:'INR':'symbol':'1.2-2' }}</td>
+              <td class="text-dark">{{ displayAmount(t) | currency:displayCurrency(t):'symbol':'1.2-2' }}</td>
               <td>
                 <span class="badge" [ngClass]="statusClass(t.status)">{{ getStatusText(t) }}</span>
               </td>
@@ -64,7 +73,7 @@
     <div class="list-group list-group-flush">
       <div class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let t of flaggedTransactions">
         <div>
-          <div class="tx-item-title text-dark">{{ getTransactionType(t) }} - {{ t.amount | currency:'INR':'symbol':'1.2-2' }}</div>
+          <div class="tx-item-title text-dark">{{ getTransactionType(t) }} - {{ displayAmount(t) | currency:displayCurrency(t):'symbol':'1.2-2' }}</div>
           <div class="tx-item-sub">{{ t.description || 'No description' }} ({{ t.createdAt | date:'short' }})</div>
         </div>
         <div class="badge" [ngClass]="statusClass(t.status)">

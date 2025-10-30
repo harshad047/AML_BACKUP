@@ -3,7 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
-import { AccountDto } from '../../core/services/account.service';
+import { AccountDto, AccountService } from '../../core/services/account.service';
 
 @Component({
   selector: 'app-customer-transactions',
@@ -20,11 +20,29 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   error = '';
   selectedAccountNumber?: string;
   filterStatus = 'all';
+  accountOptions: { accountNumber: string; label: string }[] = [];
 
-  constructor(private tx: TransactionService) {}
+  constructor(private tx: TransactionService, private accountsApi: AccountService) {}
 
   ngOnInit(): void {
-    this.fetch();
+    if (!this.accounts || this.accounts.length === 0) {
+      // Load only the current user's accounts
+      this.accountsApi.getMyAccounts().subscribe({
+        next: (acs) => {
+          this.accounts = acs || [];
+          this.buildAccountOptions();
+          this.fetch();
+        },
+        error: _ => {
+          this.accounts = [];
+          this.buildAccountOptions();
+          this.fetch();
+        }
+      });
+    } else {
+      this.buildAccountOptions();
+      this.fetch();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -40,7 +58,14 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   fetch(): void {
     this.loading = true;
     this.error = '';
-    const effectiveAccount = this.selectedAccountNumber ?? this.accountNumber;
+    const myAccountNumbers = new Set((this.accounts || []).map(a => a.accountNumber));
+    let effectiveAccount = this.selectedAccountNumber ?? this.accountNumber;
+
+    // Guard: only allow fetching for user's own account
+    if (effectiveAccount && !myAccountNumbers.has(effectiveAccount)) {
+      // Invalid selection provided (e.g., from URL). Ignore and fall back to all.
+      effectiveAccount = undefined;
+    }
     const obs = effectiveAccount
       ? this.tx.getHistoryByAccount(effectiveAccount)
       : this.tx.getHistory();
@@ -65,14 +90,25 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     this.updateFilteredTransactions();
   }
 
+  onAccountChange(accountNumber: string): void {
+    this.selectedAccountNumber = accountNumber || undefined;
+    this.fetch();
+  }
+
   private updateFilteredTransactions(): void {
+    let list = [...this.transactions];
+    if (this.selectedAccountNumber) {
+      list = list.filter(t => t.fromAccountNumber === this.selectedAccountNumber || t.toAccountNumber === this.selectedAccountNumber);
+    }
     if (this.filterStatus === 'flagged') {
-      this.flaggedTransactions = this.transactions.filter(t => t.status?.toLowerCase() === 'flagged');
+      this.flaggedTransactions = list.filter(t => t.status?.toLowerCase() === 'flagged');
     } else if (this.filterStatus === 'blocked') {
-      this.flaggedTransactions = this.transactions.filter(t => t.status?.toLowerCase() === 'blocked');
+      this.flaggedTransactions = list.filter(t => t.status?.toLowerCase() === 'blocked');
     } else {
       this.flaggedTransactions = [];
     }
+    // Replace displayed list with filtered list
+    this.transactions = list;
   }
 
   statusClass(status: string): string {
@@ -96,5 +132,49 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
 
   getStatusText(transaction: TransactionDto): string {
     return transaction.status || 'Unknown';
+  }
+
+  displayAmount(t: TransactionDto): number {
+    const type = (t.transactionType || '').toUpperCase();
+    if (this.selectedAccountNumber && type === 'INTERCURRENCY_TRANSFER') {
+      if (t.toAccountNumber === this.selectedAccountNumber && t.convertedAmount != null) {
+        return t.convertedAmount as any;
+      }
+      if (t.fromAccountNumber === this.selectedAccountNumber && t.originalAmount != null) {
+        return t.originalAmount as any;
+      }
+    }
+    return t.amount;
+  }
+
+  displayCurrency(t: TransactionDto): string {
+    const type = (t.transactionType || '').toUpperCase();
+    if (this.selectedAccountNumber && type === 'INTERCURRENCY_TRANSFER') {
+      if (t.toAccountNumber === this.selectedAccountNumber && t.convertedCurrency) {
+        return t.convertedCurrency;
+      }
+      if (t.fromAccountNumber === this.selectedAccountNumber && t.originalCurrency) {
+        return t.originalCurrency;
+      }
+    }
+    return t.currency;
+  }
+
+  private buildAccountOptions(): void {
+    // Only show the logged-in user's own accounts
+    const list = (this.accounts || []).map(a => a.accountNumber).filter(Boolean);
+    this.accountOptions = list.map(acc => ({ accountNumber: acc, label: acc }));
+    // If selected account is not in user's accounts, clear it
+    if (this.selectedAccountNumber && !list.includes(this.selectedAccountNumber)) {
+      this.selectedAccountNumber = undefined;
+    }
+    // If input accountNumber is not owned by user, clear it
+    if (this.accountNumber && !list.includes(this.accountNumber)) {
+      this.accountNumber = undefined;
+    }
+    // Auto-select first account if none selected
+    if (!this.selectedAccountNumber && list.length > 0) {
+      this.selectedAccountNumber = list[0];
+    }
   }
 }
