@@ -114,6 +114,23 @@ export interface TransactionDto {
   createdAt: string;
 }
 
+export interface AdminCustomerDetailsDto {
+  userId: number;
+  customerId: number;
+  username: string;
+  email: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: any;
+  kycStatus?: string;
+  enabled: boolean;
+  createdAt?: string;
+  transactionCount: number;
+  alertCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -255,6 +272,10 @@ export class AdminService {
 
   getBlockedCustomers(): Observable<UserDto[]> {
     return this.http.get<UserDto[]>(`${this.apiUrl}/customers/blocked`);
+  }
+
+  getCustomerDetails(userId: number): Observable<AdminCustomerDetailsDto> {
+    return this.http.get<AdminCustomerDetailsDto>(`${this.apiUrl}/customers/${userId}/details`);
   }
 
   // ===== AUDIT LOGS =====

@@ -32,6 +32,7 @@ import { CountryRisksComponent } from './admin/country-risks/country-risks.compo
 import { ComplianceOfficersComponent } from './admin/compliance-officers/compliance-officers.component';
 import { AuditLogsComponent } from './admin/audit-logs/audit-logs.component';
 import { KycVerificationComponent } from './admin/kyc-verification/kyc-verification.component';
+import { AdminUserDetailsComponent } from './admin/user-details/user-details.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -109,6 +110,12 @@ export const routes: Routes = [
   {
     path: 'admin/users',
     component: UsersComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/users/:id/details',
+    component: AdminUserDetailsComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
   },

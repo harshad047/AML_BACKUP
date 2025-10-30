@@ -18,6 +18,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByCustomerIdAndCreatedAtAfterOrderByCreatedAtDesc(Long customerId, LocalDateTime createdAt);
     List<Transaction> findByFromAccountNumberOrderByCreatedAtDesc(String fromAccountNumber);
     List<Transaction> findByToAccountNumberOrderByCreatedAtDesc(String toAccountNumber);
+    long countByCustomerId(Long customerId);
     
     // Admin management methods
     List<Transaction> findAllByOrderByCreatedAtDesc();

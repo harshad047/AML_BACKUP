@@ -11,4 +11,5 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     List<Alert> findByTransactionId(Long transactionId);
     List<Alert> findByTransactionIdIn(List<Long> transactionIds);
     List<Alert> findByStatus(Alert.AlertStatus status);
+    long countByTransactionIdIn(List<Long> transactionIds);
 }

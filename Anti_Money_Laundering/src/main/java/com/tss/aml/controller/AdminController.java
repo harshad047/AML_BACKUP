@@ -28,6 +28,7 @@ import com.tss.aml.dto.compliance.RuleDto;
 import com.tss.aml.dto.compliance.SuspiciousKeywordDto;
 import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.dto.admin.UserDto;
+import com.tss.aml.dto.admin.AdminCustomerDetailsDto;
 import com.tss.aml.entity.AuditLog;
 import com.tss.aml.entity.Document;
 import com.tss.aml.entity.Enums.DocumentStatus;
@@ -219,6 +220,12 @@ public class AdminController {
     @GetMapping("/customers/blocked")
     public ResponseEntity<List<UserDto>> getBlockedCustomers() {
         return ResponseEntity.ok(adminService.getBlockedCustomers());
+    }
+
+    // Admin: Customer details with counts
+    @GetMapping("/customers/{userId}/details")
+    public ResponseEntity<AdminCustomerDetailsDto> getCustomerDetails(@PathVariable Long userId) {
+        return ResponseEntity.ok(adminService.getCustomerDetailsForAdmin(userId));
     }
     
     // Audit Log Endpoints
