@@ -215,7 +215,7 @@ public class TransactionService {
         // Use receiver country code from request, with fallback to customer's country
         String countryCode = (receiverCountryCode != null && !receiverCountryCode.trim().isEmpty()) 
                 ? receiverCountryCode.trim().toUpperCase() 
-                : getCountryCodeFromAccount(null, toAccount);
+                : getCountryCodeFromAccount(to);
         System.out.println("Receiver country code: " + countryCode + " (from request: " + receiverCountryCode + ")");
         
         return processTransactionInternal(from, to, amount, currency, desc, countryCode, nlp, customer, type);
