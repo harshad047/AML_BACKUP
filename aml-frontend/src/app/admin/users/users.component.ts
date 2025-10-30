@@ -283,7 +283,7 @@ export class UsersComponent implements OnInit {
   }
 
   viewDetails(user: UserDto): void {
-    this.router.navigate(['/admin/users', user.id, 'details']);
+    this.router.navigate(['/admin/users', user.id, 'details'], { queryParams: { from: 'users' } });
   }
 
   getRoleBadgeClass(role: string): string {

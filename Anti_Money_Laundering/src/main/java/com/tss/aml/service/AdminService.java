@@ -79,9 +79,13 @@ public class AdminService {
         dto.setCustomerId(customer.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        dto.setFirstName(customer.getFirstName());
-        dto.setMiddleName(customer.getMiddleName());
-        dto.setLastName(customer.getLastName());
+        // Prefer customer entity names; fallback to user entity if null/blank
+        String cFirst = customer.getFirstName();
+        String cMiddle = customer.getMiddleName();
+        String cLast = customer.getLastName();
+        dto.setFirstName((cFirst != null && !cFirst.isBlank()) ? cFirst : user.getFirstName());
+        dto.setMiddleName(cMiddle);
+        dto.setLastName((cLast != null && !cLast.isBlank()) ? cLast : user.getLastName());
         dto.setPhone(customer.getPhone());
         dto.setAddress(customer.getAddress());
         dto.setKycStatus(customer.getKycStatus());
@@ -98,7 +102,21 @@ public class AdminService {
         long alertCount = txIds.isEmpty() ? 0 : alertRepository.countByTransactionIdIn(txIds);
         dto.setAlertCount(alertCount);
 
+        // Accounts list
+        var accounts = bankAccountRepository.findByUser(user)
+                .stream()
+                .map(this::mapAccountToDto)
+                .collect(Collectors.toList());
+        dto.setAccounts(accounts);
+
         return dto;
+    }
+
+    public List<UserDto> getActiveCustomers() {
+        return userRepository.findByRole(Role.CUSTOMER).stream()
+                .filter(User::isEnabled)
+                .map(u -> modelMapper.map(u, UserDto.class))
+                .collect(Collectors.toList());
     }
 
     public UserDto createUser(CreateUserDto createUserDto) {

@@ -3,6 +3,8 @@ package com.tss.aml.dto.admin;
 import com.tss.aml.entity.Address;
 import com.tss.aml.entity.Enums.KycStatus;
 import lombok.Data;
+import java.util.List;
+import com.tss.aml.dto.account.BankAccountDto;
 
 @Data
 public class AdminCustomerDetailsDto {
@@ -20,4 +22,5 @@ public class AdminCustomerDetailsDto {
     private String createdAt;
     private long transactionCount;
     private long alertCount;
+    private List<BankAccountDto> accounts;
 }

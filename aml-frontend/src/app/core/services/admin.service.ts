@@ -129,6 +129,7 @@ export interface AdminCustomerDetailsDto {
   createdAt?: string;
   transactionCount: number;
   alertCount: number;
+  accounts?: BankAccountDto[];
 }
 
 @Injectable({
@@ -276,6 +277,10 @@ export class AdminService {
 
   getCustomerDetails(userId: number): Observable<AdminCustomerDetailsDto> {
     return this.http.get<AdminCustomerDetailsDto>(`${this.apiUrl}/customers/${userId}/details`);
+  }
+
+  getActiveCustomers(): Observable<UserDto[]> {
+    return this.http.get<UserDto[]>(`${this.apiUrl}/customers/active`);
   }
 
   // ===== AUDIT LOGS =====

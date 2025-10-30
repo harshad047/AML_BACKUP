@@ -227,6 +227,12 @@ public class AdminController {
     public ResponseEntity<AdminCustomerDetailsDto> getCustomerDetails(@PathVariable Long userId) {
         return ResponseEntity.ok(adminService.getCustomerDetailsForAdmin(userId));
     }
+
+    // Admin: Active customers list
+    @GetMapping("/customers/active")
+    public ResponseEntity<List<UserDto>> getActiveCustomers() {
+        return ResponseEntity.ok(adminService.getActiveCustomers());
+    }
     
     // Audit Log Endpoints
     

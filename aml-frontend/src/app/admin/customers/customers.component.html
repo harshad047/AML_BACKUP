@@ -1,0 +1,81 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="fas fa-users me-2"></i>Customers</h2>
+    <div class="d-flex align-items-center gap-3">
+      <div class="btn-group" role="group" aria-label="View switch">
+        <button class="btn btn-sm" [ngClass]="viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'" (click)="setView('grid')">
+          <i class="fas fa-th-large me-1"></i> Grid
+        </button>
+        <button class="btn btn-sm" [ngClass]="viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'" (click)="setView('table')">
+          <i class="fas fa-list me-1"></i> Table
+        </button>
+      </div>
+      <div class="search-box d-flex align-items-center">
+        <i class="fas fa-search me-2 text-muted"></i>
+        <input class="form-control" placeholder="Search customers..." [(ngModel)]="searchTerm" />
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="mt-3 text-muted">Loading customers...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="!loading">
+    <!-- Grid View -->
+    <div *ngIf="viewMode === 'grid'" class="row row-cols-1 row-cols-md-3 g-3">
+      <div class="col" *ngFor="let c of filtered()">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="h5 mb-1">{{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : ('@' + c.username) }}</div>
+                <div class="text-muted small">{{ '@' + c.username }}</div>
+                <div class="text-muted small">{{ c.email || '-' }}</div>
+              </div>
+              <span class="badge bg-success">Active</span>
+            </div>
+          </div>
+          <div class="card-footer bg-white d-flex justify-content-end gap-2">
+            <button class="btn btn-sm btn-outline-primary" (click)="view(c)">
+              <i class="fas fa-eye me-1"></i> View Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table View -->
+    <div *ngIf="viewMode === 'table'" class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filtered(); index as i">
+              <td>{{ i + 1 }}</td>
+              <td>{{ c.username }}</td>
+              <td>{{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : '-' }}</td>
+              <td>{{ c.email || '-' }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary" (click)="view(c)">
+                  <i class="fas fa-eye me-1"></i> View Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

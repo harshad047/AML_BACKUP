@@ -38,6 +38,53 @@
           </div>
         </div>
       </div>
+
+      <div class="card mt-3">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <strong>Accounts</strong>
+          <small class="text-muted" *ngIf="details.accounts?.length">{{ details.accounts?.length || 0 }} accounts</small>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="!details.accounts || details.accounts.length === 0" class="p-4 text-center text-muted">No accounts found</div>
+          <div *ngIf="details.accounts && details.accounts.length" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Account Number</th>
+                  <th>Type</th>
+                  <th>Balance</th>
+                  <th>Status</th>
+                  <th>Approval</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of details.accounts; index as i">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ a.accountNumber }}</td>
+                  <td>{{ a.accountType }}</td>
+                  <td>{{ a.balance | number:'1.2-2' }} {{ a.currency }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="a.status === 'ACTIVE' ? 'bg-success' : (a.status === 'SUSPENDED' ? 'bg-danger' : 'bg-secondary')">{{ a.status }}</span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="a.approvalStatus === 'APPROVED' ? 'bg-success' : (a.approvalStatus === 'PENDING' ? 'bg-warning text-dark' : 'bg-danger')">{{ a.approvalStatus }}</span>
+                  </td>
+                  <td class="text-end">
+                    <button *ngIf="a.status !== 'ACTIVE' && a.approvalStatus === 'APPROVED'" class="btn btn-sm btn-success me-2" (click)="activateAccount(a.id)">
+                      <i class="fas fa-unlock me-1"></i> Activate
+                    </button>
+                    <button *ngIf="a.status === 'ACTIVE'" class="btn btn-sm btn-outline-danger" (click)="suspendAccount(a.id)">
+                      <i class="fas fa-ban me-1"></i> Suspend
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="col-md-4">
       <div class="card mb-3">

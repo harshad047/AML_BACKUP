@@ -14,11 +14,16 @@ export class AdminUserDetailsComponent implements OnInit {
   loading = false;
   error = '';
   details?: AdminCustomerDetailsDto;
+  private origin: 'users' | 'customers' = 'customers';
 
   constructor(private route: ActivatedRoute, private router: Router, private adminService: AdminService) {}
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    const from = this.route.snapshot.queryParamMap.get('from');
+    if (from === 'users' || from === 'customers') {
+      this.origin = from;
+    }
     if (!id) {
       this.error = 'Invalid user id';
       return;
@@ -41,6 +46,26 @@ export class AdminUserDetailsComponent implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/admin/users']);
+    if (this.origin === 'users') {
+      this.router.navigate(['/admin/users']);
+    } else {
+      this.router.navigate(['/admin/customers']);
+    }
+  }
+
+  activateAccount(accountId: number): void {
+    if (!this.details) return;
+    this.adminService.activateAccount(accountId).subscribe({
+      next: _ => this.fetch(this.details!.userId),
+      error: err => this.error = err.error?.message || 'Failed to activate account'
+    });
+  }
+
+  suspendAccount(accountId: number): void {
+    if (!this.details) return;
+    this.adminService.suspendAccount(accountId).subscribe({
+      next: _ => this.fetch(this.details!.userId),
+      error: err => this.error = err.error?.message || 'Failed to suspend account'
+    });
   }
 }
