@@ -217,7 +217,13 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   // Helpdesk methods
   canRaiseTicket(transaction: TransactionDto): boolean {
     const status = transaction.status?.toLowerCase();
-    return status === 'flagged' || status === 'blocked';
+    const type = this.getTransactionType(transaction).toUpperCase();
+    
+    // Only allow tickets for flagged/blocked DEPOSIT or WITHDRAWAL transactions
+    const isValidStatus = status === 'flagged' || status === 'blocked';
+    const isValidType = type.includes('DEPOSIT') || type.includes('WITHDRAWAL');
+    
+    return isValidStatus && isValidType;
   }
 
   openTicketModal(transaction: TransactionDto): void {

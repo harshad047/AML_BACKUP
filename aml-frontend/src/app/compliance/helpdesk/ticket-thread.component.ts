@@ -10,7 +10,8 @@ import { RouterModule } from '@angular/router';
   selector: 'app-officer-ticket-thread',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './ticket-thread.component.html'
+  templateUrl: './ticket-thread.component.html',
+  styleUrls: ['./ticket-thread.component.css']
 })
 export class OfficerTicketThreadComponent {
   ticketId!: number;
@@ -51,7 +52,8 @@ export class OfficerTicketThreadComponent {
     const response = (this.reply || '').trim();
     if (!response) return;
     this.api.respond(this.ticketId, { response }).subscribe({
-      next: _ => {
+      next: (updatedTicket) => {
+        this.ticket = updatedTicket;
         this.reply = '';
         this.loadMessages();
       },
@@ -62,9 +64,16 @@ export class OfficerTicketThreadComponent {
   resolve(): void {
     if (!confirm('Mark this ticket as resolved?')) return;
     this.api.resolve(this.ticketId).subscribe({
-      next: _ => this.loadMessages(),
+      next: (updatedTicket) => {
+        this.ticket = updatedTicket;
+        this.loadMessages();
+      },
       error: err => alert(err?.error?.message || 'Failed to resolve ticket')
     });
+  }
+
+  isTicketResolved(): boolean {
+    return this.ticket?.status === 'RESOLVED' || this.ticket?.status === 'CLOSED';
   }
 
   onPageChange(delta: number): void {

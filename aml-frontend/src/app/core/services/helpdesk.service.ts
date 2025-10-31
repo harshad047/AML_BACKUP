@@ -43,4 +43,8 @@ export class HelpdeskApiService {
     const params = new HttpParams().set('page', page).set('size', size);
     return this.http.get<PageResponse<HelpdeskMessageDto>>(`${this.base}/tickets/${ticketId}/messages`, { params });
   }
+
+  getTicketById(ticketId: number): Observable<HelpdeskTicketDto> {
+    return this.http.get<HelpdeskTicketDto>(`${this.base}/tickets/${ticketId}`);
+  }
 }

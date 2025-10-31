@@ -13,13 +13,17 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  height: 100vh;
   background-color: var(--background-color);
+  padding: 1rem;
 }
 
 .login-box {
   display: flex;
   width: 100%;
-  max-width: 900px;
+  max-width: 1000px;
+  height: 85vh;
+  max-height: 650px;
   background-color: var(--card-background);
   border-radius: 1rem;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
@@ -27,8 +31,96 @@
 }
 
 .login-form {
-  padding: 3rem;
+  padding: 1.5rem 2rem;
   width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+/* Login Form Logo */
+.login-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.login-logo-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(13, 110, 253, 0.3);
+  transition: all 0.3s ease;
+}
+
+.login-logo-icon i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.login-logo-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(13, 110, 253, 0.4);
+}
+
+.login-logo-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #0d6efd;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Branding Panel Logo */
+.branding-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.branding-logo-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.branding-logo-icon i {
+  font-size: 2.5rem;
+  color: white;
+}
+
+.branding-logo-icon:hover {
+  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.branding-logo-title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: white;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .login-branding {
@@ -38,7 +130,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 3rem;
+  padding: 2rem;
 }
 
 .branding-content {
@@ -79,23 +171,23 @@
 }
 
 .subtitle {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-weight: 400;
 }
 
 .divider {
-  width: 60px;
-  height: 3px;
+  width: 50px;
+  height: 2px;
   background: white;
-  margin: 2rem auto;
+  margin: 1rem auto;
   border-radius: 2px;
 }
 
 .description {
-  font-size: 1rem;
-  line-height: 1.8;
+  font-size: 0.9rem;
+  line-height: 1.6;
   color: rgba(255, 255, 255, 0.85);
   font-weight: 300;
   text-align: center;

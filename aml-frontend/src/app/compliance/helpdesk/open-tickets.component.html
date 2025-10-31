@@ -1,45 +1,148 @@
-<div class="container py-3">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Open Helpdesk Tickets</h3>
-  </div>
-
-  <div class="card">
-    <div class="card-body p-0">
-      <div class="text-center text-muted py-4" *ngIf="loading">Loading...</div>
-      <div class="text-danger p-3" *ngIf="error">{{ error }}</div>
-      <div class="table-responsive" *ngIf="!loading && tickets.length > 0">
-        <table class="table table-striped mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>#</th>
-              <th>Subject</th>
-              <th>Customer</th>
-              <th>Transaction</th>
-              <th>Created</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let t of tickets; index as i">
-              <td>{{ (pageIndex * pageSize) + i + 1 }}</td>
-              <td class="text-dark">{{ t.subject }}</td>
-              <td>#{{ t.customerId }}</td>
-              <td>#{{ t.transactionId }}</td>
-              <td>{{ t.createdAt | date:'medium' }}</td>
-              <td>
-                <a class="btn btn-sm btn-outline-primary" [routerLink]="['/compliance/helpdesk/tickets', t.id]">Open</a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="helpdesk-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-1"><i class="fas fa-headset me-2"></i>Customer Support Tickets</h2>
+          <p class="mb-0 opacity-75">Manage and respond to customer helpdesk tickets</p>
+        </div>
+        <a class="btn btn-light" routerLink="/compliance">
+          <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
       </div>
-      <div class="text-center text-muted py-4" *ngIf="!loading && tickets.length === 0">No open tickets.</div>
     </div>
   </div>
 
-  <div class="d-flex justify-content-between align-items-center mt-3">
-    <button class="btn btn-outline-secondary" [disabled]="pageIndex===0" (click)="onPageChange(-1)">Prev</button>
-    <div>Page {{ pageIndex + 1 }} of {{ Math.max(1, Math.ceil(total / pageSize)) }}</div>
-    <button class="btn btn-outline-secondary" [disabled]="(pageIndex+1)*pageSize >= total" (click)="onPageChange(1)">Next</button>
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <div class="row align-items-center">
+      <div class="col-md-4">
+        <label class="form-label fw-bold"><i class="fas fa-filter me-2"></i>Filter by Status</label>
+        <select class="form-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
+          <option value="ALL">All Tickets</option>
+          <option value="OPEN">Open</option>
+          <option value="RESPONDED">Responded</option>
+          <option value="RESOLVED">Resolved</option>
+        </select>
+      </div>
+      <div class="col-md-8 text-end">
+        <div class="text-muted">
+          <i class="fas fa-info-circle me-2"></i>
+          Showing <strong>{{ filteredTickets.length }}</strong> of <strong>{{ total }}</strong> tickets
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="card shadow-sm" *ngIf="loading">
+    <div class="card-body text-center py-5">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading tickets...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="alert alert-danger" *ngIf="error && !loading">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+  </div>
+
+  <!-- Tickets List -->
+  <div *ngIf="!loading && filteredTickets.length > 0">
+    <div class="ticket-card" *ngFor="let t of filteredTickets; index as i">
+      <div class="ticket-header">
+        <div class="row align-items-center">
+          <div class="col-md-7">
+            <h5 class="mb-0">
+              <a [routerLink]="['/compliance/helpdesk/tickets', t.id]" class="ticket-link">
+                <i class="fas fa-ticket-alt me-2"></i>{{ t.subject }}
+              </a>
+            </h5>
+          </div>
+          <div class="col-md-5 text-end">
+            <span class="status-badge status-{{ t.status }}">
+              <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>{{ t.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="ticket-body">
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <small class="text-muted d-block mb-1"><i class="fas fa-hashtag me-1"></i>Ticket ID</small>
+            <strong>#{{ t.id }}</strong>
+          </div>
+          <div class="col-md-3">
+            <small class="text-muted d-block mb-1"><i class="fas fa-user me-1"></i>Customer</small>
+            <span class="customer-badge">Customer #{{ t.customerId }}</span>
+          </div>
+          <div class="col-md-3">
+            <small class="text-muted d-block mb-1"><i class="fas fa-exchange-alt me-1"></i>Transaction</small>
+            <span class="transaction-badge">#{{ t.transactionId }}</span>
+          </div>
+          <div class="col-md-3">
+            <small class="text-muted d-block mb-1"><i class="fas fa-clock me-1"></i>Created</small>
+            <strong>{{ t.createdAt | date:'short' }}</strong>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-12">
+            <small class="text-muted d-block mb-1"><i class="fas fa-comment me-1"></i>Initial Message</small>
+            <p class="mb-0 text-truncate">{{ t.message }}</p>
+          </div>
+        </div>
+
+        <div class="ticket-meta">
+          <div class="meta-item" *ngIf="t.assignedOfficerId">
+            <i class="fas fa-user-tie"></i>
+            <span class="assigned-badge">Assigned to Officer #{{ t.assignedOfficerId }}</span>
+          </div>
+          <div class="meta-item" *ngIf="!t.assignedOfficerId">
+            <i class="fas fa-user-slash"></i>
+            <span class="unassigned-badge">Unassigned</span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar-alt"></i>
+            <span>{{ t.createdAt | date:'medium' }}</span>
+          </div>
+        </div>
+
+        <div class="mt-3 text-end">
+          <a [routerLink]="['/compliance/helpdesk/tickets', t.id]" 
+             class="btn btn-sm"
+             [ngClass]="t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'btn-secondary' : 'btn-respond'"
+             [class.disabled]="t.status === 'RESOLVED' || t.status === 'CLOSED'">
+            <i class="fas" [ngClass]="t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'fa-eye' : 'fa-reply'" class="me-1"></i>
+            {{ t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'View Ticket' : 'Respond to Ticket' }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="card shadow-sm" *ngIf="!loading && filteredTickets.length === 0 && !error">
+    <div class="card-body empty-state">
+      <i class="fas fa-inbox"></i>
+      <h5 class="mt-3">No Open Tickets</h5>
+      <p class="text-muted">
+        All customer support tickets have been resolved. Great job!
+      </p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-controls mt-4" *ngIf="!loading && filteredTickets.length > 0">
+    <button class="btn btn-outline-secondary" [disabled]="pageIndex===0" (click)="onPageChange(-1)">
+      <i class="fas fa-chevron-left me-2"></i>Previous
+    </button>
+    <div class="text-muted">
+      Page <strong>{{ pageIndex + 1 }}</strong> of <strong>{{ Math.max(1, Math.ceil(total / pageSize)) }}</strong>
+    </div>
+    <button class="btn btn-outline-secondary" [disabled]="(pageIndex+1)*pageSize >= total" (click)="onPageChange(1)">
+      Next<i class="fas fa-chevron-right ms-2"></i>
+    </button>
   </div>
 </div>

@@ -1,5 +1,5 @@
 .helpdesk-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   color: white;
   padding: 2rem;
   border-radius: 10px 10px 0 0;
@@ -87,7 +87,7 @@
 }
 
 .btn-create-ticket {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   border: none;
   color: white;
   padding: 0.6rem 1.5rem;
@@ -98,19 +98,19 @@
 
 .btn-create-ticket:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
   color: white;
 }
 
 .ticket-link {
-  color: #667eea;
+  color: #1976d2;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .ticket-link:hover {
-  color: #764ba2;
+  color: #1565c0;
   text-decoration: underline;
 }
 
