@@ -132,10 +132,13 @@ public class HelpdeskService {
                 .collect(Collectors.toList());
     }
 
+
     @Transactional(readOnly = true)
     public Page<HelpdeskTicketDto> getOpenTicketsForOfficers(Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<HelpdeskTicket> tickets = ticketRepository.findByStatusOrderByCreatedAtDesc(HelpdeskTicket.TicketStatus.OPEN, pageable);
+        // Return all tickets (OPEN, RESPONDED, RESOLVED) for compliance officers to manage
+        // Frontend will handle filtering by status
+        Page<HelpdeskTicket> tickets = ticketRepository.findAllByOrderByCreatedAtDesc(pageable);
         return tickets.map(this::toDto);
     }
 

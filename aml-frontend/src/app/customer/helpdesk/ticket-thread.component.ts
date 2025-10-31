@@ -10,7 +10,8 @@ import { RouterModule } from '@angular/router';
   selector: 'app-customer-ticket-thread',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './ticket-thread.component.html'
+  templateUrl: './ticket-thread.component.html',
+  styleUrls: ['./ticket-thread.component.css']
 })
 export class CustomerTicketThreadComponent {
   ticketId!: number;

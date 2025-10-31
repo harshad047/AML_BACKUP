@@ -9,12 +9,14 @@ import { RouterModule } from '@angular/router';
   selector: 'app-open-tickets',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './open-tickets.component.html'
+  templateUrl: './open-tickets.component.html',
+  styleUrls: ['./open-tickets.component.css']
 })
 export class OpenTicketsComponent {
   pageIndex = 0;
   pageSize = 10;
   total = 0;
+  statusFilter = 'ALL';
   loading = false;
   error = '';
   tickets: HelpdeskTicketDto[] = [];
@@ -49,6 +51,26 @@ export class OpenTicketsComponent {
     if ((next) * this.pageSize >= this.total) return;
     this.pageIndex = next;
     this.load();
+  }
+
+  getRespondedCount(): number {
+    return this.tickets.filter(t => t.status === 'RESPONDED').length;
+  }
+
+  getResolvedCount(): number {
+    return this.tickets.filter(t => t.status === 'RESOLVED').length;
+  }
+
+  onFilterChange(): void {
+    this.pageIndex = 0;
+    this.load();
+  }
+
+  get filteredTickets(): HelpdeskTicketDto[] {
+    if (!this.statusFilter || this.statusFilter === 'ALL') {
+      return this.tickets;
+    }
+    return this.tickets.filter(t => t.status === this.statusFilter);
   }
 }
 

@@ -1,8 +1,12 @@
 <nav class="navbar navbar-expand-lg navbar-dark">
   <div class="container-fluid">
-    <a class="navbar-brand" [routerLink]="currentUser ? dashboardRoute : '/login'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: brandExactMatch}">
-      <i class="fas fa-shield-alt me-2"></i>
-      AML System
+    <a class="navbar-brand d-flex align-items-center" [routerLink]="currentUser ? dashboardRoute : '/login'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: brandExactMatch}">
+      <div class="custom-logo me-2">
+        <div class="logo-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <span class="logo-text">TRANSPECT</span>
+      </div>
     </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
