@@ -1,14 +1,15 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
 import { AccountDto } from '../../core/services/account.service';
+import { HelpdeskApiService } from '../../core/services/helpdesk.service';
 
 @Component({
   selector: 'app-customer-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, DatePipe, RouterModule],
   templateUrl: './customer-transactions.component.html',
   styleUrls: ['./customer-transactions.component.css']
 })
@@ -23,8 +24,23 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   selectedAccountNumber?: string;
   filterStatus = 'all';
   selectedTransaction: any = null;
+  ticketForm: FormGroup;
+  showTicketModal = false;
+  ticketTransaction: TransactionDto | null = null;
+  ticketSuccess = '';
+  ticketError = '';
+  submittingTicket = false;
 
-  constructor(private tx: TransactionService) {}
+  constructor(
+    private tx: TransactionService,
+    private helpdeskService: HelpdeskApiService,
+    private fb: FormBuilder
+  ) {
+    this.ticketForm = this.fb.group({
+      subject: ['', [Validators.required, Validators.maxLength(200)]],
+      message: ['', [Validators.required, Validators.maxLength(1000)]]
+    });
+  }
 
   ngOnInit(): void {
     this.fetch();
@@ -196,5 +212,55 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
       const modal = new (window as any).bootstrap.Modal(modalElement);
       modal.show();
     }
+  }
+
+  // Helpdesk methods
+  canRaiseTicket(transaction: TransactionDto): boolean {
+    const status = transaction.status?.toLowerCase();
+    return status === 'flagged' || status === 'blocked';
+  }
+
+  openTicketModal(transaction: TransactionDto): void {
+    this.ticketTransaction = transaction;
+    this.ticketSuccess = '';
+    this.ticketError = '';
+    this.ticketForm.reset({
+      subject: `Issue with Transaction #${transaction.id}`,
+      message: ''
+    });
+    const modalElement = document.getElementById('ticketModal');
+    if (modalElement) {
+      const modal = new (window as any).bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  submitTicket(): void {
+    if (this.ticketForm.invalid || !this.ticketTransaction) return;
+
+    this.submittingTicket = true;
+    this.ticketError = '';
+    this.ticketSuccess = '';
+
+    const { subject, message } = this.ticketForm.value;
+
+    this.helpdeskService.createTicket(this.ticketTransaction.id, { subject, message }).subscribe({
+      next: (ticket) => {
+        this.submittingTicket = false;
+        this.ticketSuccess = `Ticket #${ticket.id} created successfully!`;
+        this.ticketForm.reset();
+        setTimeout(() => {
+          const modalElement = document.getElementById('ticketModal');
+          if (modalElement) {
+            const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
+            if (modal) modal.hide();
+          }
+        }, 2000);
+      },
+      error: (err) => {
+        this.submittingTicket = false;
+        this.ticketError = err?.error?.message || 'Failed to create ticket';
+      }
+    });
   }
 }

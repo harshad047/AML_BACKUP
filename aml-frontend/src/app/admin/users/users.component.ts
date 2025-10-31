@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { AdminService, UserDto, CreateUserDto } from '../../core/services/admin.service';
+import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-users',
@@ -38,7 +40,8 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) {
     this.createUserForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -51,8 +54,29 @@ export class UsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadUsers();
-    this.loadBlockedUsers();
+    this.loadAll();
+  }
+
+  private loadAll(): void {
+    this.loading = true;
+    this.error = '';
+    forkJoin({
+      users: this.adminService.getAllUsers(),
+      blocked: this.adminService.getBlockedCustomers()
+    }).subscribe({
+      next: ({ users, blocked }) => {
+        this.users = users;
+        this.blockedUsers = blocked;
+        this.filteredUsers = [...users];
+        this.applyBlockedStatus();
+        this.updatePagination();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to load users';
+        this.loading = false;
+      }
+    });
   }
 
   loadUsers(): void {
@@ -62,7 +86,9 @@ export class UsersComponent implements OnInit {
     this.adminService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
+        // Set filtered snapshot first, then apply blocked status to both arrays
         this.filteredUsers = [...users];
+        this.applyBlockedStatus();
         this.updatePagination();
         this.loading = false;
       },
@@ -159,11 +185,20 @@ export class UsersComponent implements OnInit {
     this.adminService.getBlockedCustomers().subscribe({
       next: (users) => {
         this.blockedUsers = users;
+        this.applyBlockedStatus();
       },
       error: (err) => {
         console.error('Error loading blocked users:', err);
       }
     });
+  }
+
+  private applyBlockedStatus(): void {
+    if (!this.users || !this.blockedUsers) return;
+    const blockedIds = new Set(this.blockedUsers.map(u => u.id));
+    this.users = this.users.map(u => ({ ...u, blocked: blockedIds.has(u.id) }));
+    this.filteredUsers = this.filteredUsers.map(u => ({ ...u, blocked: blockedIds.has(u.id) }));
+    this.updatePagination();
   }
 
   toggleCreateForm(): void {
@@ -216,8 +251,7 @@ export class UsersComponent implements OnInit {
       next: () => {
         this.success = `User ${this.selectedUser!.username} blocked successfully`;
         this.closeBlockModal();
-        this.loadUsers();
-        this.loadBlockedUsers();
+        this.loadAll();
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to block user';
@@ -238,6 +272,18 @@ export class UsersComponent implements OnInit {
         this.error = err.error?.message || 'Failed to unblock user';
       }
     });
+  }
+
+  activateUser(user: UserDto): void {
+    if (!user.blocked) {
+      this.error = 'User is already active';
+      return;
+    }
+    this.unblockUser(user);
+  }
+
+  viewDetails(user: UserDto): void {
+    this.router.navigate(['/admin/users', user.id, 'details'], { queryParams: { from: 'users' } });
   }
 
   getRoleBadgeClass(role: string): string {

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.tss.aml.dto.account.BankAccountDto;
 import com.tss.aml.dto.admin.CreateUserDto;
 import com.tss.aml.dto.admin.UserDto;
+import com.tss.aml.dto.admin.AdminCustomerDetailsDto;
 import com.tss.aml.dto.compliance.CountryRiskDto;
 import com.tss.aml.dto.compliance.RuleConditionDto;
 import com.tss.aml.dto.compliance.RuleDto;
@@ -37,6 +38,7 @@ import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.RuleRepository;
 import com.tss.aml.repository.SuspiciousKeywordRepository;
 import com.tss.aml.repository.TransactionRepository;
+import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -64,6 +66,67 @@ public class AdminService {
     public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(user -> modelMapper.map(user, UserDto.class))
+                .collect(Collectors.toList());
+    }
+
+    public AdminCustomerDetailsDto getCustomerDetailsForAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        var customer = customerRepository.findByEmail(user.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "email", user.getEmail()));
+
+        AdminCustomerDetailsDto dto = new AdminCustomerDetailsDto();
+        dto.setUserId(user.getId());
+        dto.setCustomerId(customer.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        // Prefer customer entity names; fallback to user entity if null/blank
+        String cFirst = customer.getFirstName();
+        String cMiddle = customer.getMiddleName();
+        String cLast = customer.getLastName();
+        dto.setFirstName((cFirst != null && !cFirst.isBlank()) ? cFirst : user.getFirstName());
+        dto.setMiddleName(cMiddle);
+        dto.setLastName((cLast != null && !cLast.isBlank()) ? cLast : user.getLastName());
+        dto.setPhone(customer.getPhone());
+        dto.setAddress(customer.getAddress());
+        dto.setKycStatus(customer.getKycStatus());
+        dto.setEnabled(user.isEnabled());
+        dto.setCreatedAt(customer.getCreatedAt() != null ? customer.getCreatedAt().toString() : null);
+
+        // Counts
+        long txCount = transactionRepository.countByCustomerId(customer.getId());
+        dto.setTransactionCount(txCount);
+
+        // Alert count for all transactions of this customer
+        var txList = transactionRepository.findByCustomerIdOrderByCreatedAtDesc(customer.getId());
+        var txIds = txList.stream().map(t -> t.getId()).toList();
+        long alertCount = txIds.isEmpty() ? 0 : alertRepository.countByTransactionIdIn(txIds);
+        dto.setAlertCount(alertCount);
+
+        // Accounts list
+        var accounts = bankAccountRepository.findByUser(user)
+                .stream()
+                .map(this::mapAccountToDto)
+                .collect(Collectors.toList());
+        dto.setAccounts(accounts);
+
+        return dto;
+    }
+
+    public List<UserDto> getActiveCustomers() {
+        return userRepository.findByRole(Role.CUSTOMER).stream()
+                .filter(User::isEnabled)
+                .map(u -> modelMapper.map(u, UserDto.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<TransactionDto> getAdminTransactions(String status) {
+        var list = (status == null || status.isBlank())
+                ? transactionRepository.findAllByOrderByCreatedAtDesc()
+                : transactionRepository.findByStatusOrderByCreatedAtDesc(status.toUpperCase());
+        return list.stream()
+                .map(tx -> modelMapper.map(tx, TransactionDto.class))
                 .collect(Collectors.toList());
     }
 

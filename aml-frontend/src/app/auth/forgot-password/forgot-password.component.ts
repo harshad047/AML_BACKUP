@@ -41,6 +41,7 @@ export class ForgotPasswordComponent {
   // Verified state
   verifiedEmail = '';
   verifiedOtp = '';
+  resetToken = '';
 
   constructor(
     private fb: FormBuilder,
@@ -153,6 +154,7 @@ export class ForgotPasswordComponent {
       next: (response: any) => {
         this.success = response.message || 'OTP verified successfully!';
         this.verifiedOtp = otp;
+        this.resetToken = response.resetToken || '';
         this.currentStep = 'password';
         this.loading = false;
         this.error = '';
@@ -179,10 +181,12 @@ export class ForgotPasswordComponent {
     
     const resetRequest: ForgotPasswordResetRequest = {
       email: this.verifiedEmail,
-      otp: this.verifiedOtp,
+      otp: '',
       newPassword,
       confirmPassword
-    };
+    } as any;
+    // Prefer token-based reset (as backend issues a short-lived token upon OTP verify)
+    (resetRequest as any).token = this.resetToken;
 
     this.http.post(`${this.API_URL}/forgot-password/reset`, resetRequest).subscribe({
       next: (response: any) => {

@@ -114,6 +114,26 @@ export interface TransactionDto {
   toAccountNumber?: string;
   description?: string;
   createdAt: string;
+  combinedRiskScore?: number;
+  transactionReference?: string;
+}
+
+export interface AdminCustomerDetailsDto {
+  userId: number;
+  customerId: number;
+  username: string;
+  email: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: any;
+  kycStatus?: string;
+  enabled: boolean;
+  createdAt?: string;
+  transactionCount: number;
+  alertCount: number;
+  accounts?: BankAccountDto[];
 }
 
 @Injectable({
@@ -261,6 +281,21 @@ export class AdminService {
 
   getBlockedCustomers(): Observable<UserDto[]> {
     return this.http.get<UserDto[]>(`${this.apiUrl}/customers/blocked`);
+  }
+
+  getCustomerDetails(userId: number): Observable<AdminCustomerDetailsDto> {
+    return this.http.get<AdminCustomerDetailsDto>(`${this.apiUrl}/customers/${userId}/details`);
+  }
+
+  getActiveCustomers(): Observable<UserDto[]> {
+    return this.http.get<UserDto[]>(`${this.apiUrl}/customers/active`);
+  }
+
+  // ===== ADMIN TRANSACTIONS =====
+  getAdminTransactions(status?: string): Observable<TransactionDto[]> {
+    const url = `${this.apiUrl}/transactions`;
+    const params = status ? new HttpParams().set('status', status) : undefined;
+    return this.http.get<TransactionDto[]>(url, { params });
   }
 
   // ===== AUDIT LOGS =====

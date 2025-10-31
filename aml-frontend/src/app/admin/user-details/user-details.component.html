@@ -1,0 +1,105 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="fas fa-user me-2"></i>Customer Details</h3>
+    <button class="btn btn-secondary" (click)="back()"><i class="fas fa-arrow-left me-1"></i>Back</button>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="mt-3 text-muted">Loading details...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="details && !loading" class="row g-3">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-light">
+          <strong>Profile</strong>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-2"><strong>Username:</strong> {{ details.username }}</div>
+            <div class="col-md-6 mb-2"><strong>Email:</strong> {{ details.email }}</div>
+            <div class="col-md-6 mb-2"><strong>Name:</strong> {{ details.firstName }} {{ details.lastName }}</div>
+            <div class="col-md-6 mb-2"><strong>Phone:</strong> {{ details.phone || '-' }}</div>
+            <div class="col-md-6 mb-2"><strong>KYC Status:</strong> {{ details.kycStatus || '-' }}</div>
+            <div class="col-md-6 mb-2"><strong>Created:</strong> {{ details.createdAt | date:'medium' }}</div>
+          </div>
+          <div class="mt-3">
+            <strong>Address:</strong>
+            <div class="text-muted" *ngIf="!details.address">-</div>
+            <div *ngIf="details.address">
+              {{ details.address?.street }},
+              {{ details.address?.city }},
+              {{ details.address?.state }} - {{ details.address?.postalCode }},
+              {{ details.address?.country }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <strong>Accounts</strong>
+          <small class="text-muted" *ngIf="details.accounts?.length">{{ details.accounts?.length || 0 }} accounts</small>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="!details.accounts || details.accounts.length === 0" class="p-4 text-center text-muted">No accounts found</div>
+          <div *ngIf="details.accounts && details.accounts.length" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Account Number</th>
+                  <th>Type</th>
+                  <th>Balance</th>
+                  <th>Status</th>
+                  <th>Approval</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let a of details.accounts; index as i">
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ a.accountNumber }}</td>
+                  <td>{{ a.accountType }}</td>
+                  <td>{{ a.balance | number:'1.2-2' }} {{ a.currency }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="a.status === 'ACTIVE' ? 'bg-success' : (a.status === 'SUSPENDED' ? 'bg-danger' : 'bg-secondary')">{{ a.status }}</span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="a.approvalStatus === 'APPROVED' ? 'bg-success' : (a.approvalStatus === 'PENDING' ? 'bg-warning text-dark' : 'bg-danger')">{{ a.approvalStatus }}</span>
+                  </td>
+                  <td class="text-end">
+                    <button *ngIf="a.status !== 'ACTIVE' && a.approvalStatus === 'APPROVED'" class="btn btn-sm btn-success me-2" (click)="activateAccount(a.id)">
+                      <i class="fas fa-unlock me-1"></i> Activate
+                    </button>
+                    <button *ngIf="a.status === 'ACTIVE'" class="btn btn-sm btn-outline-danger" (click)="suspendAccount(a.id)">
+                      <i class="fas fa-ban me-1"></i> Suspend
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <div class="card-body text-center">
+          <div class="mb-2"><span class="badge" [ngClass]="details.enabled ? 'bg-success' : 'bg-danger'">{{ details.enabled ? 'Active' : 'Blocked' }}</span></div>
+          <div class="display-6">{{ details.transactionCount }}</div>
+          <div class="text-muted">Total Transactions</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body text-center">
+          <div class="display-6">{{ details.alertCount }}</div>
+          <div class="text-muted">Total Alerts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -133,20 +133,28 @@
                 </span>
               </td>
               <td class="text-center">
-                <button 
-                  *ngIf="!user.blocked && user.role === 'CUSTOMER'" 
-                  class="btn btn-sm btn-danger"
-                  (click)="openBlockModal(user)"
-                  title="Block User">
-                  <i class="fas fa-ban me-1"></i>Block
-                </button>
-                <button 
-                  *ngIf="user.blocked" 
-                  class="btn btn-sm btn-success"
-                  (click)="unblockUser(user)"
-                  title="Unblock User">
-                  <i class="fas fa-check me-1"></i>Unblock
-                </button>
+                <div class="d-flex justify-content-center gap-2">
+                  <button 
+                    *ngIf="!user.blocked && user.role === 'CUSTOMER'" 
+                    class="btn btn-sm btn-danger"
+                    (click)="openBlockModal(user)"
+                    title="Block User">
+                    <i class="fas fa-ban me-1"></i>Block
+                  </button>
+                  <button 
+                    *ngIf="user.blocked" 
+                    class="btn btn-sm btn-success"
+                    (click)="activateUser(user)"
+                    title="Activate (Unblock)">
+                    <i class="fas fa-unlock me-1"></i>Activate
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="viewDetails(user)"
+                    title="View Details">
+                    <i class="fas fa-eye me-1"></i>View Details
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

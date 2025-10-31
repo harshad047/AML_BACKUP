@@ -47,8 +47,8 @@ export class AppComponent implements OnInit {
     // Get the URL without query parameters
     const urlWithoutParams = url.split('?')[0];
     
-    // Hide navbar for authentication routes
+    // Hide navbar for authentication routes (check if URL starts with these paths)
     const authRoutes = ['/login', '/register', '/otp-verification', '/forgot-password'];
-    this.showNavbar = !authRoutes.includes(urlWithoutParams);
+    this.showNavbar = !authRoutes.some(route => urlWithoutParams.startsWith(route) || urlWithoutParams === '/');
   }
 }

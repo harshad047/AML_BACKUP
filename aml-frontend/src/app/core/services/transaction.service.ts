@@ -21,6 +21,11 @@ export interface TransactionDto {
   createdAt: string;
   updatedAt: string;
   transactionReference: string;
+  // Intercurrency extras (optional)
+  originalAmount?: number;
+  originalCurrency?: string;
+  convertedAmount?: number;
+  convertedCurrency?: string;
 }
 
 export interface DepositDto {

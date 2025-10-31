@@ -20,16 +20,17 @@ public class PatternDepositWithdrawEvaluator implements RuleEvaluator {
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
 
+        // --- Step 1: Parse parameters from rule_condition.value ---
         int consecutiveCount;
         BigDecimal amountMultiplier;
 
         try {
-            String[] params = condition.getValue().split("\\|"); 
+            String[] params = condition.getValue().split("\\|"); // Example: "3|1.0"
             if (params.length != 2) return false;
             consecutiveCount = Integer.parseInt(params[0]);
             amountMultiplier = new BigDecimal(params[1]);
         } catch (Exception e) {
-            return false;
+            return false; // Malformed condition value
         }
 
         // --- Step 2: Parse customer ID ---

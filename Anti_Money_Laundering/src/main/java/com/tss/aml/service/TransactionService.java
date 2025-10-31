@@ -215,7 +215,7 @@ public class TransactionService {
         // Use receiver country code from request, with fallback to customer's country
         String countryCode = (receiverCountryCode != null && !receiverCountryCode.trim().isEmpty()) 
                 ? receiverCountryCode.trim().toUpperCase() 
-                : getCountryCodeFromCustomer(customer);
+                : getCountryCodeFromAccount(to);
         System.out.println("Receiver country code: " + countryCode + " (from request: " + receiverCountryCode + ")");
         
         return processTransactionInternal(from, to, amount, currency, desc, countryCode, nlp, customer, type);
@@ -865,10 +865,27 @@ public class TransactionService {
         Transaction savedTransaction = txRepo.save(pendingTransaction);
         
         // Now use the actual transaction ID for rule evaluation
+        // Normalize amount for rule evaluation to INR base
+        java.math.BigDecimal amountForRulesInInr;
+        try {
+            if ("INR".equalsIgnoreCase(conversionResult.getConvertedCurrency())) {
+                amountForRulesInInr = conversionResult.getConvertedAmount();
+            } else if ("INR".equalsIgnoreCase(conversionResult.getOriginalCurrency())) {
+                amountForRulesInInr = conversionResult.getOriginalAmount();
+            } else {
+                var toInr = currencyExchangeService.calculateConversion(
+                        conversionResult.getOriginalCurrency(), "INR", conversionResult.getOriginalAmount());
+                amountForRulesInInr = toInr.getConvertedAmount();
+            }
+        } catch (Exception e) {
+            // Fallback to total debit in original currency if conversion fails
+            amountForRulesInInr = conversionResult.getConvertedAmount();
+        }
+
         var input = TransactionInputDto.builder()
                 .txId(savedTransaction.getId().toString())
                 .customerId(customer.getId().toString())
-                .amount(conversionResult.getOriginalAmount())
+                .amount(amountForRulesInInr)
                 .countryCode(countryCode)
                 .nlpScore(nlp)
                 .text(description)
@@ -945,7 +962,7 @@ public class TransactionService {
         savedTransaction.setStatus(status);
         savedTransaction.setRuleEngineScore(ruleScore);
         savedTransaction.setCombinedRiskScore(combined);
-        savedTransaction.setThresholdExceeded(combined > 60);
+        savedTransaction.setThresholdExceeded(combined >= 60);
         savedTransaction.setAlertId(alertId);
         savedTransaction.setTransactionReference(generateTransactionReference(Transaction.TransactionType.INTERCURRENCY_TRANSFER));
         savedTransaction.setConversionCharges(conversionResult.getConversionCharges());

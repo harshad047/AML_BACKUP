@@ -123,9 +123,14 @@
               <td class="text-muted">{{ t.createdAt | date:'short' }}</td>
               <td class="text-muted">{{ t.description || '-' }}</td>
               <td class="text-center">
-                <button class="btn btn-sm btn-view" (click)="viewTransactionDetails(t)" title="View Details">
-                  <i class="fas fa-eye me-1"></i>View
-                </button>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-sm btn-view" (click)="viewTransactionDetails(t)" title="View Details">
+                    <i class="fas fa-eye me-1"></i>View
+                  </button>
+                  <button *ngIf="canRaiseTicket(t)" class="btn btn-sm btn-outline-warning" (click)="openTicketModal(t)" title="Raise Support Ticket">
+                    <i class="fas fa-headset me-1"></i>Raise Ticket
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -270,6 +275,65 @@
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i>Close
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raise Ticket Modal -->
+  <div class="modal fade" id="ticketModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header bg-warning text-dark">
+          <div>
+            <h5 class="modal-title">
+              <i class="fas fa-headset me-2"></i>Raise Support Ticket
+            </h5>
+            <p class="small mb-0" *ngIf="ticketTransaction">
+              Transaction #{{ ticketTransaction.id }} - {{ ticketTransaction.status }}
+            </p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-success" *ngIf="ticketSuccess">
+            <i class="fas fa-check-circle me-2"></i>{{ ticketSuccess }}
+          </div>
+          <div class="alert alert-danger" *ngIf="ticketError">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ ticketError }}
+          </div>
+
+          <form [formGroup]="ticketForm" (ngSubmit)="submitTicket()">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Subject *</label>
+              <input type="text" class="form-control" formControlName="subject" 
+                     placeholder="Brief description of your issue" maxlength="200">
+              <small class="text-muted">Maximum 200 characters</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Message *</label>
+              <textarea class="form-control" formControlName="message" rows="5"
+                        placeholder="Please describe your issue in detail..." maxlength="1000"></textarea>
+              <small class="text-muted">Maximum 1000 characters</small>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Note:</strong> Our compliance team will review your ticket and respond within 24-48 hours.
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-warning" [disabled]="ticketForm.invalid || submittingTicket">
+                <span *ngIf="submittingTicket" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!submittingTicket" class="fas fa-paper-plane me-2"></i>
+                {{ submittingTicket ? 'Submitting...' : 'Submit Ticket' }}
+              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Cancel
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

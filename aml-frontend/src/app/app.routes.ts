@@ -22,6 +22,10 @@ import { ChangePasswordComponent } from './customer/change-password/change-passw
 import { VerifyOtpComponent } from './customer/change-password/verify-otp.component';
 import { EnterOtpComponent } from './customer/change-password/enter-otp.component';
 import { ResetTokenGuard } from './core/guards/reset-token.guard';
+import { MyTicketsComponent } from './customer/helpdesk/my-tickets.component';
+import { CustomerTicketThreadComponent } from './customer/helpdesk/ticket-thread.component';
+import { OpenTicketsComponent } from './compliance/helpdesk/open-tickets.component';
+import { OfficerTicketThreadComponent } from './compliance/helpdesk/ticket-thread.component';
 
 // Admin Components
 import { UsersComponent } from './admin/users/users.component';
@@ -32,6 +36,9 @@ import { CountryRisksComponent } from './admin/country-risks/country-risks.compo
 import { ComplianceOfficersComponent } from './admin/compliance-officers/compliance-officers.component';
 import { AuditLogsComponent } from './admin/audit-logs/audit-logs.component';
 import { KycVerificationComponent } from './admin/kyc-verification/kyc-verification.component';
+import { AdminUserDetailsComponent } from './admin/user-details/user-details.component';
+import { AdminCustomersComponent } from './admin/customers/customers.component';
+import { AdminTransactionsComponent } from './admin/transactions/transactions.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -43,6 +50,18 @@ export const routes: Routes = [
   {
     path: 'customer',
     component: CustomerDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/helpdesk',
+    component: MyTicketsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['CUSTOMER'] }
+  },
+  {
+    path: 'customer/helpdesk/:ticketId',
+    component: CustomerTicketThreadComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['CUSTOMER'] }
   },
@@ -113,6 +132,24 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
   },
   {
+    path: 'admin/customers',
+    component: AdminCustomersComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/transactions',
+    component: AdminTransactionsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/users/:id/details',
+    component: AdminUserDetailsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
     path: 'admin/rules',
     component: RulesComponent,
     canActivate: [AuthGuard, RoleGuard],
@@ -157,6 +194,18 @@ export const routes: Routes = [
   {
     path: 'compliance',
     component: ComplianceDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  {
+    path: 'compliance/helpdesk/open',
+    component: OpenTicketsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  {
+    path: 'compliance/helpdesk/tickets/:ticketId',
+    component: OfficerTicketThreadComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['OFFICER'] }
   },

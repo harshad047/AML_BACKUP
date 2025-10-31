@@ -1,0 +1,45 @@
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Open Helpdesk Tickets</h3>
+  </div>
+
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="text-center text-muted py-4" *ngIf="loading">Loading...</div>
+      <div class="text-danger p-3" *ngIf="error">{{ error }}</div>
+      <div class="table-responsive" *ngIf="!loading && tickets.length > 0">
+        <table class="table table-striped mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Subject</th>
+              <th>Customer</th>
+              <th>Transaction</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of tickets; index as i">
+              <td>{{ (pageIndex * pageSize) + i + 1 }}</td>
+              <td class="text-dark">{{ t.subject }}</td>
+              <td>#{{ t.customerId }}</td>
+              <td>#{{ t.transactionId }}</td>
+              <td>{{ t.createdAt | date:'medium' }}</td>
+              <td>
+                <a class="btn btn-sm btn-outline-primary" [routerLink]="['/compliance/helpdesk/tickets', t.id]">Open</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="text-center text-muted py-4" *ngIf="!loading && tickets.length === 0">No open tickets.</div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-3">
+    <button class="btn btn-outline-secondary" [disabled]="pageIndex===0" (click)="onPageChange(-1)">Prev</button>
+    <div>Page {{ pageIndex + 1 }} of {{ Math.max(1, Math.ceil(total / pageSize)) }}</div>
+    <button class="btn btn-outline-secondary" [disabled]="(pageIndex+1)*pageSize >= total" (click)="onPageChange(1)">Next</button>
+  </div>
+</div>
