@@ -6,6 +6,7 @@ import com.tss.aml.dto.helpdesk.HelpdeskMessageDto;
 import com.tss.aml.dto.helpdesk.HelpdeskTicketDto;
 import com.tss.aml.dto.helpdesk.RespondTicketRequest;
 import com.tss.aml.entity.Alert;
+import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.HelpdeskMessage;
 import com.tss.aml.entity.HelpdeskTicket;
 import com.tss.aml.entity.Role;
@@ -15,6 +16,7 @@ import com.tss.aml.repository.AlertRepository;
 import com.tss.aml.repository.HelpdeskMessageRepository;
 import com.tss.aml.repository.HelpdeskTicketRepository;
 import com.tss.aml.repository.TransactionRepository;
+import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,18 +37,32 @@ public class HelpdeskService {
     private final HelpdeskMessageRepository messageRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final AlertRepository alertRepository;
 
     @Transactional
     public HelpdeskTicketDto createTicket(Long transactionId, String username, CreateTicketRequest req) {
-        User customer = getUserByUsernameOrEmail(username)
+        User customerUser = getUserByUsernameOrEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Customer customerEntity = getCustomerByUsernameOrEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
 
         Transaction tx = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new IllegalArgumentException("Transaction not found"));
 
-        if (!tx.getCustomerId().equals(customer.getId())) {
-            throw new SecurityException("You are not allowed to raise a ticket for this transaction");
+        // Validate ownership using Customer.id since Transaction.customerId references Customer
+        if (tx.getCustomerId() == null) {
+            throw new IllegalStateException("Transaction has no customer assigned (customerId is null)");
+        }
+        if (!tx.getCustomerId().equals(customerEntity.getId())) {
+            throw new SecurityException("You are not allowed to raise a ticket for this transaction (tx.customerId="
+                    + tx.getCustomerId() + ", resolvedCustomerId=" + customerEntity.getId() + ")");
+        }
+
+        // Allow tickets only for DEPOSIT and WITHDRAWAL, not for TRANSFER or INTERCURRENCY_TRANSFER
+        Transaction.TransactionType type = tx.getTransactionType();
+        if (type == Transaction.TransactionType.TRANSFER || type == Transaction.TransactionType.INTERCURRENCY_TRANSFER) {
+            throw new IllegalStateException("Tickets can only be raised for deposits and withdrawals");
         }
 
         String status = tx.getStatus() == null ? "" : tx.getStatus();
@@ -56,7 +72,7 @@ public class HelpdeskService {
 
         HelpdeskTicket ticket = HelpdeskTicket.builder()
                 .transaction(tx)
-                .customer(customer)
+                .customer(customerUser)
                 .subject(req.getSubject())
                 .message(req.getMessage())
                 .status(HelpdeskTicket.TicketStatus.OPEN)
@@ -82,7 +98,7 @@ public class HelpdeskService {
         // create initial customer message as part of the thread
         HelpdeskMessage initial = HelpdeskMessage.builder()
                 .ticket(ticket)
-                .author(customer)
+                .author(customerUser)
                 .senderType(HelpdeskMessage.SenderType.CUSTOMER)
                 .content(req.getMessage())
                 .build();
@@ -167,6 +183,12 @@ public class HelpdeskService {
         Optional<User> byUsername = userRepository.findByUsername(usernameOrEmail);
         if (byUsername.isPresent()) return byUsername;
         return userRepository.findByEmail(usernameOrEmail);
+    }
+
+    private Optional<Customer> getCustomerByUsernameOrEmail(String usernameOrEmail) {
+        Optional<Customer> byUsername = customerRepository.findByUsername(usernameOrEmail);
+        if (byUsername.isPresent()) return byUsername;
+        return customerRepository.findByEmail(usernameOrEmail);
     }
 
     private HelpdeskTicketDto toDto(HelpdeskTicket t) {
