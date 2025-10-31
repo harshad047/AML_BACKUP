@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HelpdeskApiService } from '../../core/services/helpdesk.service';
+import { ToastService } from '../../core/services/toast.service';
 import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../../core/models/helpdesk.models';
 import { RouterModule } from '@angular/router';
 
@@ -25,7 +26,11 @@ export class CustomerTicketThreadComponent {
   newMessage = '';
   Math = Math;
 
-  constructor(private route: ActivatedRoute, private api: HelpdeskApiService) {
+  constructor(
+    private route: ActivatedRoute,
+    private api: HelpdeskApiService,
+    private toastService: ToastService
+  ) {
     this.ticketId = Number(this.route.snapshot.paramMap.get('ticketId'));
     this.loadMessages();
   }
@@ -54,9 +59,10 @@ export class CustomerTicketThreadComponent {
     this.api.addMessage(this.ticketId, { content }).subscribe({
       next: _ => {
         this.newMessage = '';
+        this.toastService.success('Message sent successfully!', 4000);
         this.loadMessages();
       },
-      error: err => alert(err?.error?.message || 'Failed to send')
+      error: err => this.toastService.error(err?.error?.message || 'Failed to send message')
     });
   }
 

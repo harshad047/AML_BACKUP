@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray, FormsModule } from '@angular/forms';
 import { AdminService, RuleDto, RuleConditionDto } from '../../core/services/admin.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-rules',
@@ -34,7 +35,8 @@ export class RulesComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toastService: ToastService
   ) {
     this.ruleForm = this.fb.group({
       name: ['', Validators.required],
@@ -67,7 +69,7 @@ export class RulesComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to load rules';
+        this.toastService.error(err.error?.message || 'Failed to load rules');
         this.loading = false;
       }
     });
@@ -233,7 +235,7 @@ export class RulesComponent implements OnInit {
 
     request.subscribe({
       next: (rule) => {
-        this.success = `Rule "${rule.name}" ${this.editingRule ? 'updated' : 'created'} successfully!`;
+        this.toastService.success(`Rule "${rule.name}" ${this.editingRule ? 'updated' : 'created'} successfully!`, 5000);
         this.savingRule = false;
         this.resetForm();
         this.showCreateForm = false;
@@ -241,7 +243,7 @@ export class RulesComponent implements OnInit {
         this.loadRules();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to save rule';
+        this.toastService.error(err.error?.message || 'Failed to save rule');
         this.savingRule = false;
       }
     });
@@ -250,11 +252,11 @@ export class RulesComponent implements OnInit {
   toggleRuleStatus(rule: RuleDto): void {
     this.adminService.toggleRuleStatus(rule.id!, !rule.active).subscribe({
       next: () => {
-        this.success = `Rule "${rule.name}" ${rule.active ? 'deactivated' : 'activated'}`;
+        this.toastService.success(`Rule "${rule.name}" ${rule.active ? 'deactivated' : 'activated'}`, 4000);
         this.loadRules();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to toggle rule status';
+        this.toastService.error(err.error?.message || 'Failed to toggle rule status');
       }
     });
   }
@@ -264,11 +266,11 @@ export class RulesComponent implements OnInit {
 
     this.adminService.deleteRule(rule.id!).subscribe({
       next: () => {
-        this.success = `Rule "${rule.name}" deleted successfully`;
+        this.toastService.success(`Rule "${rule.name}" deleted successfully`, 5000);
         this.loadRules();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to delete rule';
+        this.toastService.error(err.error?.message || 'Failed to delete rule');
       }
     });
   }

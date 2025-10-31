@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 interface Address {
   street: string;
@@ -52,6 +53,7 @@ export class ProfileComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private toastService: ToastService,
     private router: Router
   ) {}
 
@@ -77,13 +79,13 @@ export class ProfileComponent implements OnInit {
           }
         } else {
           console.warn('Profile data not found in response:', response);
-          this.errorMessage = 'Profile data not found. Please try again.';
+          this.toastService.error('Profile data not found. Please try again.');
         }
       },
       error: (error: any) => {
         this.isLoading = false;
         console.error('Failed to load profile data:', error);
-        this.errorMessage = error.error?.message || 'Failed to load profile data. Please try again.';
+        this.toastService.error(error.error?.message || 'Failed to load profile data. Please try again.');
       }
     });
   }
@@ -153,17 +155,17 @@ export class ProfileComponent implements OnInit {
       this.authService.updateProfile(profileData).subscribe({
         next: (response: any) => {
           this.isLoading = false;
-          this.successMessage = 'Profile updated successfully!';
+          this.toastService.success('Profile updated successfully!', 5000);
           // Refresh profile data
           this.loadProfileData();
           // Exit edit mode after successful update
           setTimeout(() => {
-            this.toggleEditMode();
+            this.isEditMode = false;
           }, 1500);
         },
         error: (error: any) => {
           this.isLoading = false;
-          this.errorMessage = error.error?.message || 'Failed to update profile. Please try again.';
+          this.toastService.error(error.error?.message || 'Failed to update profile. Please try again.');
           console.error('Profile update error:', error);
         }
       });

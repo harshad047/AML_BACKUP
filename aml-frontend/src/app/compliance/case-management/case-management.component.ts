@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../core/services/compliance.service';
+import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.models';
 
@@ -501,6 +502,93 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
         </div>
       </div>
     </div>
+
+    <!-- Approve Case Modal -->
+    <div class="modal fade" [class.show]="showApproveModal" [style.display]="showApproveModal ? 'block' : 'none'" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-check-circle me-2"></i>
+              Approve Case
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="showApproveModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-3">Are you sure you want to approve this case?</p>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>This action will:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Approve the associated transaction</li>
+                <li>Execute the money movement</li>
+                <li>Resolve the case</li>
+                <li>Close the alert</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="showApproveModal = false">
+              <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button type="button" class="btn btn-success" (click)="selectedCase ? confirmApproveCaseDetail() : confirmApproveCase()">
+              <i class="fas fa-check me-2"></i>Approve Case
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade" [class.show]="showApproveModal" *ngIf="showApproveModal"></div>
+
+    <!-- Reject Case Modal -->
+    <div class="modal fade" [class.show]="showRejectModal" [style.display]="showRejectModal ? 'block' : 'none'" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-times-circle me-2"></i>
+              Reject Case
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="showRejectModal = false; rejectionReason = ''"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-3">Please provide a detailed reason for rejecting this case:</p>
+            <div class="form-group">
+              <label for="rejectionReason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+              <textarea 
+                id="rejectionReason"
+                class="form-control" 
+                [(ngModel)]="rejectionReason" 
+                rows="4" 
+                placeholder="Enter detailed reason for rejection..."
+                required></textarea>
+            </div>
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>This action will:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Reject the associated transaction</li>
+                <li>Resolve the case</li>
+                <li>Close the alert with rejection reason</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="showRejectModal = false; rejectionReason = ''">
+              <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-danger" 
+              (click)="selectedCase ? confirmRejectCaseDetail() : confirmRejectCase()"
+              [disabled]="!rejectionReason.trim()">
+              <i class="fas fa-ban me-2"></i>Reject Case
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade" [class.show]="showRejectModal" *ngIf="showRejectModal"></div>
   `,
   styles: [`
     .case-card-active {
@@ -555,6 +643,59 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
       background-color: #59339d;
       border-color: #4e2d8f;
     }
+
+    /* Modal Styles */
+    .modal.show {
+      display: block !important;
+    }
+
+    .modal-backdrop.show {
+      opacity: 0.5;
+    }
+
+    .modal {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      animation: modalSlideIn 0.3s ease-out;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+    }
+
+    .modal-footer {
+      border-bottom-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+    }
+
+    .form-control:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .alert ul {
+      padding-left: 1.5rem;
+    }
+
+    .alert ul li {
+      margin-bottom: 0.25rem;
+    }
   `]
 })
 export class CaseManagementComponent implements OnInit {
@@ -582,10 +723,18 @@ export class CaseManagementComponent implements OnInit {
   transactionHistory: any[] = [];
   loadingHistory = false;
 
+  // Modals for case actions
+  showApproveModal = false;
+  showRejectModal = false;
+  caseToApprove: CaseDto | null = null;
+  caseToReject: CaseDto | null = null;
+  rejectionReason = '';
+
   constructor(
     private complianceService: ComplianceService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -847,177 +996,209 @@ export class CaseManagementComponent implements OnInit {
     if (caseItem.alert && caseItem.alert.transaction) {
       this.router.navigate(['/compliance/sar-report', caseItem.alert.transaction.id]);
     } else {
-      window.alert('Transaction information not available for this case.');
+      this.toastService.error('Transaction information not available for this case.');
     }
   }
 
   approveCaseFromCard(caseItem: CaseDto): void {
-    if (confirm('Are you sure you want to approve this case? This will approve the associated transaction and resolve the case.')) {
-      this.loading = true;
-      
-      if (caseItem.alert && caseItem.alert.transaction) {
-        // Approve the transaction
-        this.complianceService.approveTransaction(caseItem.alert.transaction.id).subscribe({
-          next: (approvedTransaction) => {
-            // Add a note about the approval
-            const approvalNote = {
-              content: `Case approved. Transaction ${approvedTransaction.id} has been approved and processed. Case resolved.`
-            };
-            
-            this.complianceService.addNoteToCase(caseItem.id, approvalNote).subscribe({
-              next: () => {
-                this.loading = false;
-                window.alert('Case approved successfully! Transaction has been approved and case is resolved.');
-                
-                // Refresh cases
-                this.loadCases();
-              },
-              error: (error) => {
-                this.loading = false;
-                console.error('Error adding approval note:', error);
-                window.alert('Transaction approved but failed to add note. Please refresh the page.');
-              }
-            });
-          },
-          error: (error) => {
-            this.loading = false;
-            console.error('Error approving transaction:', error);
-            window.alert('Failed to approve transaction. Please try again.');
-          }
-        });
-      }
+    this.caseToApprove = caseItem;
+    this.showApproveModal = true;
+  }
+
+  confirmApproveCase(): void {
+    if (!this.caseToApprove) return;
+    this.showApproveModal = false;
+    this.loading = true;
+    const caseItem = this.caseToApprove;
+    
+    if (caseItem.alert && caseItem.alert.transaction) {
+      // Approve the transaction
+      this.complianceService.approveTransaction(caseItem.alert.transaction.id).subscribe({
+        next: (approvedTransaction) => {
+          // Add a note about the approval
+          const approvalNote = {
+            content: `Case approved. Transaction ${approvedTransaction.id} has been approved and processed. Case resolved.`
+          };
+          
+          this.complianceService.addNoteToCase(caseItem.id, approvalNote).subscribe({
+            next: () => {
+              this.loading = false;
+              this.toastService.success('Case approved successfully! Transaction has been approved and case is resolved.', 6000);
+              
+              // Refresh cases
+              this.loadCases();
+            },
+            error: (error) => {
+              this.loading = false;
+              console.error('Error adding approval note:', error);
+              this.toastService.warning('Transaction approved but failed to add note. Please refresh the page.', 6000);
+            }
+          });
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error approving transaction:', error);
+          this.toastService.error('Failed to approve transaction. Please try again.');
+        }
+      });
     }
   }
 
   rejectCaseFromCard(caseItem: CaseDto): void {
-    const reason = prompt('Please provide a reason for rejecting this case:');
-    if (reason && confirm('Are you sure you want to reject this case? This will reject the associated transaction and resolve the case.')) {
-      this.loading = true;
-      
-      if (caseItem.alert && caseItem.alert.transaction) {
-        // Reject the transaction
-        this.complianceService.rejectTransaction(caseItem.alert.transaction.id, reason).subscribe({
-          next: (rejectedTransaction) => {
-            // Add a note about the rejection
-            const rejectionNote = {
-              content: `Case rejected. Transaction ${rejectedTransaction.id} has been rejected. Reason: ${reason}. Case resolved.`
-            };
-            
-            this.complianceService.addNoteToCase(caseItem.id, rejectionNote).subscribe({
-              next: () => {
-                this.loading = false;
-                window.alert('Case rejected successfully! Transaction has been rejected and case is resolved.');
-                
-                // Refresh cases
-                this.loadCases();
-              },
-              error: (error) => {
-                this.loading = false;
-                console.error('Error adding rejection note:', error);
-                window.alert('Transaction rejected but failed to add note. Please refresh the page.');
-              }
-            });
-          },
-          error: (error) => {
-            this.loading = false;
-            console.error('Error rejecting transaction:', error);
-            window.alert('Failed to reject transaction. Please try again.');
-          }
-        });
-      }
+    this.caseToReject = caseItem;
+    this.rejectionReason = '';
+    this.showRejectModal = true;
+  }
+
+  confirmRejectCase(): void {
+    if (!this.caseToReject || !this.rejectionReason.trim()) {
+      this.toastService.warning('Rejection reason is required.');
+      return;
+    }
+    this.showRejectModal = false;
+    this.loading = true;
+    const caseItem = this.caseToReject;
+    const reason = this.rejectionReason;
+    
+    if (caseItem.alert && caseItem.alert.transaction) {
+      // Reject the transaction
+      this.complianceService.rejectTransaction(caseItem.alert.transaction.id, reason).subscribe({
+        next: (rejectedTransaction) => {
+          // Add a note about the rejection
+          const rejectionNote = {
+            content: `Case rejected. Transaction ${rejectedTransaction.id} has been rejected. Reason: ${reason}. Case resolved.`
+          };
+          
+          this.complianceService.addNoteToCase(caseItem.id, rejectionNote).subscribe({
+            next: () => {
+              this.loading = false;
+              this.toastService.success('Case rejected successfully! Transaction has been rejected and case is resolved.', 6000);
+              
+              // Refresh cases
+              this.loadCases();
+            },
+            error: (error) => {
+              this.loading = false;
+              console.error('Error adding rejection note:', error);
+              this.toastService.warning('Transaction rejected but failed to add note. Please refresh the page.', 6000);
+            }
+          });
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error rejecting transaction:', error);
+          this.toastService.error('Failed to reject transaction. Please try again.');
+        }
+      });
     }
   }
 
   approveCase(caseId: number): void {
-    if (confirm('Are you sure you want to approve this case? This will approve the associated transaction and resolve the case and alert.')) {
-      this.loading = true;
-      const selectedCase = this.selectedCase;
-      
-      if (selectedCase && selectedCase.alert.transaction) {
-        // First approve the transaction
-        this.complianceService.approveTransaction(selectedCase.alert.transaction.id).subscribe({
-          next: (approvedTransaction) => {
-            // Add a note about the approval
-            const approvalNote = {
-              content: `Case approved. Transaction ${approvedTransaction.id} has been approved and processed. Case resolved.`
-            };
-            
-            this.complianceService.addNoteToCase(caseId, approvalNote).subscribe({
-              next: () => {
-                this.loading = false;
-                alert('Case approved successfully! Transaction has been approved and case is resolved.');
-                
-                // Update local state
-                if (selectedCase) {
-                  selectedCase.status = 'RESOLVED';
-                  selectedCase.alert.status = 'RESOLVED';
-                }
-                
-                // Refresh cases
-                this.loadCases();
-                this.selectedCase = null;
-              },
-              error: (error) => {
-                this.loading = false;
-                console.error('Error adding approval note:', error);
-                alert('Transaction approved but failed to add note. Please refresh the page.');
+    this.caseToApprove = this.selectedCase;
+    this.showApproveModal = true;
+  }
+
+  confirmApproveCaseDetail(): void {
+    if (!this.caseToApprove) return;
+    this.showApproveModal = false;
+    this.loading = true;
+    const selectedCase = this.caseToApprove;
+    const caseId = this.caseToApprove.id;
+    
+    if (selectedCase && selectedCase.alert.transaction) {
+      // First approve the transaction
+      this.complianceService.approveTransaction(selectedCase.alert.transaction.id).subscribe({
+        next: (approvedTransaction) => {
+          // Add a note about the approval
+          const approvalNote = {
+            content: `Case approved. Transaction ${approvedTransaction.id} has been approved and processed. Case resolved.`
+          };
+          
+          this.complianceService.addNoteToCase(caseId, approvalNote).subscribe({
+            next: () => {
+              this.loading = false;
+              this.toastService.success('Case approved successfully! Transaction has been approved and case is resolved.', 6000);
+              
+              // Update local state
+              if (selectedCase) {
+                selectedCase.status = 'RESOLVED';
+                selectedCase.alert.status = 'RESOLVED';
               }
-            });
-          },
-          error: (error) => {
-            this.loading = false;
-            console.error('Error approving transaction:', error);
-            alert('Failed to approve transaction. Please try again.');
-          }
-        });
-      }
+              
+              // Refresh cases
+              this.loadCases();
+              this.selectedCase = null;
+            },
+            error: (error) => {
+              this.loading = false;
+              console.error('Error adding approval note:', error);
+              this.toastService.warning('Transaction approved but failed to add note. Please refresh the page.', 6000);
+            }
+          });
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error approving transaction:', error);
+          this.toastService.error('Failed to approve transaction. Please try again.');
+        }
+      });
     }
   }
 
   rejectCase(caseId: number): void {
-    const reason = prompt('Please provide a reason for rejecting this case:');
-    if (reason && confirm('Are you sure you want to reject this case? This will reject the associated transaction and resolve the case.')) {
-      this.loading = true;
-      const selectedCase = this.selectedCase;
-      
-      if (selectedCase && selectedCase.alert.transaction) {
-        // First reject the transaction
-        this.complianceService.rejectTransaction(selectedCase.alert.transaction.id, reason).subscribe({
-          next: (rejectedTransaction) => {
-            // Add a note about the rejection
-            const rejectionNote = {
-              content: `Case rejected. Transaction ${rejectedTransaction.id} has been rejected. Reason: ${reason}. Case resolved.`
-            };
-            
-            this.complianceService.addNoteToCase(caseId, rejectionNote).subscribe({
-              next: () => {
-                this.loading = false;
-                alert('Case rejected successfully! Transaction has been rejected and case is resolved.');
-                
-                // Update local state
-                if (selectedCase) {
-                  selectedCase.status = 'RESOLVED';
-                  selectedCase.alert.status = 'RESOLVED';
-                }
-                
-                // Refresh cases
-                this.loadCases();
-                this.selectedCase = null;
-              },
-              error: (error) => {
-                this.loading = false;
-                console.error('Error adding rejection note:', error);
-                alert('Transaction rejected but failed to add note. Please refresh the page.');
+    this.caseToReject = this.selectedCase;
+    this.rejectionReason = '';
+    this.showRejectModal = true;
+  }
+
+  confirmRejectCaseDetail(): void {
+    if (!this.caseToReject || !this.rejectionReason.trim()) {
+      this.toastService.warning('Rejection reason is required.');
+      return;
+    }
+    this.showRejectModal = false;
+    this.loading = true;
+    const selectedCase = this.caseToReject;
+    const caseId = this.caseToReject.id;
+    const reason = this.rejectionReason;
+    
+    if (selectedCase && selectedCase.alert.transaction) {
+      // First reject the transaction
+      this.complianceService.rejectTransaction(selectedCase.alert.transaction.id, reason).subscribe({
+        next: (rejectedTransaction) => {
+          // Add a note about the rejection
+          const rejectionNote = {
+            content: `Case rejected. Transaction ${rejectedTransaction.id} has been rejected. Reason: ${reason}. Case resolved.`
+          };
+          
+          this.complianceService.addNoteToCase(caseId, rejectionNote).subscribe({
+            next: () => {
+              this.loading = false;
+              this.toastService.success('Case rejected successfully! Transaction has been rejected and case is resolved.', 6000);
+              
+              // Update local state
+              if (selectedCase) {
+                selectedCase.status = 'RESOLVED';
+                selectedCase.alert.status = 'RESOLVED';
               }
-            });
-          },
-          error: (error) => {
-            this.loading = false;
-            console.error('Error rejecting transaction:', error);
-            alert('Failed to reject transaction. Please try again.');
-          }
-        });
-      }
+              
+              // Refresh cases
+              this.loadCases();
+              this.selectedCase = null;
+            },
+            error: (error) => {
+              this.loading = false;
+              console.error('Error adding rejection note:', error);
+              this.toastService.warning('Transaction rejected but failed to add note. Please refresh the page.', 6000);
+            }
+          });
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error rejecting transaction:', error);
+          this.toastService.error('Failed to reject transaction. Please try again.');
+        }
+      });
     }
   }
 }

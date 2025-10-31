@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
 import { AccountService, AccountDto } from '../../core/services/account.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-customer-new-transaction',
@@ -33,7 +34,8 @@ export class CustomerNewTransactionComponent implements OnInit {
     private tx: TransactionService, 
     private accountService: AccountService,
     private router: Router,
-    private location: Location
+    private location: Location,
+    private toastService: ToastService
   ) {
     this.form = this.fb.group({
       type: ['DEPOSIT', Validators.required],
@@ -118,10 +120,11 @@ export class CustomerNewTransactionComponent implements OnInit {
         // Backend returns TransactionDto directly
         this.created = transactionDto;
         this.success = true;
+        this.toastService.success(`Transaction #${transactionDto.id} submitted successfully!`, 5000);
       },
       error: (err) => {
         this.loading = false;
-        this.error = err?.error?.message || 'Failed to submit transaction';
+        this.toastService.error(err?.error?.message || 'Failed to submit transaction');
       }
     });
   }

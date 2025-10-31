@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, BankAccountDto } from '../../core/services/admin.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-accounts',
@@ -34,7 +35,10 @@ export class AccountsComponent implements OnInit {
   sortDirection: 'asc' | 'desc' = 'asc';
   Math = Math;
 
-  constructor(private adminService: AdminService) {}
+  constructor(
+    private adminService: AdminService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.loadAccounts();
@@ -53,7 +57,7 @@ export class AccountsComponent implements OnInit {
           this.loading = false;
         },
         error: (err) => {
-          this.error = err.error?.message || 'Failed to load pending accounts';
+          this.toastService.error(err.error?.message || 'Failed to load pending accounts');
           this.loading = false;
         }
       });
@@ -66,7 +70,7 @@ export class AccountsComponent implements OnInit {
           this.loading = false;
         },
         error: (err) => {
-          this.error = err.error?.message || 'Failed to load accounts';
+          this.toastService.error(err.error?.message || 'Failed to load accounts');
           this.loading = false;
         }
       });
@@ -178,11 +182,11 @@ export class AccountsComponent implements OnInit {
 
     this.adminService.approveAccount(account.id).subscribe({
       next: () => {
-        this.success = `Account ${account.accountNumber} approved successfully`;
+        this.toastService.success(`Account ${account.accountNumber} approved successfully`, 5000);
         this.loadAccounts();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to approve account';
+        this.toastService.error(err.error?.message || 'Failed to approve account');
       }
     });
   }
@@ -192,11 +196,11 @@ export class AccountsComponent implements OnInit {
 
     this.adminService.rejectAccount(account.id).subscribe({
       next: () => {
-        this.success = `Account ${account.accountNumber} rejected`;
+        this.toastService.success(`Account ${account.accountNumber} rejected`, 5000);
         this.loadAccounts();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to reject account';
+        this.toastService.error(err.error?.message || 'Failed to reject account');
       }
     });
   }
@@ -206,11 +210,11 @@ export class AccountsComponent implements OnInit {
 
     this.adminService.suspendAccount(account.id).subscribe({
       next: () => {
-        this.success = `Account ${account.accountNumber} suspended`;
+        this.toastService.success(`Account ${account.accountNumber} suspended`, 5000);
         this.loadAccounts();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to suspend account';
+        this.toastService.error(err.error?.message || 'Failed to suspend account');
       }
     });
   }
@@ -220,11 +224,11 @@ export class AccountsComponent implements OnInit {
 
     this.adminService.activateAccount(account.id).subscribe({
       next: () => {
-        this.success = `Account ${account.accountNumber} activated`;
+        this.toastService.success(`Account ${account.accountNumber} activated`, 5000);
         this.loadAccounts();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to activate account';
+        this.toastService.error(err.error?.message || 'Failed to activate account');
       }
     });
   }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { AdminService, CountryRiskDto } from '../../core/services/admin.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-country-risks',
@@ -34,7 +35,8 @@ export class CountryRisksComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toastService: ToastService
   ) {
     this.countryForm = this.fb.group({
       countryCode: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(3), Validators.pattern(/^[A-Z]+$/)]],
@@ -61,7 +63,7 @@ export class CountryRisksComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to load country risks';
+        this.toastService.error(err.error?.message || 'Failed to load country risks');
         this.loading = false;
       }
     });
@@ -183,7 +185,7 @@ export class CountryRisksComponent implements OnInit {
 
     request.subscribe({
       next: (country) => {
-        this.success = `Country "${country.countryName}" ${this.editingCountry ? 'updated' : 'added'} successfully!`;
+        this.toastService.success(`Country "${country.countryName}" ${this.editingCountry ? 'updated' : 'added'} successfully!`, 5000);
         this.savingCountry = false;
         this.resetForm();
         this.showCreateForm = false;
@@ -191,7 +193,7 @@ export class CountryRisksComponent implements OnInit {
         this.loadCountryRisks();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to save country risk';
+        this.toastService.error(err.error?.message || 'Failed to save country risk');
         this.savingCountry = false;
       }
     });
@@ -202,11 +204,11 @@ export class CountryRisksComponent implements OnInit {
 
     this.adminService.deleteCountryRisk(country.id!).subscribe({
       next: () => {
-        this.success = `Country "${country.countryName}" deleted successfully`;
+        this.toastService.success(`Country "${country.countryName}" deleted successfully`, 5000);
         this.loadCountryRisks();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to delete country risk';
+        this.toastService.error(err.error?.message || 'Failed to delete country risk');
       }
     });
   }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HelpdeskApiService } from '../../core/services/helpdesk.service';
+import { ToastService } from '../../core/services/toast.service';
 import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../../core/models/helpdesk.models';
 import { RouterModule } from '@angular/router';
 
@@ -25,7 +26,11 @@ export class OfficerTicketThreadComponent {
   reply = '';
   Math = Math;
 
-  constructor(private route: ActivatedRoute, private api: HelpdeskApiService) {
+  constructor(
+    private route: ActivatedRoute,
+    private api: HelpdeskApiService,
+    private toastService: ToastService
+  ) {
     this.ticketId = Number(this.route.snapshot.paramMap.get('ticketId'));
     this.loadMessages();
   }
@@ -55,9 +60,10 @@ export class OfficerTicketThreadComponent {
       next: (updatedTicket) => {
         this.ticket = updatedTicket;
         this.reply = '';
+        this.toastService.success('Response sent successfully!', 4000);
         this.loadMessages();
       },
-      error: err => alert(err?.error?.message || 'Failed to respond')
+      error: err => this.toastService.error(err?.error?.message || 'Failed to send response')
     });
   }
 
@@ -66,9 +72,10 @@ export class OfficerTicketThreadComponent {
     this.api.resolve(this.ticketId).subscribe({
       next: (updatedTicket) => {
         this.ticket = updatedTicket;
+        this.toastService.success('Ticket resolved successfully!', 4000);
         this.loadMessages();
       },
-      error: err => alert(err?.error?.message || 'Failed to resolve ticket')
+      error: err => this.toastService.error(err?.error?.message || 'Failed to resolve ticket')
     });
   }
 
