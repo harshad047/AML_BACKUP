@@ -1,18 +1,13 @@
 <div class="login-container">
   <div class="login-box">
     <div class="login-form">
-      <div class="text-center mb-3">
-        <div class="login-logo-container mb-2">
-          <div class="login-logo-icon">
-            <i class="fas fa-shield-alt"></i>
-          </div>
-          <h2 class="login-logo-title">TRANSPECT</h2>
-        </div>
+      <div class="text-center mb-4">
+        <h3 class="fw-bold text-primary mb-2">Welcome Back</h3>
         <p class="text-muted mb-0">Sign in to your account</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="mb-2">
+        <div class="mb-3">
           <label for="email" class="form-label">Email address</label>
           <input
             type="email"
@@ -27,7 +22,7 @@
           </div>
         </div>
 
-        <div class="mb-2">
+        <div class="mb-3">
           <label for="password" class="form-label">Password</label>
           <div class="input-group input-group-lg">
             <input
@@ -52,9 +47,9 @@
         </div>
 
         <!-- Captcha Section -->
-        <div class="mb-2">
+        <div class="mb-3">
           <label for="captcha" class="form-label">Verification Code</label>
-          <div class="captcha-container mb-1">
+          <div class="captcha-container mb-2">
             <canvas #captchaCanvas class="captcha-canvas"></canvas>
             <button 
               type="button" 
@@ -97,13 +92,13 @@
           </button>
         </div>
 
-        <div class="text-center mt-2">
-          <a routerLink="/forgot-password" class="text-decoration-none small">Forgot password?</a>
+        <div class="text-center mt-3">
+          <a routerLink="/forgot-password" class="text-decoration-none">Forgot password?</a>
         </div>
       </form>
 
-      <div class="text-center mt-3">
-        <p class="mb-0 small">Don't have an account?
+      <div class="text-center mt-4">
+        <p class="mb-0">Don't have an account?
           <a routerLink="/register" class="text-decoration-none fw-bold">Sign up</a>
         </p>
       </div>
