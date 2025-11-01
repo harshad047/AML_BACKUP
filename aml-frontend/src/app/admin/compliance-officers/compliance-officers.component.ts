@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { AdminService, UserDto, CreateUserDto } from '../../core/services/admin.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-compliance-officers',
@@ -47,7 +48,8 @@ export class ComplianceOfficersComponent implements OnInit {
 
   constructor(
     private adminService: AdminService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toastService: ToastService
   ) {
     this.officerForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -73,7 +75,7 @@ export class ComplianceOfficersComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to load officers';
+        this.toastService.error(err.error?.message || 'Failed to load officers');
         this.loading = false;
       }
     });
@@ -256,14 +258,14 @@ export class ComplianceOfficersComponent implements OnInit {
 
     this.adminService.createComplianceOfficer(createDto).subscribe({
       next: () => {
-        this.success = 'Compliance officer created successfully';
+        this.toastService.success('Compliance officer created successfully', 5000);
         this.creatingOfficer = false;
         this.officerForm.reset();
         this.showCreateForm = false;
         this.loadOfficers();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to create officer';
+        this.toastService.error(err.error?.message || 'Failed to create officer');
         this.creatingOfficer = false;
       }
     });
@@ -274,12 +276,12 @@ export class ComplianceOfficersComponent implements OnInit {
 
     this.adminService.addComplianceOfficer(user.id).subscribe({
       next: () => {
-        this.success = `${user.username} promoted to Compliance Officer`;
+        this.toastService.success(`${user.username} promoted to Compliance Officer`, 5000);
         this.loadOfficers();
         this.loadAllUsers();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to promote user';
+        this.toastService.error(err.error?.message || 'Failed to promote user');
       }
     });
   }
@@ -289,12 +291,12 @@ export class ComplianceOfficersComponent implements OnInit {
 
     this.adminService.removeComplianceOfficer(officer.id).subscribe({
       next: () => {
-        this.success = `${officer.username} removed from Compliance Officers`;
+        this.toastService.success(`${officer.username} removed from Compliance Officers`, 5000);
         this.loadOfficers();
         this.loadAllUsers();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to remove officer';
+        this.toastService.error(err.error?.message || 'Failed to remove officer');
       }
     });
   }

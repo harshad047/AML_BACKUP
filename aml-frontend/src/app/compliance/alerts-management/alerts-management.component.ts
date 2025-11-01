@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../core/services/compliance.service';
+import { ToastService } from '../../core/services/toast.service';
 import { AlertDto, CaseDto } from '../../core/models/compliance.models';
 
 @Component({
@@ -237,6 +238,40 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
           </div>
         </div>
       </div>
+
+      <!-- Escalate Confirmation Modal -->
+      <div class="modal fade" [class.show]="showEscalateModal" [style.display]="showEscalateModal ? 'block' : 'none'" 
+           tabindex="-1" role="dialog" aria-labelledby="escalateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header border-0">
+              <h5 class="modal-title fw-bold" id="escalateModalLabel">
+                <i class="fas fa-search text-warning me-2"></i>
+                Escalate to Investigation
+              </h5>
+              <button type="button" class="btn-close" (click)="cancelEscalate()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p class="mb-0">Are you sure you want to escalate this alert to a case for investigation?</p>
+              <div class="alert alert-info mt-3 mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <small>This will create a new investigation case and change the alert status to <strong>ESCALATED</strong>.</small>
+              </div>
+            </div>
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-secondary" (click)="cancelEscalate()">
+                <i class="fas fa-times me-1"></i>Cancel
+              </button>
+              <button type="button" class="btn btn-warning" (click)="confirmEscalate()">
+                <i class="fas fa-search me-1"></i>Escalate to Case
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Backdrop -->
+      <div class="modal-backdrop fade" [class.show]="showEscalateModal" *ngIf="showEscalateModal"></div>
     </div>
   `,
   styles: [`
@@ -253,6 +288,108 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    /* Modal Styles */
+    .modal {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+      display: block !important;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .modal-dialog-centered {
+      display: flex;
+      align-items: center;
+      min-height: calc(100% - 1rem);
+    }
+
+    .modal-content {
+      border-radius: 1rem;
+      border: none;
+      box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+      animation: slideDown 0.3s ease-in-out;
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+      border-radius: 1rem 1rem 0 0;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      color: #212529;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      font-size: 1rem;
+      color: #6c757d;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      background-color: #f8f9fa;
+      border-radius: 0 0 1rem 1rem;
+    }
+
+    .modal-footer .btn {
+      padding: 0.5rem 1.5rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .modal-footer .btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+
+    .modal-footer .btn-secondary:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    .modal-footer .btn-warning {
+      background-color: #ffc107;
+      border-color: #ffc107;
+      color: #000;
+    }
+
+    .modal-footer .btn-warning:hover {
+      background-color: #e0a800;
+      border-color: #d39e00;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+    }
+
+    .modal-backdrop.show {
+      opacity: 0.5;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   `]
 })
 export class AlertsManagementComponent implements OnInit {
@@ -261,13 +398,18 @@ export class AlertsManagementComponent implements OnInit {
   selectedAlert: AlertDto | null = null;
   loading = false;
   error: string | null = null;
+  showEscalateModal = false;
+  alertToEscalate: number | null = null;
 
   // Filters
   statusFilter = '';
   riskFilter = '';
   searchTerm = '';
 
-  constructor(private complianceService: ComplianceService) {}
+  constructor(
+    private complianceService: ComplianceService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.loadAlerts();
@@ -377,31 +519,59 @@ export class AlertsManagementComponent implements OnInit {
   }
 
   escalateToCase(alertId: number): void {
-    if (confirm('Are you sure you want to escalate this alert to a case for investigation?')) {
-      this.loading = true;
-      this.complianceService.createCaseFromAlert(alertId).subscribe({
-        next: (caseData) => {
-          this.loading = false;
-          alert(`Case #${caseData.id} has been created successfully. The alert has been escalated for investigation.`);
-          
-          // Update the alert status locally
-          const alertItem = this.alerts.find(a => a.id === alertId);
-          if (alertItem) {
-            alertItem.status = 'ESCALATED';
-          }
-          
-          // Close the modal
-          this.selectedAlert = null;
-          
-          // Refresh alerts
-          this.loadAlerts();
-        },
-        error: (error) => {
-          this.loading = false;
-          console.error('Error creating case:', error);
-          alert('Failed to create case. Please try again.');
+    this.alertToEscalate = alertId;
+    this.showEscalateModal = true;
+  }
+
+  confirmEscalate(): void {
+    if (this.alertToEscalate === null) return;
+    
+    const alertId = this.alertToEscalate;
+    this.showEscalateModal = false;
+    this.loading = true;
+    
+    this.complianceService.createCaseFromAlert(alertId).subscribe({
+      next: (caseData) => {
+        this.loading = false;
+        
+        // Show success toast
+        this.toastService.success(
+          `Case #${caseData.id} has been created successfully. Alert #${alertId} has been escalated for investigation.`,
+          6000
+        );
+        
+        // Update the alert status locally
+        const alertItem = this.alerts.find(a => a.id === alertId);
+        if (alertItem) {
+          alertItem.status = 'ESCALATED';
         }
-      });
-    }
+        
+        // Close the details modal if open
+        this.selectedAlert = null;
+        
+        // Refresh alerts
+        this.loadAlerts();
+        
+        // Reset
+        this.alertToEscalate = null;
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Error creating case:', error);
+        
+        // Show error toast
+        this.toastService.error(
+          error?.error?.message || 'Failed to create case. Please try again.',
+          6000
+        );
+        
+        this.alertToEscalate = null;
+      }
+    });
+  }
+
+  cancelEscalate(): void {
+    this.showEscalateModal = false;
+    this.alertToEscalate = null;
   }
 }

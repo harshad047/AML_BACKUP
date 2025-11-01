@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-otp-verification',
@@ -134,7 +135,8 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -195,7 +197,7 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             this.isLoading = false;
             if (response.verified) {
-              alert(`Registration completed successfully! Welcome ${this.userName}. Please login with your credentials.`);
+              this.toastService.success(`Registration completed successfully! Welcome ${this.userName}. Please login with your credentials.`, 6000);
               this.router.navigate(['/login']);
             } else {
               this.errorMessage = 'Invalid verification code. Please try again.';
@@ -255,11 +257,11 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
     otpObservable.subscribe({
       next: (response: any) => {
         this.startCountdown();
-        alert('Verification code sent to your email.');
+        this.toastService.success('Verification code sent to your email.', 5000);
       },
       error: (error: any) => {
         console.error('Resend OTP error:', error);
-        alert('Failed to resend verification code. Please try again.');
+        this.toastService.error('Failed to resend verification code. Please try again.');
       }
     });
   }

@@ -13,6 +13,7 @@ import { AuthService, User } from '../../core/services/auth.service';
 export class NavbarComponent implements OnInit {
   currentUser: User | null = null;
   isDropdownOpen = false;
+  showLogoutModal = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -43,9 +44,16 @@ export class NavbarComponent implements OnInit {
   logout(event: Event): void {
     event.preventDefault();
     this.isDropdownOpen = false; // Close dropdown
-    if (confirm('Are you sure you want to logout?')) {
-      this.authService.logout();
-    }
+    this.showLogoutModal = true; // Show modal
+  }
+
+  confirmLogout(): void {
+    this.showLogoutModal = false;
+    this.authService.logout();
+  }
+
+  cancelLogout(): void {
+    this.showLogoutModal = false;
   }
 
   get dashboardRoute(): string {

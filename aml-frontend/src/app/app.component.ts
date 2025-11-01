@@ -2,14 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './shared/navbar/navbar.component';
+import { ToastContainerComponent } from './shared/toast/toast-container.component';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, CommonModule],
+  imports: [RouterOutlet, NavbarComponent, ToastContainerComponent, CommonModule],
   template: `
     <app-navbar *ngIf="showNavbar"></app-navbar>
+    <app-toast-container></app-toast-container>
     <main [class.with-navbar]="showNavbar" [class.auth-page]="!showNavbar">
       <router-outlet></router-outlet>
     </main>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../core/services/compliance.service';
+import { ToastService } from '../../core/services/toast.service';
 import { TransactionDto } from '../../core/models/compliance.models';
 
 @Component({
@@ -662,7 +663,8 @@ export class TransactionReviewComponent implements OnInit {
 
   constructor(
     private complianceService: ComplianceService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -820,7 +822,7 @@ export class TransactionReviewComponent implements OnInit {
     const alertId = this.getAlertIdFromTransaction(transaction);
     
     if (!alertId) {
-      alert('No alert found for this transaction. Cannot create investigation case.');
+      this.toastService.error('No alert found for this transaction. Cannot create investigation case.');
       return;
     }
 
@@ -837,7 +839,7 @@ export class TransactionReviewComponent implements OnInit {
         // Mark this transaction as having an active case
         this.transactionsWithCases.add(transaction.id);
         
-        alert(`✅ Investigation Case #${caseDto.id} created successfully!\n\n📋 Assigned to: ${caseDto.assignedTo}\n📊 Status: ${caseDto.status}\n\n➡️ You can now approve or reject the transaction.`);
+        this.toastService.success(`Investigation Case #${caseDto.id} created successfully! Assigned to: ${caseDto.assignedTo}. You can now approve or reject the transaction.`, 7000);
         
         // Optionally navigate to case details
         // this.router.navigate(['/compliance/cases', caseDto.id]);
@@ -847,7 +849,7 @@ export class TransactionReviewComponent implements OnInit {
         this.loadingMessage = '';
         console.error('Error creating case:', error);
         const errorMsg = error.error?.message || error.message || 'Failed to create investigation case';
-        alert(`❌ Error: ${errorMsg}`);
+        this.toastService.error(errorMsg, 6000);
       }
     });
   }
@@ -899,7 +901,7 @@ export class TransactionReviewComponent implements OnInit {
           // Remove from active cases tracking
           this.transactionsWithCases.delete(transaction.id);
           
-          alert(`✅ Transaction #${updatedTransaction.id} APPROVED\n\n📊 Status: ${updatedTransaction.status}\n🎉 Case automatically resolved (if existed)\n💰 Money movement executed successfully.`);
+          this.toastService.success(`Transaction #${updatedTransaction.id} approved successfully! Status: ${updatedTransaction.status}. Money movement executed.`, 6000);
           this.loadTransactions();
         },
         error: (error) => {
@@ -907,7 +909,7 @@ export class TransactionReviewComponent implements OnInit {
           this.loadingMessage = '';
           console.error('Error approving transaction:', error);
           const errorMsg = error.error?.message || 'Failed to approve transaction';
-          alert(`❌ Error: ${errorMsg}`);
+          this.toastService.error(errorMsg, 6000);
         }
       });
     }
@@ -916,7 +918,7 @@ export class TransactionReviewComponent implements OnInit {
   rejectTransaction(transaction: TransactionDto): void {
     const reason = prompt('Please provide a detailed reason for rejecting this transaction:');
     if (!reason || reason.trim().length === 0) {
-      alert('⚠️ Rejection reason is required.');
+      this.toastService.warning('Rejection reason is required.');
       return;
     }
     
@@ -939,7 +941,7 @@ export class TransactionReviewComponent implements OnInit {
           // Remove from active cases tracking
           this.transactionsWithCases.delete(transaction.id);
           
-          alert(`❌ Transaction #${updatedTransaction.id} REJECTED\n\n📊 Status: ${updatedTransaction.status}\n📝 Reason: ${reason}\n🎉 Case automatically resolved (if existed)`);
+          this.toastService.success(`Transaction #${updatedTransaction.id} rejected. Status: ${updatedTransaction.status}. Reason: ${reason}`, 6000);
           this.loadTransactions();
         },
         error: (error) => {
@@ -947,7 +949,7 @@ export class TransactionReviewComponent implements OnInit {
           this.loadingMessage = '';
           console.error('Error rejecting transaction:', error);
           const errorMsg = error.error?.message || 'Failed to reject transaction';
-          alert(`❌ Error: ${errorMsg}`);
+          this.toastService.error(errorMsg, 6000);
         }
       });
     }
@@ -961,7 +963,7 @@ export class TransactionReviewComponent implements OnInit {
         this.rejectionReason
       ).subscribe({
         next: (updatedTransaction) => {
-          alert(`Transaction ${updatedTransaction.id} has been rejected.`);
+          this.toastService.success(`Transaction ${updatedTransaction.id} has been rejected.`, 5000);
           this.loadTransactions();
           this.transactionToReject = null;
           this.rejectionReason = '';
@@ -969,7 +971,7 @@ export class TransactionReviewComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error rejecting transaction:', error);
-          alert('Failed to reject transaction. Please try again.');
+          this.toastService.error('Failed to reject transaction. Please try again.');
         }
       });
     }

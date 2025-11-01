@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, 
 import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 // Custom Validators
 class CustomValidators {
@@ -133,7 +134,8 @@ export class RegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -448,7 +450,7 @@ export class RegisterComponent implements OnInit {
           this.isLoading = false;
           console.error('Registration error:', error);
           const errorMessage = error.error?.error || error.error?.message || 'Registration failed. Please try again.';
-          alert(errorMessage);
+          this.toastService.error(errorMessage, 6000);
         }
       });
     } else {
