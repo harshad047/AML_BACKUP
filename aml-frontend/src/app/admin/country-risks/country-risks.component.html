@@ -1,73 +1,153 @@
 <div class="container-fluid py-4">
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center">
-        <h2><i class="fas fa-globe me-2"></i>Country Risk Management</h2>
-        <button class="btn btn-primary" (click)="toggleCreateForm()">
-          <i class="fas fa-plus me-2"></i>{{ editingCountry ? 'Cancel' : 'Add Country' }}
-        </button>
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-globe me-2 text-primary"></i>
+          <span class="fw-bold">Country Risk Management</span>
+        </h2>
+        <p class="text-muted mb-0">Manage country risk scores for AML compliance</p>
       </div>
     </div>
   </div>
 
-  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
-    <i class="fas fa-check-circle me-2"></i>{{ success }}
-    <button type="button" class="btn-close" (click)="success = ''"></button>
-  </div>
-
-  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
-    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-    <button type="button" class="btn-close" (click)="error = ''"></button>
-  </div>
-
-  <div class="card mb-4" *ngIf="showCreateForm">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0"><i class="fas fa-{{ editingCountry ? 'edit' : 'plus' }} me-2"></i>{{ editingCountry ? 'Edit' : 'Add' }} Country Risk</h5>
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-danger-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getHighRiskCount() }}</h4>
+          <p class="mb-0 text-muted">High Risk</p>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <form [formGroup]="countryForm" (ngSubmit)="onSaveCountry()">
-        <div class="row">
-          <div class="col-md-3 mb-3">
-            <label class="form-label">Country Code *</label>
-            <input type="text" class="form-control text-uppercase" formControlName="countryCode" placeholder="US, IN, GB" maxlength="3" />
-          </div>
-          <div class="col-md-5 mb-3">
-            <label class="form-label">Country Name *</label>
-            <input type="text" class="form-control" formControlName="countryName" placeholder="United States" />
-          </div>
-          <div class="col-md-2 mb-3">
-            <label class="form-label">Risk Score *</label>
-            <input type="number" class="form-control" formControlName="riskScore" min="0" max="100" />
-          </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-warning-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-exclamation-circle"></i>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Notes</label>
-          <textarea class="form-control" formControlName="notes" rows="2" placeholder="Additional notes about this country's risk profile..."></textarea>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getMediumRiskCount() }}</h4>
+          <p class="mb-0 text-muted">Medium Risk</p>
         </div>
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary" [disabled]="countryForm.invalid || savingCountry">
-            <span *ngIf="savingCountry" class="spinner-border spinner-border-sm me-2"></span>
-            {{ savingCountry ? 'Saving...' : (editingCountry ? 'Update' : 'Add') }}
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-success-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getLowRiskCount() }}</h4>
+          <p class="mb-0 text-muted">Low Risk</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-primary-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-globe"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getTotalCount() }}</h4>
+          <p class="mb-0 text-muted">Total Countries</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Country Modal -->
+  <div class="modal fade" [class.show]="showCreateForm" [style.display]="showCreateForm ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-edit me-2"></i>
+            Edit Country Risk
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="toggleCreateForm()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="countryForm">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Country Code *</label>
+                <input type="text" class="form-control text-uppercase" formControlName="countryCode" placeholder="US, IN, GB" maxlength="3" readonly />
+                <small class="text-muted">Cannot be edited</small>
+              </div>
+              <div class="col-md-8 mb-3">
+                <label class="form-label fw-semibold">Country Name *</label>
+                <input type="text" class="form-control" formControlName="countryName" placeholder="United States" readonly />
+                <small class="text-muted">Cannot be edited</small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Risk Score (0-100) *</label>
+                <input type="number" class="form-control" formControlName="riskScore" min="0" max="100" />
+                <small class="text-muted">
+                  <span *ngIf="countryForm.get('riskScore')?.value >= 80" class="text-danger">High Risk</span>
+                  <span *ngIf="countryForm.get('riskScore')?.value >= 50 && countryForm.get('riskScore')?.value < 80" class="text-warning">Medium Risk</span>
+                  <span *ngIf="countryForm.get('riskScore')?.value < 50" class="text-success">Low Risk</span>
+                </small>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Notes</label>
+              <textarea class="form-control" formControlName="notes" rows="3" placeholder="Additional notes about this country's risk profile..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
+            <i class="fas fa-times me-2"></i>Cancel
           </button>
-          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="onSaveCountry()" [disabled]="countryForm.invalid || savingCountry">
+            <span *ngIf="savingCountry" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!savingCountry" class="fas fa-save me-2"></i>
+            {{ savingCountry ? 'Updating...' : 'Update Country Risk' }}
+          </button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
+  <div class="modal-backdrop fade" [class.show]="showCreateForm" *ngIf="showCreateForm"></div>
 
-  <div class="card shadow-sm">
-    <div class="card-header countries-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Country Risks ({{ filteredCountries.length }})</h5>
-        <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
-          <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search countries..." 
-            [(ngModel)]="searchTerm"
-            (input)="filterCountries()"
-          />
+  <!-- Countries Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Country Risks
+          <span class="badge bg-white text-primary ms-2">{{ filteredCountries.length }}</span>
+        </h5>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <!-- Search Box -->
+          <div class="search-box-mini">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              class="form-control form-control-sm" 
+              placeholder="Search countries..." 
+              [(ngModel)]="searchTerm"
+              (input)="filterCountries()"
+            />
+          </div>
+          <!-- Risk Level Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Risk:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="riskLevelFilter" (change)="filterCountries()">
+              <option value="ALL">All</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+              <option value="VERY_LOW">Very Low</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -78,41 +158,34 @@
       </div>
 
       <div class="table-responsive" *ngIf="!loading">
-        <table class="table table-hover modern-table mb-0">
-          <thead>
+        <table class="table table-hover align-middle mb-0 enhanced-table">
+          <thead class="table-light">
             <tr>
-              <th (click)="sortBy('countryCode')" class="sortable">
-                Code <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th (click)="sortBy('countryName')" class="sortable">
-                Country <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th (click)="sortBy('riskScore')" class="sortable text-center">
-                Risk Score <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th class="text-center">Risk Level</th>
-              <th>Notes</th>
-              <th class="text-center">Actions</th>
+              <th class="text-center" style="width: 60px;">#</th>
+              <th (click)="sortBy('countryCode')" class="sortable"><i class="fas fa-flag me-2 text-primary"></i>Code <i class="fas fa-sort ms-1"></i></th>
+              <th (click)="sortBy('countryName')" class="sortable"><i class="fas fa-globe me-2 text-primary"></i>Country <i class="fas fa-sort ms-1"></i></th>
+              <th (click)="sortBy('riskScore')" class="sortable text-center"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Risk Score <i class="fas fa-sort ms-1"></i></th>
+              <th class="text-center"><i class="fas fa-exclamation-triangle me-2 text-primary"></i>Risk Level</th>
+              <th><i class="fas fa-sticky-note me-2 text-primary"></i>Notes</th>
+              <th class="text-center" style="width: 150px;">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let country of paginatedCountries" class="table-row">
-              <td class="fw-bold">{{ country.countryCode }}</td>
-              <td><strong class="country-name">{{ country.countryName }}</strong></td>
-              <td class="text-center"><span class="badge bg-secondary">{{ country.riskScore }}</span></td>
+            <tr *ngFor="let country of paginatedCountries; let i = index" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td><span class="badge bg-secondary">{{ country.countryCode }}</span></td>
+              <td><span class="fw-semibold">{{ country.countryName }}</span></td>
+              <td class="text-center"><span class="badge bg-dark">{{ country.riskScore }}</span></td>
               <td class="text-center">
                 <span class="badge" [ngClass]="getRiskLevelBadgeClass(country.riskScore)">
                   {{ getRiskLevel(country.riskScore) }}
                 </span>
               </td>
-              <td class="text-muted">{{ country.notes || '-' }}</td>
+              <td><span class="text-muted small">{{ country.notes || '-' }}</span></td>
               <td class="text-center">
-                <div class="btn-group btn-group-sm action-buttons">
-                  <button class="btn btn-sm btn-outline-primary" (click)="editCountry(country)" title="Edit Country">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-outline-primary" (click)="editCountry(country)" title="Edit Country Risk">
                     <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="deleteCountry(country)" title="Delete Country">
-                    <i class="fas fa-trash"></i>
                   </button>
                 </div>
               </td>

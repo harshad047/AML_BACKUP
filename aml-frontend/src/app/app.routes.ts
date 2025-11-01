@@ -39,6 +39,7 @@ import { KycVerificationComponent } from './admin/kyc-verification/kyc-verificat
 import { AdminUserDetailsComponent } from './admin/user-details/user-details.component';
 import { AdminCustomersComponent } from './admin/customers/customers.component';
 import { AdminTransactionsComponent } from './admin/transactions/transactions.component';
+import { ManageUsersComponent } from './admin/manage-users/manage-users.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -128,6 +129,12 @@ export const routes: Routes = [
   {
     path: 'admin/users',
     component: UsersComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
+    path: 'admin/manage-users',
+    component: ManageUsersComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
   },

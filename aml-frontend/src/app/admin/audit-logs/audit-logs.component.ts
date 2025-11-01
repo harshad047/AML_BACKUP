@@ -19,6 +19,7 @@ export class AuditLogsComponent implements OnInit {
   
   // Search and pagination
   searchTerm = '';
+  actionFilter = 'ALL';
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
@@ -51,17 +52,33 @@ export class AuditLogsComponent implements OnInit {
   }
 
   filterLogs(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredLogs = [...this.auditLogs];
-    } else {
+    let filtered = [...this.auditLogs];
+    
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      this.filteredLogs = this.auditLogs.filter(log =>
+      filtered = filtered.filter(log =>
         log.username?.toLowerCase().includes(term) ||
         log.action?.toLowerCase().includes(term) ||
         log.details?.toLowerCase().includes(term) ||
         log.id?.toString().includes(term)
       );
     }
+    
+    // Apply action filter
+    if (this.actionFilter !== 'ALL') {
+      filtered = filtered.filter(log => {
+        if (this.actionFilter === 'LOGIN') return log.action?.includes('LOGIN');
+        if (this.actionFilter === 'CREATE') return log.action?.includes('CREATE');
+        if (this.actionFilter === 'UPDATE') return log.action?.includes('UPDATE');
+        if (this.actionFilter === 'DELETE') return log.action?.includes('DELETE');
+        if (this.actionFilter === 'EMAIL') return log.action?.includes('EMAIL');
+        if (this.actionFilter === 'ACCOUNT') return log.action?.includes('ACCOUNT');
+        return true;
+      });
+    }
+    
+    this.filteredLogs = filtered;
     this.currentPage = 1;
     this.updatePagination();
   }
@@ -129,6 +146,25 @@ export class AuditLogsComponent implements OnInit {
     if (action.includes('UPDATE')) return 'bg-info';
     if (action.includes('DELETE')) return 'bg-danger';
     if (action.includes('LOGIN')) return 'bg-primary';
+    if (action.includes('EMAIL')) return 'bg-warning';
+    if (action.includes('ACCOUNT')) return 'bg-info';
     return 'bg-secondary';
+  }
+  
+  // Stats Methods
+  getLoginCount(): number {
+    return this.auditLogs.filter(log => log.action?.includes('LOGIN')).length;
+  }
+  
+  getCreateCount(): number {
+    return this.auditLogs.filter(log => log.action?.includes('CREATE')).length;
+  }
+  
+  getUpdateCount(): number {
+    return this.auditLogs.filter(log => log.action?.includes('UPDATE')).length;
+  }
+  
+  getTotalCount(): number {
+    return this.auditLogs.length;
   }
 }

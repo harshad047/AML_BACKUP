@@ -28,12 +28,26 @@ export class AccountsComponent implements OnInit {
   
   // Search and pagination
   searchTerm = '';
+  accountTypeFilter = 'ALL';
+  statusFilter = 'ALL';
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
   sortColumn = '';
   sortDirection: 'asc' | 'desc' = 'asc';
   Math = Math;
+  
+  // All accounts for stats
+  allAccountsForStats: BankAccountDto[] = [];
+  
+  // Modal states
+  showApproveModal = false;
+  showRejectModal = false;
+  showSuspendModal = false;
+  showActivateModal = false;
+  selectedAccount: BankAccountDto | null = null;
+  rejectionReason = '';
+  suspensionReason = '';
 
   constructor(
     private adminService: AdminService,
@@ -41,7 +55,17 @@ export class AccountsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.loadAllAccountsForStats();
     this.loadAccounts();
+  }
+
+  loadAllAccountsForStats(): void {
+    this.adminService.getAllAccounts().subscribe({
+      next: (accounts) => {
+        this.allAccountsForStats = accounts;
+      },
+      error: () => {}
+    });
   }
 
   loadAccounts(): void {
@@ -81,27 +105,53 @@ export class AccountsComponent implements OnInit {
     const term = this.searchTerm.toLowerCase();
     
     if (this.activeTab === 'pending') {
-      if (!term.trim()) {
-        this.filteredPendingAccounts = [...this.pendingAccounts];
-      } else {
-        this.filteredPendingAccounts = this.pendingAccounts.filter(acc =>
+      let filtered = [...this.pendingAccounts];
+      
+      // Apply search filter
+      if (term.trim()) {
+        filtered = filtered.filter(acc =>
           acc.accountNumber?.toLowerCase().includes(term) ||
           acc.accountType?.toLowerCase().includes(term) ||
           acc.customerName?.toLowerCase().includes(term) ||
           acc.status?.toLowerCase().includes(term)
         );
       }
+      
+      // Apply account type filter
+      if (this.accountTypeFilter !== 'ALL') {
+        filtered = filtered.filter(acc => acc.accountType === this.accountTypeFilter);
+      }
+      
+      // Apply status filter
+      if (this.statusFilter !== 'ALL') {
+        filtered = filtered.filter(acc => acc.status === this.statusFilter);
+      }
+      
+      this.filteredPendingAccounts = filtered;
     } else {
-      if (!term.trim()) {
-        this.filteredAllAccounts = [...this.allAccounts];
-      } else {
-        this.filteredAllAccounts = this.allAccounts.filter(acc =>
+      let filtered = [...this.allAccounts];
+      
+      // Apply search filter
+      if (term.trim()) {
+        filtered = filtered.filter(acc =>
           acc.accountNumber?.toLowerCase().includes(term) ||
           acc.accountType?.toLowerCase().includes(term) ||
           acc.customerName?.toLowerCase().includes(term) ||
           acc.status?.toLowerCase().includes(term)
         );
       }
+      
+      // Apply account type filter
+      if (this.accountTypeFilter !== 'ALL') {
+        filtered = filtered.filter(acc => acc.accountType === this.accountTypeFilter);
+      }
+      
+      // Apply status filter
+      if (this.statusFilter !== 'ALL') {
+        filtered = filtered.filter(acc => acc.status === this.statusFilter);
+      }
+      
+      this.filteredAllAccounts = filtered;
     }
     this.currentPage = 1;
     this.updatePagination();
@@ -174,60 +224,133 @@ export class AccountsComponent implements OnInit {
 
   switchTab(tab: 'pending' | 'all'): void {
     this.activeTab = tab;
+    this.searchTerm = '';
+    this.accountTypeFilter = 'ALL';
+    this.statusFilter = 'ALL';
     this.loadAccounts();
   }
 
-  approveAccount(account: BankAccountDto): void {
-    if (!confirm(`Approve account ${account.accountNumber}?`)) return;
+  // Stats Methods
+  getPendingCount(): number {
+    return this.allAccountsForStats.filter(a => a.approvalStatus === 'PENDING').length;
+  }
 
-    this.adminService.approveAccount(account.id).subscribe({
+  getActiveCount(): number {
+    return this.allAccountsForStats.filter(a => a.status === 'ACTIVE').length;
+  }
+
+  getSuspendedCount(): number {
+    return this.allAccountsForStats.filter(a => a.status === 'SUSPENDED').length;
+  }
+
+  getTotalCount(): number {
+    return this.allAccountsForStats.length;
+  }
+
+  // Modal Methods
+  openApproveModal(account: BankAccountDto): void {
+    this.selectedAccount = account;
+    this.showApproveModal = true;
+  }
+
+  closeApproveModal(): void {
+    this.showApproveModal = false;
+    this.selectedAccount = null;
+  }
+
+  confirmApprove(): void {
+    if (!this.selectedAccount) return;
+
+    this.adminService.approveAccount(this.selectedAccount.id).subscribe({
       next: () => {
-        this.toastService.success(`Account ${account.accountNumber} approved successfully`, 5000);
+        this.toastService.success(`Account ${this.selectedAccount?.accountNumber} approved successfully`, 5000);
+        this.closeApproveModal();
         this.loadAccounts();
+        this.loadAllAccountsForStats();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.toastService.error(err.error?.message || 'Failed to approve account');
       }
     });
   }
 
-  rejectAccount(account: BankAccountDto): void {
-    if (!confirm(`Reject account ${account.accountNumber}?`)) return;
+  openRejectModal(account: BankAccountDto): void {
+    this.selectedAccount = account;
+    this.rejectionReason = '';
+    this.showRejectModal = true;
+  }
 
-    this.adminService.rejectAccount(account.id).subscribe({
+  closeRejectModal(): void {
+    this.showRejectModal = false;
+    this.selectedAccount = null;
+    this.rejectionReason = '';
+  }
+
+  confirmReject(): void {
+    if (!this.selectedAccount) return;
+
+    this.adminService.rejectAccount(this.selectedAccount.id).subscribe({
       next: () => {
-        this.toastService.success(`Account ${account.accountNumber} rejected`, 5000);
+        this.toastService.success(`Account ${this.selectedAccount?.accountNumber} rejected`, 5000);
+        this.closeRejectModal();
         this.loadAccounts();
+        this.loadAllAccountsForStats();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.toastService.error(err.error?.message || 'Failed to reject account');
       }
     });
   }
 
-  suspendAccount(account: BankAccountDto): void {
-    if (!confirm(`Suspend account ${account.accountNumber}?`)) return;
+  openSuspendModal(account: BankAccountDto): void {
+    this.selectedAccount = account;
+    this.suspensionReason = '';
+    this.showSuspendModal = true;
+  }
 
-    this.adminService.suspendAccount(account.id).subscribe({
+  closeSuspendModal(): void {
+    this.showSuspendModal = false;
+    this.selectedAccount = null;
+    this.suspensionReason = '';
+  }
+
+  confirmSuspend(): void {
+    if (!this.selectedAccount) return;
+
+    this.adminService.suspendAccount(this.selectedAccount.id).subscribe({
       next: () => {
-        this.toastService.success(`Account ${account.accountNumber} suspended`, 5000);
+        this.toastService.success(`Account ${this.selectedAccount?.accountNumber} suspended`, 5000);
+        this.closeSuspendModal();
         this.loadAccounts();
+        this.loadAllAccountsForStats();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.toastService.error(err.error?.message || 'Failed to suspend account');
       }
     });
   }
 
-  activateAccount(account: BankAccountDto): void {
-    if (!confirm(`Activate account ${account.accountNumber}?`)) return;
+  openActivateModal(account: BankAccountDto): void {
+    this.selectedAccount = account;
+    this.showActivateModal = true;
+  }
 
-    this.adminService.activateAccount(account.id).subscribe({
+  closeActivateModal(): void {
+    this.showActivateModal = false;
+    this.selectedAccount = null;
+  }
+
+  confirmActivate(): void {
+    if (!this.selectedAccount) return;
+
+    this.adminService.activateAccount(this.selectedAccount.id).subscribe({
       next: () => {
-        this.toastService.success(`Account ${account.accountNumber} activated`, 5000);
+        this.toastService.success(`Account ${this.selectedAccount?.accountNumber} activated`, 5000);
+        this.closeActivateModal();
         this.loadAccounts();
+        this.loadAllAccountsForStats();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.toastService.error(err.error?.message || 'Failed to activate account');
       }
     });

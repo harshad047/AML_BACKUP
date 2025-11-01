@@ -21,6 +21,8 @@ export class RulesComponent implements OnInit {
   
   // Search and pagination
   searchTerm = '';
+  actionFilter = 'ALL';
+  statusFilter = 'ALL';
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
@@ -76,17 +78,34 @@ export class RulesComponent implements OnInit {
   }
 
   filterRules(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredRules = [...this.rules];
-    } else {
+    let filtered = [...this.rules];
+    
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      this.filteredRules = this.rules.filter(rule =>
+      filtered = filtered.filter(rule =>
         rule.name?.toLowerCase().includes(term) ||
         rule.description?.toLowerCase().includes(term) ||
         rule.action?.toLowerCase().includes(term) ||
         rule.id?.toString().includes(term)
       );
     }
+    
+    // Apply action filter
+    if (this.actionFilter !== 'ALL') {
+      filtered = filtered.filter(rule => rule.action === this.actionFilter);
+    }
+    
+    // Apply status filter
+    if (this.statusFilter !== 'ALL') {
+      if (this.statusFilter === 'ACTIVE') {
+        filtered = filtered.filter(rule => rule.active);
+      } else if (this.statusFilter === 'INACTIVE') {
+        filtered = filtered.filter(rule => !rule.active);
+      }
+    }
+    
+    this.filteredRules = filtered;
     this.currentPage = 1;
     this.updatePagination();
   }
@@ -288,5 +307,22 @@ export class RulesComponent implements OnInit {
     if (riskWeight >= 80) return 'bg-danger';
     if (riskWeight >= 50) return 'bg-warning';
     return 'bg-success';
+  }
+  
+  // Stats Methods
+  getBlockRulesCount(): number {
+    return this.rules.filter(r => r.action === 'BLOCK').length;
+  }
+  
+  getFlagRulesCount(): number {
+    return this.rules.filter(r => r.action === 'FLAG').length;
+  }
+  
+  getActiveRulesCount(): number {
+    return this.rules.filter(r => r.active).length;
+  }
+  
+  getTotalRulesCount(): number {
+    return this.rules.length;
   }
 }

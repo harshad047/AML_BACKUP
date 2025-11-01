@@ -1,28 +1,98 @@
 <div class="container-fluid py-4">
-  <div class="row mb-4">
-    <div class="col-12">
-      <h2><i class="fas fa-history me-2"></i>Audit Logs</h2>
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-history me-2 text-primary"></i>
+          <span class="fw-bold">Audit Logs</span>
+        </h2>
+        <p class="text-muted mb-0">System activity and security audit trail</p>
+      </div>
     </div>
   </div>
 
-  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
-    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-    <button type="button" class="btn-close" (click)="error = ''"></button>
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-primary-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-sign-in-alt"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getLoginCount() }}</h4>
+          <p class="mb-0 text-muted">Login Events</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-success-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-plus-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getCreateCount() }}</h4>
+          <p class="mb-0 text-muted">Create Actions</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-warning-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-edit"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getUpdateCount() }}</h4>
+          <p class="mb-0 text-muted">Update Actions</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-info-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getTotalCount() }}</h4>
+          <p class="mb-0 text-muted">Total Logs</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-header logs-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-list me-2"></i>System Audit Logs ({{ filteredLogs.length }})</h5>
-        <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
-          <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search logs..." 
-            [(ngModel)]="searchTerm"
-            (input)="filterLogs()"
-          />
+  <!-- Audit Logs Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>System Audit Logs
+          <span class="badge bg-white text-primary ms-2">{{ filteredLogs.length }}</span>
+        </h5>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <!-- Search Box -->
+          <div class="search-box-mini">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              class="form-control form-control-sm" 
+              placeholder="Search logs..." 
+              [(ngModel)]="searchTerm"
+              (input)="filterLogs()"
+            />
+          </div>
+          <!-- Action Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Action:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="actionFilter" (change)="filterLogs()">
+              <option value="ALL">All</option>
+              <option value="LOGIN">Login</option>
+              <option value="CREATE">Create</option>
+              <option value="UPDATE">Update</option>
+              <option value="DELETE">Delete</option>
+              <option value="EMAIL">Email</option>
+              <option value="ACCOUNT">Account</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -33,33 +103,27 @@
       </div>
 
       <div class="table-responsive" *ngIf="!loading">
-        <table class="table table-hover modern-table mb-0">
-          <thead>
+        <table class="table table-hover align-middle mb-0 enhanced-table">
+          <thead class="table-light">
             <tr>
-              <th (click)="sortBy('id')" class="sortable">
-                ID <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th (click)="sortBy('timestamp')" class="sortable">
-                Timestamp <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th (click)="sortBy('username')" class="sortable">
-                Username <i class="fas fa-sort ms-1"></i>
-              </th>
-              <th class="text-center">Action</th>
-              <th>Details</th>
+              <th class="text-center" style="width: 60px;">#</th>
+              <th (click)="sortBy('timestamp')" class="sortable"><i class="fas fa-clock me-2 text-primary"></i>Timestamp <i class="fas fa-sort ms-1"></i></th>
+              <th (click)="sortBy('username')" class="sortable"><i class="fas fa-user me-2 text-primary"></i>Username <i class="fas fa-sort ms-1"></i></th>
+              <th class="text-center"><i class="fas fa-bolt me-2 text-primary"></i>Action</th>
+              <th><i class="fas fa-info-circle me-2 text-primary"></i>Details</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let log of paginatedLogs" class="table-row">
-              <td class="fw-medium">{{ log.id }}</td>
-              <td>{{ log.timestamp | date:'medium' }}</td>
-              <td><strong class="log-username">{{ log.username }}</strong></td>
+            <tr *ngFor="let log of paginatedLogs; let i = index" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td><span class="text-muted small">{{ log.timestamp | date:'MMM d, y, h:mm:ss a' }}</span></td>
+              <td><span class="fw-semibold">{{ log.username }}</span></td>
               <td class="text-center">
                 <span class="badge" [ngClass]="getActionBadgeClass(log.action)">
                   {{ log.action }}
                 </span>
               </td>
-              <td><small class="text-muted">{{ log.details }}</small></td>
+              <td><span class="text-muted small">{{ log.details }}</span></td>
             </tr>
           </tbody>
         </table>

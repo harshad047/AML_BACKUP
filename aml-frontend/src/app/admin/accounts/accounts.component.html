@@ -1,19 +1,63 @@
 <div class="container-fluid py-4">
-  <div class="row mb-4">
-    <div class="col-12">
-      <h2><i class="fas fa-university me-2"></i>Account Management</h2>
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-university me-2 text-primary"></i>
+          <span class="fw-bold">Account Management</span>
+        </h2>
+        <p class="text-muted mb-0">Approve and manage customer bank accounts</p>
+      </div>
     </div>
   </div>
 
-  <!-- Success/Error Messages -->
-  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
-    <i class="fas fa-check-circle me-2"></i>{{ success }}
-    <button type="button" class="btn-close" (click)="success = ''"></button>
-  </div>
-
-  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
-    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-    <button type="button" class="btn-close" (click)="error = ''"></button>
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-warning-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getPendingCount() }}</h4>
+          <p class="mb-0 text-muted">Pending Approval</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-success-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getActiveCount() }}</h4>
+          <p class="mb-0 text-muted">Active Accounts</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-danger-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getSuspendedCount() }}</h4>
+          <p class="mb-0 text-muted">Suspended</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-primary-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-university"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getTotalCount() }}</h4>
+          <p class="mb-0 text-muted">Total Accounts</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -31,19 +75,45 @@
   </ul>
 
   <!-- Accounts Table -->
-  <div class="card shadow-sm">
-    <div class="card-header accounts-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-list me-2"></i>{{ activeTab === 'pending' ? 'Pending' : 'All' }} Accounts ({{ filteredCount }})</h5>
-        <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
-          <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search accounts..." 
-            [(ngModel)]="searchTerm"
-            (input)="filterAccounts()"
-          />
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>{{ activeTab === 'pending' ? 'Pending' : 'All' }} Accounts
+          <span class="badge bg-white text-primary ms-2">{{ filteredCount }}</span>
+        </h5>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <!-- Search Box -->
+          <div class="search-box-mini">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              class="form-control form-control-sm" 
+              placeholder="Search accounts..." 
+              [(ngModel)]="searchTerm"
+              (input)="filterAccounts()"
+            />
+          </div>
+          <!-- Account Type Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Type:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="accountTypeFilter" (change)="filterAccounts()">
+              <option value="ALL">All Types</option>
+              <option value="SAVINGS">Savings</option>
+              <option value="CURRENT">Current</option>
+            </select>
+          </div>
+          <!-- Status Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Status:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="statusFilter" (change)="filterAccounts()">
+              <option value="ALL">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="PENDING">Pending</option>
+              <option value="SUSPENDED">Suspended</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -95,19 +165,19 @@
               <td class="text-center">
                 <div class="btn-group btn-group-sm action-buttons">
                   <button *ngIf="account.approvalStatus === 'PENDING'" 
-                          class="btn btn-success" (click)="approveAccount(account)" title="Approve Account">
+                          class="btn btn-success" (click)="openApproveModal(account)" title="Approve Account">
                     <i class="fas fa-check"></i> Approve
                   </button>
                   <button *ngIf="account.approvalStatus === 'PENDING'" 
-                          class="btn btn-danger" (click)="rejectAccount(account)" title="Reject Account">
+                          class="btn btn-danger" (click)="openRejectModal(account)" title="Reject Account">
                     <i class="fas fa-times"></i> Reject
                   </button>
                   <button *ngIf="account.status === 'ACTIVE'" 
-                          class="btn btn-warning" (click)="suspendAccount(account)" title="Suspend Account">
+                          class="btn btn-warning" (click)="openSuspendModal(account)" title="Suspend Account">
                     <i class="fas fa-ban"></i> Suspend
                   </button>
                   <button *ngIf="account.status === 'SUSPENDED'" 
-                          class="btn btn-success" (click)="activateAccount(account)" title="Activate Account">
+                          class="btn btn-success" (click)="openActivateModal(account)" title="Activate Account">
                     <i class="fas fa-check-circle"></i> Activate
                   </button>
                 </div>
@@ -169,4 +239,142 @@
       </div>
     </div>
   </div>
+
+  <!-- Approve Modal -->
+  <div class="modal fade" [class.show]="showApproveModal" [style.display]="showApproveModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-check-circle me-2"></i>Approve Account
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeApproveModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedAccount">
+          <p>Are you sure you want to approve this account?</p>
+          <div class="alert alert-info">
+            <strong><i class="fas fa-university me-2"></i>Account:</strong> {{ selectedAccount.accountNumber }}<br>
+            <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedAccount.customerName || 'Customer #' + selectedAccount.customerId }}<br>
+            <strong><i class="fas fa-tag me-2"></i>Type:</strong> {{ selectedAccount.accountType }}<br>
+            <strong><i class="fas fa-dollar-sign me-2"></i>Balance:</strong> {{ selectedAccount.balance | currency:selectedAccount.currency }}
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeApproveModal()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-success" (click)="confirmApprove()">
+            <i class="fas fa-check-circle me-2"></i>Approve Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showApproveModal" *ngIf="showApproveModal"></div>
+
+  <!-- Reject Modal -->
+  <div class="modal fade" [class.show]="showRejectModal" [style.display]="showRejectModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-times-circle me-2"></i>Reject Account
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeRejectModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedAccount">
+          <p>Are you sure you want to reject this account?</p>
+          <div class="alert alert-warning">
+            <strong><i class="fas fa-university me-2"></i>Account:</strong> {{ selectedAccount.accountNumber }}<br>
+            <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedAccount.customerName || 'Customer #' + selectedAccount.customerId }}
+          </div>
+          <div class="form-group">
+            <label class="form-label fw-semibold">Rejection Reason (Optional)</label>
+            <textarea 
+              class="form-control" 
+              [(ngModel)]="rejectionReason" 
+              rows="3" 
+              placeholder="Enter reason for rejection..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeRejectModal()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmReject()">
+            <i class="fas fa-times-circle me-2"></i>Reject Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showRejectModal" *ngIf="showRejectModal"></div>
+
+  <!-- Suspend Modal -->
+  <div class="modal fade" [class.show]="showSuspendModal" [style.display]="showSuspendModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-dark border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-ban me-2"></i>Suspend Account
+          </h5>
+          <button type="button" class="btn-close" (click)="closeSuspendModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedAccount">
+          <p>Are you sure you want to suspend this account?</p>
+          <div class="alert alert-warning">
+            <strong><i class="fas fa-university me-2"></i>Account:</strong> {{ selectedAccount.accountNumber }}<br>
+            <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedAccount.customerName || 'Customer #' + selectedAccount.customerId }}
+          </div>
+          <div class="form-group">
+            <label class="form-label fw-semibold">Suspension Reason (Optional)</label>
+            <textarea 
+              class="form-control" 
+              [(ngModel)]="suspensionReason" 
+              rows="3" 
+              placeholder="Enter reason for suspension..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeSuspendModal()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-warning" (click)="confirmSuspend()">
+            <i class="fas fa-ban me-2"></i>Suspend Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showSuspendModal" *ngIf="showSuspendModal"></div>
+
+  <!-- Activate Modal -->
+  <div class="modal fade" [class.show]="showActivateModal" [style.display]="showActivateModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-check-circle me-2"></i>Activate Account
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeActivateModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedAccount">
+          <p>Are you sure you want to activate this account?</p>
+          <div class="alert alert-info">
+            <strong><i class="fas fa-university me-2"></i>Account:</strong> {{ selectedAccount.accountNumber }}<br>
+            <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedAccount.customerName || 'Customer #' + selectedAccount.customerId }}
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeActivateModal()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-success" (click)="confirmActivate()">
+            <i class="fas fa-check-circle me-2"></i>Activate Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showActivateModal" *ngIf="showActivateModal"></div>
 </div>

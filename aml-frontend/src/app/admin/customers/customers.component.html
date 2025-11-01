@@ -1,81 +1,319 @@
 <div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2><i class="fas fa-users me-2"></i>Customers</h2>
-    <div class="d-flex align-items-center gap-3">
-      <div class="btn-group" role="group" aria-label="View switch">
-        <button class="btn btn-sm" [ngClass]="viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'" (click)="setView('grid')">
-          <i class="fas fa-th-large me-1"></i> Grid
-        </button>
-        <button class="btn btn-sm" [ngClass]="viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'" (click)="setView('table')">
-          <i class="fas fa-list me-1"></i> Table
-        </button>
+  <!-- Enhanced Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-users me-2 text-primary"></i>
+          <span class="fw-bold">Customers</span>
+        </h2>
+        <p class="text-muted mb-0">Manage and view customer accounts</p>
       </div>
-      <div class="search-box d-flex align-items-center">
-        <i class="fas fa-search me-2 text-muted"></i>
-        <input class="form-control" placeholder="Search customers..." [(ngModel)]="searchTerm" />
+      <div class="d-flex align-items-center gap-3">
+        <!-- View Toggle -->
+        <div class="btn-group shadow-sm" role="group" aria-label="View switch">
+          <button 
+            class="btn btn-sm" 
+            [ngClass]="viewMode === 'grid' ? 'btn-primary' : 'btn-outline-primary'" 
+            (click)="setView('grid')"
+            title="Grid View">
+            <i class="fas fa-th-large me-1"></i> Grid
+          </button>
+          <button 
+            class="btn btn-sm" 
+            [ngClass]="viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'" 
+            (click)="setView('table')"
+            title="Table View">
+            <i class="fas fa-list me-1"></i> Table
+          </button>
+        </div>
+        
+        <!-- Enhanced Search Box -->
+        <div class="search-box-enhanced">
+          <i class="fas fa-search search-icon"></i>
+          <input 
+            class="form-control form-control-lg" 
+            placeholder="Search customers..." 
+            [(ngModel)]="searchTerm" 
+          />
+          <span class="badge bg-primary customer-count" *ngIf="filtered().length > 0">
+            {{ filtered().length }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
 
   <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-3 text-muted">Loading customers...</p>
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+    <p class="mt-3 text-muted fw-semibold">Loading customers...</p>
   </div>
 
-  <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
-
   <div *ngIf="!loading">
-    <!-- Grid View -->
-    <div *ngIf="viewMode === 'grid'" class="row row-cols-1 row-cols-md-3 g-3">
-      <div class="col" *ngFor="let c of filtered()">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <div class="h5 mb-1">{{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : ('@' + c.username) }}</div>
-                <div class="text-muted small">{{ '@' + c.username }}</div>
-                <div class="text-muted small">{{ c.email || '-' }}</div>
+    <!-- Enhanced Grid View -->
+    <div *ngIf="viewMode === 'grid'" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      <div class="col" *ngFor="let c of filtered(); let i = index">
+        <div class="customer-card card h-100 border-0 shadow-sm">
+          <!-- Card Header with Avatar -->
+          <div class="card-header bg-gradient-primary text-white border-0">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="customer-avatar me-3">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0 fw-bold">
+                    {{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : c.username }}
+                  </h6>
+                  <small class="opacity-75">Customer #{{ i + 1 }}</small>
+                </div>
               </div>
-              <span class="badge bg-success">Active</span>
+              <span class="badge bg-success-soft">
+                <i class="fas fa-check-circle me-1"></i>Active
+              </span>
             </div>
           </div>
-          <div class="card-footer bg-white d-flex justify-content-end gap-2">
-            <button class="btn btn-sm btn-outline-primary" (click)="view(c)">
-              <i class="fas fa-eye me-1"></i> View Details
+          
+          <!-- Card Body -->
+          <div class="card-body">
+            <div class="customer-info">
+              <div class="info-item mb-3">
+                <i class="fas fa-at text-primary me-2"></i>
+                <span class="text-muted small">Username:</span>
+                <div class="fw-semibold">{{ c.username }}</div>
+              </div>
+              <div class="info-item mb-3">
+                <i class="fas fa-envelope text-primary me-2"></i>
+                <span class="text-muted small">Email:</span>
+                <div class="fw-semibold text-truncate">{{ c.email || 'Not provided' }}</div>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-id-card text-primary me-2"></i>
+                <span class="text-muted small">User ID:</span>
+                <div class="fw-semibold">{{ c.id }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card Footer -->
+          <div class="card-footer bg-light border-0">
+            <button class="btn btn-primary btn-sm w-100" (click)="view(c)">
+              <i class="fas fa-eye me-2"></i>View Details
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Table View -->
-    <div *ngIf="viewMode === 'table'" class="card shadow-sm">
+    <!-- Enhanced Table View -->
+    <div *ngIf="viewMode === 'table'" class="card border-0 shadow-sm">
+      <div class="card-header bg-gradient-primary text-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-table me-2"></i>Customer List
+        </h5>
+      </div>
       <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead>
+        <table class="table table-hover align-middle mb-0 enhanced-table">
+          <thead class="table-light">
             <tr>
-              <th>#</th>
-              <th>Username</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th class="text-end">Actions</th>
+              <th class="text-center" style="width: 60px;">#</th>
+              <th>
+                <i class="fas fa-user me-2 text-primary"></i>Username
+              </th>
+              <th>
+                <i class="fas fa-id-badge me-2 text-primary"></i>Full Name
+              </th>
+              <th>
+                <i class="fas fa-envelope me-2 text-primary"></i>Email
+              </th>
+              <th class="text-center" style="width: 120px;">
+                <i class="fas fa-check-circle me-2 text-success"></i>Status
+              </th>
+              <th class="text-center" style="width: 150px;">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let c of filtered(); index as i">
-              <td>{{ i + 1 }}</td>
-              <td>{{ c.username }}</td>
-              <td>{{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : '-' }}</td>
-              <td>{{ c.email || '-' }}</td>
-              <td class="text-end">
-                <button class="btn btn-sm btn-outline-primary" (click)="view(c)">
-                  <i class="fas fa-eye me-1"></i> View Details
+            <tr *ngFor="let c of filtered(); index as i" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ i + 1 }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm me-2">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <span class="fw-semibold">{{ c.username }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="fw-medium">
+                  {{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : '-' }}
+                </span>
+              </td>
+              <td>
+                <span class="text-muted">{{ c.email || 'Not provided' }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-success-soft">
+                  <i class="fas fa-check-circle me-1"></i>Active
+                </span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-primary" (click)="view(c)">
+                  <i class="fas fa-eye me-1"></i>View
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+      
+      <!-- Empty State -->
+      <div *ngIf="filtered().length === 0" class="text-center py-5">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No customers found</h5>
+        <p class="text-muted">Try adjusting your search criteria</p>
+      </div>
     </div>
   </div>
+
+  <!-- Customer Details Modal -->
+  <div class="modal fade" [class.show]="showDetailsModal" [style.display]="showDetailsModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-gradient-primary text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-user-circle me-2"></i>
+            Customer Details
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Loading State -->
+          <div *ngIf="loadingDetails" class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 2.5rem; height: 2.5rem;"></div>
+            <p class="mt-3 text-muted">Loading customer details...</p>
+          </div>
+
+          <!-- Customer Details Content -->
+          <div *ngIf="!loadingDetails && customerDetails">
+            <!-- Profile Section -->
+            <div class="customer-profile-section mb-4">
+              <div class="row">
+                <div class="col-md-3 text-center mb-3">
+                  <div class="customer-avatar-large mx-auto mb-3">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <span class="badge bg-success-soft">
+                    <i class="fas fa-check-circle me-1"></i>Active
+                  </span>
+                </div>
+                <div class="col-md-9">
+                  <h4 class="mb-3">
+                    {{ customerDetails.firstName }} {{ customerDetails.lastName }}
+                  </h4>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-at text-primary me-2"></i>
+                        <span class="text-muted small">Username:</span>
+                        <div class="fw-semibold">{{ selectedCustomer?.username }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-envelope text-primary me-2"></i>
+                        <span class="text-muted small">Email:</span>
+                        <div class="fw-semibold text-truncate" title="{{ customerDetails.email }}">{{ customerDetails.email }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-phone text-primary me-2"></i>
+                        <span class="text-muted small">Phone:</span>
+                        <div class="fw-semibold">{{ customerDetails.phone || 'Not provided' }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-id-card text-primary me-2"></i>
+                        <span class="text-muted small">User ID:</span>
+                        <div class="fw-semibold">{{ customerDetails.userId }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- KYC Status -->
+            <div class="detail-section mb-4">
+              <h6 class="section-title">
+                <i class="fas fa-shield-alt me-2"></i>KYC Status
+              </h6>
+              <div class="detail-content">
+                <span class="badge" [ngClass]="customerDetails.kycStatus === 'APPROVED' ? 'bg-success' : 
+                                                 customerDetails.kycStatus === 'PENDING' ? 'bg-warning' : 'bg-danger'">
+                  {{ customerDetails.kycStatus }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="detail-section mb-4" *ngIf="customerDetails.address">
+              <h6 class="section-title">
+                <i class="fas fa-map-marker-alt me-2"></i>Address
+              </h6>
+              <div class="detail-content">
+                <p class="mb-1">{{ customerDetails.address.street }}</p>
+                <p class="mb-0">
+                  {{ customerDetails.address.city }}, {{ customerDetails.address.state }} 
+                  {{ customerDetails.address.postalCode }}
+                </p>
+                <p class="mb-0 text-muted">{{ customerDetails.address.country }}</p>
+              </div>
+            </div>
+
+            <!-- Account Statistics -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="stat-card">
+                  <div class="stat-icon bg-primary-soft">
+                    <i class="fas fa-exchange-alt"></i>
+                  </div>
+                  <div class="stat-info">
+                    <h3 class="mb-0">0</h3>
+                    <p class="text-muted mb-0">Total Transactions</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="stat-card">
+                  <div class="stat-icon bg-warning-soft">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </div>
+                  <div class="stat-info">
+                    <h3 class="mb-0">0</h3>
+                    <p class="text-muted mb-0">Total Alerts</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+            <i class="fas fa-times me-2"></i>Close
+          </button>
+          <button type="button" class="btn btn-primary" (click)="viewFullProfile()">
+            <i class="fas fa-external-link-alt me-2"></i>View Full Profile
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showDetailsModal" *ngIf="showDetailsModal"></div>
 </div>

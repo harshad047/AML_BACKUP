@@ -1,7 +1,22 @@
 /* --- NAVBAR STYLES --- */
 .navbar {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease;
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
   background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.navbar--transparent {
+  background: transparent;
+  box-shadow: none;
+}
+
+.navbar--solid {
+  background: linear-gradient(135deg, #0056b3 0%, #0d6efd 100%);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
 }
 
 .navbar-brand {
@@ -59,11 +74,32 @@
   margin: 0 0.25rem;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .nav-link:hover {
   color: white !important;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-link:not(.dropdown-toggle)::after {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.35rem;
+  height: 2px;
+  background-color: transparent;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.nav-link:not(.dropdown-toggle):hover::after,
+.nav-link:not(.dropdown-toggle).active::after {
+  background-color: #ffffff;
+  transform: scaleX(1);
 }
 
 .nav-link.active {
