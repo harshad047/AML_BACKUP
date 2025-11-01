@@ -199,6 +199,6 @@ export class SarReportComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/compliance/transactions']);
+    this.router.navigate(['/compliance/cases']);
   }
 }
