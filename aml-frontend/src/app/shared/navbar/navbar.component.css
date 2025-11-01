@@ -5,16 +5,8 @@
   position: sticky;
   top: 0;
   z-index: 1030;
-}
-
-.navbar--transparent {
-  background: transparent;
-  box-shadow: none;
-}
-
-.navbar--solid {
-  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
 .navbar--transparent {
@@ -54,7 +46,7 @@
 
 .logo-icon i {
   font-size: 1.5rem;
-  color: var(--primary-bank-blue);
+  color: #0d6efd;
 }
 
 .logo-text {
@@ -108,6 +100,11 @@
 .nav-link:not(.dropdown-toggle).active::after {
   background-color: #ffffff;
   transform: scaleX(1);
+}
+
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white !important;
 }
 
 /* --- USER MENU STYLES --- */
@@ -180,7 +177,7 @@
 /* User Info Header */
 .dropdown-header {
   padding: 0;
-  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
   color: white;
   border-radius: 0.75rem 0.75rem 0 0;
 }

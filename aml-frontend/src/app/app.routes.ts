@@ -26,6 +26,7 @@ import { MyTicketsComponent } from './customer/helpdesk/my-tickets.component';
 import { CustomerTicketThreadComponent } from './customer/helpdesk/ticket-thread.component';
 import { OpenTicketsComponent } from './compliance/helpdesk/open-tickets.component';
 import { OfficerTicketThreadComponent } from './compliance/helpdesk/ticket-thread.component';
+import { ComplianceReportsComponent } from './compliance/compliance-reports/compliance-reports.component';
 
 // Admin Components
 import { UsersComponent } from './admin/users/users.component';
@@ -40,6 +41,7 @@ import { AdminUserDetailsComponent } from './admin/user-details/user-details.com
 import { AdminCustomersComponent } from './admin/customers/customers.component';
 import { AdminTransactionsComponent } from './admin/transactions/transactions.component';
 import { ManageUsersComponent } from './admin/manage-users/manage-users.component';
+import { ReportsAnalyticsComponent } from './admin/reports-analytics/reports-analytics.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -193,6 +195,12 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
   },
   {
+    path: 'admin/reports',
+    component: ReportsAnalyticsComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+  },
+  {
     path: 'admin/kyc-verification',
     component: KycVerificationComponent,
     canActivate: [AuthGuard, RoleGuard],
@@ -237,6 +245,12 @@ export const routes: Routes = [
   {
     path: 'compliance/sar-report/:id',
     component: SarReportComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['OFFICER'] }
+  },
+  {
+    path: 'compliance/reports',
+    component: ComplianceReportsComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['OFFICER'] }
   },

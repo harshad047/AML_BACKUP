@@ -1,16 +1,14 @@
 /* Banking System Global Styles */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Primary Banking Colors */
-  --primary-bank-blue: #2ea3f2;
-  --primary-bank-blue-light: #54b9ff;
-  --primary-bank-blue-dark: #1f4b7f;
+  --primary-bank-blue: #003d82;
+  --primary-bank-blue-light: #0056b3;
+  --primary-bank-blue-dark: #002952;
   
   /* Secondary Colors */
   --secondary-gold: #d4af37;
   --secondary-silver: #c0c0c0;
-  --accent-green: #32d296;
   
   /* Status Colors */
   --success-green: #28a745;
@@ -19,31 +17,31 @@
   --info-blue: #17a2b8;
   
   /* Neutral Colors */
-  --neutral-100: #f6f8fb;
-  --neutral-200: #e9eef5;
-  --neutral-300: #dde3ec;
-  --neutral-400: #cbd4df;
-  --neutral-500: #9aa7b4;
-  --neutral-600: #6b7785;
-  --neutral-700: #4b5563;
-  --neutral-800: #374151;
-  --neutral-900: #1f2937;
+  --neutral-100: #f8f9fa;
+  --neutral-200: #e9ecef;
+  --neutral-300: #dee2e6;
+  --neutral-400: #ced4da;
+  --neutral-500: #adb5bd;
+  --neutral-600: #6c757d;
+  --neutral-700: #495057;
+  --neutral-800: #343a40;
+  --neutral-900: #212529;
   
   /* Background Colors */
-  --bg-light: #f4f7fb;
+  --bg-light: #f5f7fa;
   --bg-white: #ffffff;
   --bg-card: #ffffff;
   
   /* Text Colors */
-  --text-primary: #1f2937;
-  --text-secondary: #6b7785;
-  --text-muted: #8a94a1;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #868e96;
   
   /* Border & Shadow */
-  --border-color: #dde3ec;
-  --shadow-sm: 0 4px 10px rgba(17, 24, 39, 0.06);
-  --shadow-md: 0 10px 24px rgba(17, 24, 39, 0.10);
-  --shadow-lg: 0 18px 44px rgba(17, 24, 39, 0.16);
+  --border-color: #dee2e6;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
   
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -67,7 +65,7 @@ html, body {
 }
 
 body {
-  font-family: 'Montserrat', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-primary);

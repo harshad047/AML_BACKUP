@@ -1,0 +1,450 @@
+<div class="compliance-reports-container">
+  <!-- Header -->
+  <div class="reports-header">
+    <div class="header-content">
+      <div class="header-left">
+        <i class="fas fa-chart-bar header-icon"></i>
+        <div>
+          <h2>Compliance Reports & Analytics</h2>
+          <p class="header-subtitle">Comprehensive compliance monitoring and performance metrics</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline-primary me-2" (click)="refreshData()">
+          <i class="fas fa-sync-alt me-2"></i>Refresh
+        </button>
+        <button class="btn btn-success me-2" (click)="exportToExcel()">
+          <i class="fas fa-file-excel me-2"></i>Export Excel
+        </button>
+        <button class="btn btn-primary" (click)="exportToPDF()">
+          <i class="fas fa-file-pdf me-2"></i>Export PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+    <h5>Loading Compliance Analytics...</h5>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && error" class="alert alert-danger mx-4">
+    <h5><i class="fas fa-exclamation-triangle me-2"></i>Error Loading Analytics</h5>
+    <p class="mb-0">{{ error }}</p>
+    <button class="btn btn-outline-danger mt-3" (click)="loadAnalytics()">
+      <i class="fas fa-sync-alt me-2"></i>Retry
+    </button>
+  </div>
+
+  <!-- Analytics Content -->
+  <div *ngIf="!loading && !error && analyticsData" class="analytics-content">
+    
+    <!-- KPIs -->
+    <div class="section-header mb-3">
+      <h3><i class="fas fa-tachometer-alt me-2"></i>Key Performance Indicators</h3>
+    </div>
+    <div class="row mb-4">
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card kpi-warning">
+          <div class="kpi-icon"><i class="fas fa-bell"></i></div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ analyticsData.totalAlerts }}</div>
+            <div class="kpi-label">Total Alerts</div>
+            <div class="kpi-detail">{{ analyticsData.openAlerts }} Open</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card kpi-info">
+          <div class="kpi-icon"><i class="fas fa-folder-open"></i></div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ analyticsData.activeCases }}</div>
+            <div class="kpi-label">Active Cases</div>
+            <div class="kpi-detail">{{ analyticsData.resolvedCases }} Resolved</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card kpi-success">
+          <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ analyticsData.slaComplianceRate }}%</div>
+            <div class="kpi-label">SLA Compliance</div>
+            <div class="kpi-detail">24-hour target</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ analyticsData.averageResponseTime }}h</div>
+            <div class="kpi-label">Avg Response Time</div>
+            <div class="kpi-detail">Alert handling</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Analytics -->
+    <div class="section-header mb-3">
+      <h3><i class="fas fa-bell me-2"></i>Alert Analytics</h3>
+    </div>
+    <div class="row mb-4">
+      <div class="col-md-8 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-line me-2"></i>Alert Trends (Last 7 Days)</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="alertTrendsChart!"
+                    [options]="lineChartOptions"
+                    [type]="'line'"
+                    style="height: 300px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-pie me-2"></i>Alerts by Risk Level</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="alertsByRiskChart!"
+                    [options]="pieChartOptions"
+                    [type]="'pie'"
+                    style="height: 300px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-bar me-2"></i>Top Alert Types</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="alertsByTypeChart!"
+                    [options]="barChartOptions"
+                    [type]="'bar'"
+                    style="height: 300px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-clock me-2"></i>Alert Response Time (Last 7 Days)</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="responseTimeChart!"
+                    [options]="lineChartOptions"
+                    [type]="'line'"
+                    style="height: 300px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Alerts Table -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="table-card">
+          <div class="table-header">
+            <h5><i class="fas fa-list me-2"></i>Recent Alerts</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Transaction ID</th>
+                  <th>Reason</th>
+                  <th>Risk Score</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let alert of analyticsData.recentAlerts">
+                  <td>{{ alert.id }}</td>
+                  <td>{{ alert.transactionId }}</td>
+                  <td>{{ alert.reason }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-danger': alert.riskScore >= 80,
+                      'bg-warning': alert.riskScore >= 60 && alert.riskScore < 80,
+                      'bg-success': alert.riskScore < 60
+                    }">{{ alert.riskScore }}</span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-warning': alert.status === 'OPEN',
+                      'bg-danger': alert.status === 'ESCALATED',
+                      'bg-success': alert.status === 'RESOLVED'
+                    }">{{ alert.status }}</span>
+                  </td>
+                  <td>{{ alert.createdAt | date:'short' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case Management Analytics -->
+    <div class="section-header mb-3">
+      <h3><i class="fas fa-folder me-2"></i>Case Management</h3>
+    </div>
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-pie me-2"></i>Case Status Distribution</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="caseStatusChart!"
+                    [options]="doughnutChartOptions"
+                    [type]="'doughnut'"
+                    style="height: 250px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-users me-2"></i>Cases by Officer</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="casesByOfficerChart!"
+                    [options]="barChartOptions"
+                    [type]="'bar'"
+                    style="height: 250px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-hourglass-half me-2"></i>Case Resolution Time (Last 7 Days)</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="caseResolutionChart!"
+                    [options]="lineChartOptions"
+                    [type]="'line'"
+                    style="height: 300px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Review Analytics -->
+    <div class="section-header mb-3">
+      <h3><i class="fas fa-exchange-alt me-2"></i>Transaction Review</h3>
+    </div>
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-warning"><i class="fas fa-flag"></i></div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.flaggedTransactions }}</div>
+            <div class="stat-label">Flagged Transactions</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-danger"><i class="fas fa-ban"></i></div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.blockedTransactions }}</div>
+            <div class="stat-label">Blocked Transactions</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-info"><i class="fas fa-search"></i></div>
+          <div class="stat-content">
+            <div class="stat-value">{{ analyticsData.reviewedTransactions }}</div>
+            <div class="stat-label">Under Review</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-pie me-2"></i>Transaction Review Outcomes</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="transactionOutcomesChart!"
+                    [options]="doughnutChartOptions"
+                    [type]="'doughnut'"
+                    style="height: 300px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="table-card">
+          <div class="table-header">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>High Risk Transactions</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Amount</th>
+                  <th>Risk Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let txn of analyticsData.highRiskTransactions">
+                  <td>{{ txn.id }}</td>
+                  <td>{{ txn.amount | currency:txn.currency }}</td>
+                  <td><span class="badge bg-danger">{{ txn.riskScore }}</span></td>
+                  <td><span class="badge bg-warning">{{ txn.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Analytics -->
+    <div class="section-header mb-3">
+      <h3><i class="fas fa-shield-alt me-2"></i>Risk Analytics</h3>
+    </div>
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-pie me-2"></i>Risk Distribution</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="riskDistributionChart!"
+                    [options]="pieChartOptions"
+                    [type]="'pie'"
+                    style="height: 250px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8 mb-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h5><i class="fas fa-chart-area me-2"></i>Risk Trends (Last 7 Days)</h5>
+          </div>
+          <div class="chart-body">
+            <canvas baseChart
+                    [data]="riskTrendsChart!"
+                    [options]="lineChartOptions"
+                    [type]="'line'"
+                    style="height: 250px;">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- High Risk Customers -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="table-card">
+          <div class="table-header">
+            <h5><i class="fas fa-user-shield me-2"></i>High Risk Customers</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>Customer Name</th>
+                  <th>Risk Score</th>
+                  <th>Alert Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let customer of analyticsData.highRiskCustomers">
+                  <td>{{ customer.customerId }}</td>
+                  <td>{{ customer.customerName }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="{
+                      'bg-danger': customer.riskScore >= 80,
+                      'bg-warning': customer.riskScore >= 60 && customer.riskScore < 80
+                    }">{{ customer.riskScore }}</span>
+                  </td>
+                  <td><span class="badge bg-info">{{ customer.alertCount }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Officer Performance -->
+    <div class="section-header mb-3">
+      <h3><i class="fas fa-user-tie me-2"></i>Officer Performance</h3>
+    </div>
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="table-card">
+          <div class="table-header">
+            <h5><i class="fas fa-chart-bar me-2"></i>Performance Metrics</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Officer</th>
+                  <th>Alerts Reviewed</th>
+                  <th>Cases Resolved</th>
+                  <th>Avg Response Time (hrs)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let perf of analyticsData.officerPerformance">
+                  <td>{{ perf.officer }}</td>
+                  <td><span class="badge bg-info">{{ perf.alertsReviewed }}</span></td>
+                  <td><span class="badge bg-success">{{ perf.casesResolved }}</span></td>
+                  <td>{{ perf.avgResponseTime }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

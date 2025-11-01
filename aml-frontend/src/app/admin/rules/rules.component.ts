@@ -295,18 +295,18 @@ export class RulesComponent implements OnInit {
   }
 
   getActionBadgeClass(action: string): string {
-    switch ((action || '').toUpperCase()) {
-      case 'BLOCK': return 'action-block';
-      case 'FLAG': return 'action-flag';
-      case 'REVIEW': return 'action-review';
-      default: return 'action-flag';
+    switch (action) {
+      case 'BLOCK': return 'bg-danger';
+      case 'FLAG': return 'bg-warning';
+      case 'REVIEW': return 'bg-info';
+      default: return 'bg-secondary';
     }
   }
 
   getRiskBadgeClass(riskWeight: number): string {
-    if (riskWeight >= 80) return 'risk-high';
-    if (riskWeight >= 50) return 'risk-medium';
-    return 'risk-low';
+    if (riskWeight >= 80) return 'bg-danger';
+    if (riskWeight >= 50) return 'bg-warning';
+    return 'bg-success';
   }
   
   // Stats Methods

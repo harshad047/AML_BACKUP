@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark" [ngClass]="{ 'navbar--transparent': isTransparent, 'navbar--solid': !isTransparent }">
+<nav class="navbar navbar-expand-lg navbar-dark">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center" [routerLink]="currentUser ? dashboardRoute : '/login'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: brandExactMatch}">
       <div class="custom-logo me-2">
@@ -116,6 +116,11 @@
             <li class="nav-item">
               <a class="nav-link" routerLink="/compliance/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <i class="fas fa-exchange-alt me-1"></i> Transactions
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/compliance/reports" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-chart-bar me-1"></i> Reports
               </a>
             </li>
             <li class="nav-item">

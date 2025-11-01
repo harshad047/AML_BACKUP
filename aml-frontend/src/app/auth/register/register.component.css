@@ -56,7 +56,7 @@
 }
 
 .section-title {
-  color: var(--primary-bank-blue-dark);
+  color: #003d82;
   font-weight: 600;
   margin-bottom: 1.5rem;
   display: flex;
@@ -77,8 +77,8 @@
 }
 
 .form-control:focus {
-  border-color: var(--primary-bank-blue);
-  box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.15);
+  border-color: #003d82;
+  box-shadow: 0 0 0 0.2rem rgba(0, 61, 130, 0.15);
 }
 
 .form-control::placeholder {
@@ -92,7 +92,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
+  background: linear-gradient(135deg, #003d82 0%, #0056b3 100%);
   border: none;
   padding: 1rem;
   font-size: 1.1rem;
@@ -102,9 +102,9 @@
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue-dark) 100%);
+  background: linear-gradient(135deg, #002952 0%, #003d82 100%);
   transform: translateY(-2px);
-  box-shadow: 0 0.5rem 1rem rgba(31, 75, 127, 0.3);
+  box-shadow: 0 0.5rem 1rem rgba(0, 61, 130, 0.3);
 }
 
 .btn-primary:disabled {
@@ -239,10 +239,10 @@
 }
 
 .step.active .step-circle {
-  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
-  border-color: var(--primary-bank-blue-dark);
+  background: linear-gradient(135deg, #003d82 0%, #0056b3 100%);
+  border-color: #003d82;
   color: white;
-  box-shadow: 0 0.5rem 1rem rgba(31, 75, 127, 0.3);
+  box-shadow: 0 0.5rem 1rem rgba(0, 61, 130, 0.3);
   animation: pulse 2s infinite;
 }
 
@@ -270,7 +270,7 @@
 }
 
 .step.active .step-label {
-  color: var(--primary-bank-blue-dark);
+  color: #003d82;
 }
 
 .step.completed .step-label {
@@ -358,13 +358,13 @@
 
 .input-group .btn-outline-secondary:hover {
   background: #f8f9fa;
-  color: var(--primary-bank-blue);
-  border-color: var(--primary-bank-blue);
+  color: #003d82;
+  border-color: #003d82;
 }
 
 .input-group .btn-outline-secondary:focus {
   box-shadow: none;
-  border-color: var(--primary-bank-blue);
+  border-color: #003d82;
 }
 
 .input-group .form-control {
@@ -372,12 +372,12 @@
 }
 
 .input-group .form-control:focus {
-  border-color: var(--primary-bank-blue);
+  border-color: #003d82;
   box-shadow: none;
 }
 
 .input-group .form-control:focus + .btn-outline-secondary {
-  border-color: var(--primary-bank-blue);
+  border-color: #003d82;
 }
 
 /* Terms and Conditions Checkbox */
@@ -396,8 +396,8 @@
 }
 
 .form-check-input:checked {
-  background-color: var(--primary-bank-blue);
-  border-color: var(--primary-bank-blue);
+  background-color: #003d82;
+  border-color: #003d82;
 }
 
 .form-check-label {
@@ -414,7 +414,7 @@
 
 .form-check-label a:hover {
   text-decoration: underline;
-  color: var(--primary-bank-blue);
+  color: #0056b3;
 }
 
 /* Modal Styles */
@@ -482,7 +482,7 @@
 .modal-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--primary-bank-blue-dark);
+  color: #003d82;
   margin: 0;
 }
 
