@@ -21,6 +21,7 @@ export class CountryRisksComponent implements OnInit {
   
   // Search and pagination
   searchTerm = '';
+  riskLevelFilter = 'ALL';
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
@@ -70,17 +71,25 @@ export class CountryRisksComponent implements OnInit {
   }
 
   filterCountries(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredCountries = [...this.countryRisks];
-    } else {
+    let filtered = [...this.countryRisks];
+    
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      this.filteredCountries = this.countryRisks.filter(country =>
+      filtered = filtered.filter(country =>
         country.countryCode?.toLowerCase().includes(term) ||
         country.countryName?.toLowerCase().includes(term) ||
         country.riskScore?.toString().includes(term) ||
         this.getRiskLevel(country.riskScore).toLowerCase().includes(term)
       );
     }
+    
+    // Apply risk level filter
+    if (this.riskLevelFilter !== 'ALL') {
+      filtered = filtered.filter(c => this.getRiskLevel(c.riskScore) === this.riskLevelFilter);
+    }
+    
+    this.filteredCountries = filtered;
     this.currentPage = 1;
     this.updatePagination();
   }
@@ -145,8 +154,8 @@ export class CountryRisksComponent implements OnInit {
 
   toggleCreateForm(): void {
     this.showCreateForm = !this.showCreateForm;
-    this.editingCountry = null;
     if (!this.showCreateForm) {
+      this.editingCountry = null;
       this.resetForm();
     }
   }
@@ -156,6 +165,9 @@ export class CountryRisksComponent implements OnInit {
       riskScore: 50,
       isActive: true
     });
+    // Re-enable fields
+    this.countryForm.get('countryCode')?.enable();
+    this.countryForm.get('countryName')?.enable();
   }
 
   editCountry(country: CountryRiskDto): void {
@@ -168,6 +180,10 @@ export class CountryRisksComponent implements OnInit {
       riskScore: country.riskScore,
       notes: country.notes,
     });
+    
+    // Disable country code and name fields when editing
+    this.countryForm.get('countryCode')?.disable();
+    this.countryForm.get('countryName')?.disable();
   }
 
   onSaveCountry(): void {
@@ -177,7 +193,8 @@ export class CountryRisksComponent implements OnInit {
     this.error = '';
     this.success = '';
 
-    const countryDto: CountryRiskDto = this.countryForm.value;
+    // Use getRawValue() to get values from disabled fields too
+    const countryDto: CountryRiskDto = this.countryForm.getRawValue();
 
     const request = this.editingCountry
       ? this.adminService.updateCountryRisk(this.editingCountry.id!, countryDto)
@@ -225,5 +242,22 @@ export class CountryRisksComponent implements OnInit {
     if (riskScore >= 50) return 'MEDIUM';
     if (riskScore >= 20) return 'LOW';
     return 'VERY_LOW';
+  }
+  
+  // Stats Methods
+  getHighRiskCount(): number {
+    return this.countryRisks.filter(c => c.riskScore >= 80).length;
+  }
+  
+  getMediumRiskCount(): number {
+    return this.countryRisks.filter(c => c.riskScore >= 50 && c.riskScore < 80).length;
+  }
+  
+  getLowRiskCount(): number {
+    return this.countryRisks.filter(c => c.riskScore < 50).length;
+  }
+  
+  getTotalCount(): number {
+    return this.countryRisks.length;
   }
 }

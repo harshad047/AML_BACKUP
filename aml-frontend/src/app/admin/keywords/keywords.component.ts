@@ -20,6 +20,8 @@ export class KeywordsComponent implements OnInit {
   
   // Search and pagination
   searchTerm = '';
+  riskLevelFilter = 'ALL';
+  statusFilter = 'ALL';
   currentPage = 1;
   pageSize = 10;
   totalPages = 1;
@@ -71,17 +73,34 @@ export class KeywordsComponent implements OnInit {
   }
 
   filterKeywords(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredKeywords = [...this.keywords];
-    } else {
+    let filtered = [...this.keywords];
+    
+    // Apply search filter
+    if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      this.filteredKeywords = this.keywords.filter(keyword =>
+      filtered = filtered.filter(keyword =>
         keyword.keyword?.toLowerCase().includes(term) ||
         keyword.category?.toLowerCase().includes(term) ||
         keyword.riskLevel?.toLowerCase().includes(term) ||
         keyword.id?.toString().includes(term)
       );
     }
+    
+    // Apply risk level filter
+    if (this.riskLevelFilter !== 'ALL') {
+      filtered = filtered.filter(k => k.riskLevel === this.riskLevelFilter);
+    }
+    
+    // Apply status filter
+    if (this.statusFilter !== 'ALL') {
+      if (this.statusFilter === 'ACTIVE') {
+        filtered = filtered.filter(k => k.active);
+      } else if (this.statusFilter === 'INACTIVE') {
+        filtered = filtered.filter(k => !k.active);
+      }
+    }
+    
+    this.filteredKeywords = filtered;
     this.currentPage = 1;
     this.updatePagination();
   }
@@ -243,5 +262,22 @@ export class KeywordsComponent implements OnInit {
     }
     
     this.keywordForm.patchValue({ riskScore });
+  }
+  
+  // Stats Methods
+  getCriticalCount(): number {
+    return this.keywords.filter(k => k.riskLevel === 'CRITICAL').length;
+  }
+  
+  getHighCount(): number {
+    return this.keywords.filter(k => k.riskLevel === 'HIGH').length;
+  }
+  
+  getActiveCount(): number {
+    return this.keywords.filter(k => k.active).length;
+  }
+  
+  getTotalCount(): number {
+    return this.keywords.length;
   }
 }

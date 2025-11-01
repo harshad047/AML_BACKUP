@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +29,8 @@ export class LoginComponent implements OnInit, AfterViewInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -171,7 +173,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       const captchaValue = this.loginForm.get('captcha')?.value;
       if (captchaValue !== this.captchaText) {
         this.captchaError = true;
-        this.errorMessage = 'Invalid captcha. Please try again.';
+        this.toastService.error('Invalid captcha. Please try again.');
         this.generateCaptcha();
         return;
       }
@@ -197,13 +199,13 @@ export class LoginComponent implements OnInit, AfterViewInit {
             });
           } else {
             this.isLoading = false;
-            this.errorMessage = 'Login succeeded but user data is missing.';
+            this.toastService.error('Login succeeded but user data is missing.');
             this.generateCaptcha();
           }
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage = error.error?.message || 'Login failed. Please try again.';
+          this.toastService.error(error.error?.message || 'Login failed. Please try again.', 5000);
           this.generateCaptcha();
           console.error('Login error:', error);
         }

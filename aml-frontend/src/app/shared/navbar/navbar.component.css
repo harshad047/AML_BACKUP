@@ -5,6 +5,7 @@
   position: sticky;
   top: 0;
   z-index: 1030;
+<<<<<<< HEAD
 }
 
 .navbar--transparent {
@@ -15,6 +16,20 @@
 .navbar--solid {
   background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
   box-shadow: var(--shadow-sm);
+=======
+  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+>>>>>>> 5d2520aff56927362e3afc2f76300ab71a8bfffb
+}
+
+.navbar--transparent {
+  background: transparent;
+  box-shadow: none;
+}
+
+.navbar--solid {
+  background: linear-gradient(135deg, #0056b3 0%, #0d6efd 100%);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
 }
 
 .navbar-brand {

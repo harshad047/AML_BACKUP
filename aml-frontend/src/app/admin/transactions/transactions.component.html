@@ -1,16 +1,61 @@
 <div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2><i class="fas fa-exchange-alt me-2"></i>Transactions</h2>
-    <div class="d-flex align-items-center gap-2">
-      <div class="btn-group" role="group" aria-label="Status filter">
-        <button class="btn btn-sm" [ngClass]="status === '' ? 'btn-primary' : 'btn-outline-primary'" (click)="setStatus('')">All</button>
-        <button class="btn btn-sm" [ngClass]="status === 'PENDING' ? 'btn-warning' : 'btn-outline-warning'" (click)="setStatus('PENDING')">Pending</button>
-        <button class="btn btn-sm" [ngClass]="status === 'FLAGGED' ? 'btn-info' : 'btn-outline-info'" (click)="setStatus('FLAGGED')">Flagged</button>
-        <button class="btn btn-sm" [ngClass]="status === 'BLOCKED' ? 'btn-danger' : 'btn-outline-danger'" (click)="setStatus('BLOCKED')">Blocked</button>
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-exchange-alt me-2 text-primary"></i>
+          <span class="fw-bold">Transactions</span>
+        </h2>
+        <p class="text-muted mb-0">Monitor and manage all system transactions</p>
       </div>
-      <div class="search-box d-flex align-items-center">
-        <i class="fas fa-search me-2 text-muted"></i>
-        <input class="form-control" placeholder="Search (type, acc no, status, desc)" [(ngModel)]="search" (ngModelChange)="applyFilter()" />
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-success-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getApprovedCount() }}</h4>
+          <p class="mb-0 text-muted">Approved</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-info-soft">
+        <div class="stat-icon-mini bg-info">
+          <i class="fas fa-flag"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getFlaggedCount() }}</h4>
+          <p class="mb-0 text-muted">Flagged</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-danger-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getBlockedCount() }}</h4>
+          <p class="mb-0 text-muted">Blocked</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-primary-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getTotalCount() }}</h4>
+          <p class="mb-0 text-muted">Total Transactions</p>
+        </div>
       </div>
     </div>
   </div>
@@ -22,45 +67,137 @@
 
   <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
 
-  <div *ngIf="!loading" class="card shadow-sm">
+  <!-- Transactions Table -->
+  <div *ngIf="!loading" class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Transaction List
+          <span class="badge bg-white text-primary ms-2">{{ filteredTx.length }}</span>
+        </h5>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <!-- Search Box -->
+          <div class="search-box-mini">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              class="form-control form-control-sm" 
+              placeholder="Search transactions..." 
+              [(ngModel)]="search"
+              (ngModelChange)="applyFilter()"
+            />
+          </div>
+          <!-- Status Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Status:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="status" (change)="setStatus(status)">
+              <option value="ALL">All</option>
+              <option value="APPROVED">Approved</option>
+              <option value="FLAGGED">Flagged</option>
+              <option value="BLOCKED">Blocked</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table class="table table-hover align-middle mb-0 enhanced-table">
         <thead class="table-light">
           <tr>
-            <th>#</th>
-            <th>Reference</th>
-            <th>Type</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>Risk</th>
-            <th>Created</th>
+            <th class="text-center" style="width: 60px;">#</th>
+            <th><i class="fas fa-hashtag me-2 text-primary"></i>Reference</th>
+            <th><i class="fas fa-exchange-alt me-2 text-primary"></i>Type</th>
+            <th><i class="fas fa-arrow-right me-2 text-primary"></i>From</th>
+            <th><i class="fas fa-arrow-left me-2 text-primary"></i>To</th>
+            <th class="text-end"><i class="fas fa-dollar-sign me-2 text-primary"></i>Amount</th>
+            <th class="text-center"><i class="fas fa-info-circle me-2 text-primary"></i>Status</th>
+            <th class="text-center"><i class="fas fa-exclamation-triangle me-2 text-primary"></i>Risk</th>
+            <th><i class="fas fa-calendar me-2 text-primary"></i>Created</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let t of filteredTx; index as i">
-            <td>{{ i + 1 }}</td>
-            <td><code>{{ t.transactionReference || t.id }}</code></td>
-            <td>{{ t.transactionType }}</td>
-            <td>{{ t.fromAccountNumber || '-' }}</td>
-            <td>{{ t.toAccountNumber || '-' }}</td>
-            <td>{{ t.amount | number:'1.2-2' }} {{ t.currency }}</td>
-            <td>
-              <span class="badge" [ngClass]="{
-                'bg-secondary': t.status === 'APPROVED',
-                'bg-warning text-dark': t.status === 'PENDING',
-                'bg-info text-dark': t.status === 'FLAGGED',
-                'bg-danger': t.status === 'BLOCKED',
-                'bg-dark': t.status === 'REJECTED'
-              }">{{ t.status }}</span>
+          <tr *ngFor="let t of paginatedTx; let i = index" class="table-row-hover">
+            <td class="text-center fw-bold text-muted">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+            <td><code class="text-primary">{{ t.transactionReference || 'REF-' + t.id }}</code></td>
+            <td><span class="badge bg-secondary">{{ t.transactionType }}</span></td>
+            <td><span class="text-muted">{{ t.fromAccountNumber || '-' }}</span></td>
+            <td><span class="text-muted">{{ t.toAccountNumber || '-' }}</span></td>
+            <td class="text-end fw-semibold">{{ t.amount | number:'1.2-2' }} <small class="text-muted">{{ t.currency }}</small></td>
+            <td class="text-center">
+              <span class="badge" [ngClass]="getStatusBadgeClass(t.status)">
+                <i class="fas" [ngClass]="{
+                  'fa-check-circle': t.status === 'APPROVED',
+                  'fa-clock': t.status === 'PENDING',
+                  'fa-flag': t.status === 'FLAGGED',
+                  'fa-ban': t.status === 'BLOCKED',
+                  'fa-times-circle': t.status === 'REJECTED'
+                }" class="me-1"></i>
+                {{ t.status }}
+              </span>
             </td>
-            <td>{{ t.combinedRiskScore || '-' }}</td>
-            <td>{{ t.createdAt | date:'short' }}</td>
+            <td class="text-center">
+              <span class="badge" [ngClass]="getRiskBadgeClass(t.combinedRiskScore || 0)" *ngIf="t.combinedRiskScore">
+                {{ t.combinedRiskScore }}
+              </span>
+              <span class="text-muted" *ngIf="!t.combinedRiskScore">-</span>
+            </td>
+            <td><small class="text-muted">{{ t.createdAt | date:'short' }}</small></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div *ngIf="!filteredTx?.length" class="p-4 text-center text-muted">No transactions found.</div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" *ngIf="filteredTx.length > 0">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3">
+        <div class="text-muted small">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, filteredTx.length) }} of {{ filteredTx.length }} entries
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted me-2">Rows per page:</label>
+          <select class="form-select form-select-sm page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+        </div>
+        <nav>
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" (click)="goToPage(1)" href="javascript:void(0)">
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" (click)="goToPage(currentPage - 1)" href="javascript:void(0)">
+                <i class="fas fa-angle-left"></i>
+              </a>
+            </li>
+            <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+              <a class="page-link" (click)="goToPage(page)" href="javascript:void(0)">{{ page }}</a>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" (click)="goToPage(currentPage + 1)" href="javascript:void(0)">
+                <i class="fas fa-angle-right"></i>
+              </a>
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" (click)="goToPage(totalPages)" href="javascript:void(0)">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredTx.length === 0" class="text-center py-5">
+      <i class="fas fa-exchange-alt fa-3x text-muted mb-3 opacity-50"></i>
+      <h5 class="text-muted">No transactions found</h5>
+      <p class="text-muted">Try adjusting your search or filter criteria</p>
+    </div>
   </div>
 </div>

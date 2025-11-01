@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AdminService, UserDto, AdminCustomerDetailsDto } from '../../core/services/admin.service';
+import { ToastService } from '../../core/services/toast.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -18,8 +19,18 @@ export class AdminCustomersComponent implements OnInit {
   customers: UserDto[] = [];
   searchTerm = '';
   viewMode: 'grid' | 'table' = (localStorage.getItem('adminCustomersView') as 'grid' | 'table') || 'grid';
+  
+  // Modal properties
+  showDetailsModal = false;
+  selectedCustomer: UserDto | null = null;
+  customerDetails: AdminCustomerDetailsDto | null = null;
+  loadingDetails = false;
 
-  constructor(private adminService: AdminService, private router: Router) {}
+  constructor(
+    private adminService: AdminService, 
+    private router: Router,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     this.fetch();
@@ -51,14 +62,43 @@ export class AdminCustomersComponent implements OnInit {
         }
       },
       error: err => {
-        this.error = err.error?.message || 'Failed to load customers';
+        this.toastService.error(err.error?.message || 'Failed to load customers');
         this.loading = false;
       }
     });
   }
 
   view(user: UserDto): void {
-    this.router.navigate(['/admin/users', user.id, 'details']);
+    this.selectedCustomer = user;
+    this.showDetailsModal = true;
+    this.loadCustomerDetails(user.id);
+  }
+
+  loadCustomerDetails(userId: number): void {
+    this.loadingDetails = true;
+    this.adminService.getCustomerDetails(userId).subscribe({
+      next: (details) => {
+        this.customerDetails = details;
+        this.loadingDetails = false;
+      },
+      error: (err) => {
+        this.toastService.error('Failed to load customer details');
+        this.loadingDetails = false;
+      }
+    });
+  }
+
+  closeModal(): void {
+    this.showDetailsModal = false;
+    this.selectedCustomer = null;
+    this.customerDetails = null;
+  }
+
+  viewFullProfile(): void {
+    if (this.selectedCustomer) {
+      this.router.navigate(['/admin/users', this.selectedCustomer.id, 'details']);
+      this.closeModal();
+    }
   }
 
   filtered(): UserDto[] {

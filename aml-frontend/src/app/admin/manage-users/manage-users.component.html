@@ -1,0 +1,591 @@
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-users-cog me-2 text-primary"></i>
+          <span class="fw-bold">Manage Users</span>
+        </h2>
+        <p class="text-muted mb-0">Manage customers and compliance officers</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <ul class="nav nav-tabs nav-tabs-enhanced mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button 
+        class="nav-link" 
+        [class.active]="activeTab === 'customers'"
+        (click)="switchTab('customers')"
+        type="button">
+        <i class="fas fa-user-friends me-2"></i>
+        Customers
+        <span class="badge bg-primary ms-2">{{ filteredCustomers.length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button 
+        class="nav-link" 
+        [class.active]="activeTab === 'officers'"
+        (click)="switchTab('officers')"
+        type="button">
+        <i class="fas fa-user-shield me-2"></i>
+        Compliance Officers
+        <span class="badge bg-success ms-2">{{ filteredOfficers.length }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <!-- CUSTOMERS TAB -->
+  <div *ngIf="activeTab === 'customers'">
+    <!-- Search and Filters -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+      <div class="search-box-enhanced">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          class="form-control form-control-lg" 
+          placeholder="Search customers..." 
+          [(ngModel)]="customerSearchTerm"
+          (ngModelChange)="searchCustomers()"
+        />
+        <span class="badge bg-primary customer-count" *ngIf="filteredCustomers.length > 0">
+          {{ filteredCustomers.length }}
+        </span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0 fw-semibold">Status:</label>
+        <select class="form-select" [(ngModel)]="customerStatusFilter" (change)="searchCustomers()">
+          <option value="ALL">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="BLOCKED">Blocked</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loadingCustomers" class="text-center py-5">
+      <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+      <p class="mt-3 text-muted fw-semibold">Loading customers...</p>
+    </div>
+
+    <!-- Customers Table -->
+    <div *ngIf="!loadingCustomers" class="card border-0 shadow-sm">
+      <div class="card-header bg-gradient-primary text-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Customer List
+        </h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 enhanced-table">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width: 60px;">#</th>
+              <th><i class="fas fa-user me-2 text-primary"></i>Username</th>
+              <th><i class="fas fa-id-badge me-2 text-primary"></i>Full Name</th>
+              <th><i class="fas fa-envelope me-2 text-primary"></i>Email</th>
+              <th class="text-center" style="width: 120px;"><i class="fas fa-check-circle me-2 text-success"></i>Status</th>
+              <th class="text-center" style="width: 250px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of paginatedCustomers; let i = index" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ (customerCurrentPage - 1) * customerPageSize + i + 1 }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm me-2">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <span class="fw-semibold">{{ c.username }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="fw-medium">
+                  {{ (c.firstName || c.lastName) ? (c.firstName + ' ' + c.lastName) : '-' }}
+                </span>
+              </td>
+              <td>
+                <span class="text-muted">{{ c.email || 'Not provided' }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge" [ngClass]="c.blocked ? 'bg-danger' : 'bg-success-soft'">
+                  <i class="fas" [ngClass]="c.blocked ? 'fa-ban' : 'fa-check-circle'" class="me-1"></i>
+                  {{ c.blocked ? 'Blocked' : 'Active' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-outline-primary" (click)="viewCustomerDetails(c)" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button 
+                    *ngIf="!c.blocked"
+                    class="btn btn-outline-danger" 
+                    (click)="openBlockCustomerModal(c)" 
+                    title="Block Customer">
+                    <i class="fas fa-ban"></i>
+                  </button>
+                  <button 
+                    *ngIf="c.blocked"
+                    class="btn btn-outline-success" 
+                    (click)="reactivateCustomer(c)" 
+                    title="Reactivate Customer">
+                    <i class="fas fa-check-circle"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="filteredCustomers.length > 0">
+        <div class="d-flex justify-content-between align-items-center px-4 py-3">
+          <div class="text-muted small">
+            Showing {{ (customerCurrentPage - 1) * customerPageSize + 1 }} to {{ Math.min(customerCurrentPage * customerPageSize, filteredCustomers.length) }} of {{ filteredCustomers.length }} entries
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted me-2">Rows per page:</label>
+            <select class="form-select form-select-sm page-size-select" [(ngModel)]="customerPageSize" (change)="onCustomerPageSizeChange()">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="customerCurrentPage === 1">
+                <a class="page-link" (click)="goToCustomerPage(1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="customerCurrentPage === 1">
+                <a class="page-link" (click)="goToCustomerPage(customerCurrentPage - 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+              <li class="page-item" *ngFor="let page of getCustomerPageNumbers()" [class.active]="page === customerCurrentPage">
+                <a class="page-link" (click)="goToCustomerPage(page)" href="javascript:void(0)">{{ page }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="customerCurrentPage === customerTotalPages">
+                <a class="page-link" (click)="goToCustomerPage(customerCurrentPage + 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="customerCurrentPage === customerTotalPages">
+                <a class="page-link" (click)="goToCustomerPage(customerTotalPages)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredCustomers.length === 0" class="text-center py-5">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No customers found</h5>
+        <p class="text-muted">Try adjusting your search criteria</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- OFFICERS TAB -->
+  <div *ngIf="activeTab === 'officers'">
+    <!-- Search and Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="search-box-enhanced">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          class="form-control form-control-lg" 
+          placeholder="Search officers..." 
+          [(ngModel)]="officerSearchTerm"
+          (ngModelChange)="searchOfficers()"
+        />
+        <span class="badge bg-success customer-count" *ngIf="filteredOfficers.length > 0">
+          {{ filteredOfficers.length }}
+        </span>
+      </div>
+      <button class="btn btn-success btn-lg" (click)="openAddOfficerModal()">
+        <i class="fas fa-plus me-2"></i>Add Officer
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loadingOfficers" class="text-center py-5">
+      <div class="spinner-border text-success" style="width: 3rem; height: 3rem;"></div>
+      <p class="mt-3 text-muted fw-semibold">Loading officers...</p>
+    </div>
+
+    <!-- Officers Table -->
+    <div *ngIf="!loadingOfficers" class="card border-0 shadow-sm">
+      <div class="card-header bg-gradient-success text-white border-0">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Compliance Officers
+        </h5>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 enhanced-table">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" style="width: 60px;">#</th>
+              <th><i class="fas fa-user-shield me-2 text-success"></i>Username</th>
+              <th><i class="fas fa-envelope me-2 text-success"></i>Email</th>
+              <th><i class="fas fa-shield-alt me-2 text-success"></i>Role</th>
+              <th class="text-center" style="width: 200px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let o of paginatedOfficers; let i = index" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ (officerCurrentPage - 1) * officerPageSize + i + 1 }}</td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm bg-success me-2">
+                    <i class="fas fa-user-shield"></i>
+                  </div>
+                  <span class="fw-semibold">{{ o.username }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="text-muted">{{ o.email || 'Not provided' }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="o.role === 'SUPER_ADMIN' ? 'bg-danger' : 'bg-info'">
+                  {{ o.role }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <button 
+                    class="btn btn-outline-danger" 
+                    (click)="openRemoveOfficerModal(o)" 
+                    title="Remove Officer"
+                    [disabled]="o.role === 'SUPER_ADMIN'">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="filteredOfficers.length > 0">
+        <div class="d-flex justify-content-between align-items-center px-4 py-3">
+          <div class="text-muted small">
+            Showing {{ (officerCurrentPage - 1) * officerPageSize + 1 }} to {{ Math.min(officerCurrentPage * officerPageSize, filteredOfficers.length) }} of {{ filteredOfficers.length }} entries
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted me-2">Rows per page:</label>
+            <select class="form-select form-select-sm page-size-select" [(ngModel)]="officerPageSize" (change)="onOfficerPageSizeChange()">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="officerCurrentPage === 1">
+                <a class="page-link" (click)="goToOfficerPage(1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-left"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="officerCurrentPage === 1">
+                <a class="page-link" (click)="goToOfficerPage(officerCurrentPage - 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-left"></i>
+                </a>
+              </li>
+              <li class="page-item" *ngFor="let page of getOfficerPageNumbers()" [class.active]="page === officerCurrentPage">
+                <a class="page-link" (click)="goToOfficerPage(page)" href="javascript:void(0)">{{ page }}</a>
+              </li>
+              <li class="page-item" [class.disabled]="officerCurrentPage === officerTotalPages">
+                <a class="page-link" (click)="goToOfficerPage(officerCurrentPage + 1)" href="javascript:void(0)">
+                  <i class="fas fa-angle-right"></i>
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="officerCurrentPage === officerTotalPages">
+                <a class="page-link" (click)="goToOfficerPage(officerTotalPages)" href="javascript:void(0)">
+                  <i class="fas fa-angle-double-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredOfficers.length === 0" class="text-center py-5">
+        <i class="fas fa-user-shield fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No officers found</h5>
+        <p class="text-muted">Click "Add Officer" to create a new compliance officer</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Details Modal -->
+  <div class="modal fade" [class.show]="showCustomerDetailsModal" [style.display]="showCustomerDetailsModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header bg-gradient-primary text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-user-circle me-2"></i>
+            Customer Details
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeCustomerDetailsModal()"></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Loading State -->
+          <div *ngIf="loadingDetails" class="text-center py-5">
+            <div class="spinner-border text-primary" style="width: 2.5rem; height: 2.5rem;"></div>
+            <p class="mt-3 text-muted">Loading customer details...</p>
+          </div>
+
+          <!-- Customer Details Content -->
+          <div *ngIf="!loadingDetails && customerDetails">
+            <!-- Profile Section -->
+            <div class="customer-profile-section mb-4">
+              <div class="row">
+                <div class="col-md-3 text-center mb-3">
+                  <div class="customer-avatar-large mx-auto mb-3">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <span class="badge bg-success-soft">
+                    <i class="fas fa-check-circle me-1"></i>Active
+                  </span>
+                </div>
+                <div class="col-md-9">
+                  <h4 class="mb-3">
+                    {{ customerDetails.firstName }} {{ customerDetails.lastName }}
+                  </h4>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-at text-primary me-2"></i>
+                        <span class="text-muted small">Username:</span>
+                        <div class="fw-semibold">{{ selectedCustomer?.username }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-envelope text-primary me-2"></i>
+                        <span class="text-muted small">Email:</span>
+                        <div class="fw-semibold text-truncate" title="{{ customerDetails.email }}">{{ customerDetails.email }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-phone text-primary me-2"></i>
+                        <span class="text-muted small">Phone:</span>
+                        <div class="fw-semibold">{{ customerDetails.phone || 'Not provided' }}</div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="detail-item">
+                        <i class="fas fa-id-card text-primary me-2"></i>
+                        <span class="text-muted small">User ID:</span>
+                        <div class="fw-semibold">{{ customerDetails.userId }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- KYC Status -->
+            <div class="detail-section mb-4">
+              <h6 class="section-title">
+                <i class="fas fa-shield-alt me-2"></i>KYC Status
+              </h6>
+              <div class="detail-content">
+                <span class="badge" [ngClass]="customerDetails.kycStatus === 'APPROVED' ? 'bg-success' : 
+                                                 customerDetails.kycStatus === 'PENDING' ? 'bg-warning' : 'bg-danger'">
+                  {{ customerDetails.kycStatus }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="detail-section mb-4" *ngIf="customerDetails.address">
+              <h6 class="section-title">
+                <i class="fas fa-map-marker-alt me-2"></i>Address
+              </h6>
+              <div class="detail-content">
+                <p class="mb-1">{{ customerDetails.address.street }}</p>
+                <p class="mb-0">
+                  {{ customerDetails.address.city }}, {{ customerDetails.address.state }} 
+                  {{ customerDetails.address.postalCode }}
+                </p>
+                <p class="mb-0 text-muted">{{ customerDetails.address.country }}</p>
+              </div>
+            </div>
+
+            <!-- Account Statistics -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="stat-card">
+                  <div class="stat-icon bg-primary-soft">
+                    <i class="fas fa-exchange-alt"></i>
+                  </div>
+                  <div class="stat-info">
+                    <h3 class="mb-0">0</h3>
+                    <p class="text-muted mb-0">Total Transactions</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="stat-card">
+                  <div class="stat-icon bg-warning-soft">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </div>
+                  <div class="stat-info">
+                    <h3 class="mb-0">0</h3>
+                    <p class="text-muted mb-0">Total Alerts</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary" (click)="closeCustomerDetailsModal()">
+            <i class="fas fa-times me-2"></i>Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showCustomerDetailsModal" *ngIf="showCustomerDetailsModal"></div>
+
+  <!-- Block Customer Modal -->
+  <div class="modal fade" [class.show]="showBlockCustomerModal" [style.display]="showBlockCustomerModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-ban me-2"></i>Block Customer
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to block <strong>{{ selectedCustomer?.username }}</strong>?</p>
+          <div class="form-group">
+            <label class="form-label">Reason for blocking <span class="text-danger">*</span></label>
+            <textarea 
+              class="form-control" 
+              [(ngModel)]="blockReason" 
+              rows="3" 
+              placeholder="Enter reason for blocking this customer..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeAllModals()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-danger" 
+            (click)="confirmBlockCustomer()"
+            [disabled]="!blockReason.trim()">
+            <i class="fas fa-ban me-2"></i>Block Customer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showBlockCustomerModal" *ngIf="showBlockCustomerModal"></div>
+
+  <!-- Add Officer Modal -->
+  <div class="modal fade" [class.show]="showAddOfficerModal" [style.display]="showAddOfficerModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-gradient-success text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-user-plus me-2"></i>Add Compliance Officer
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+        </div>
+        <form [formGroup]="addOfficerForm" (ngSubmit)="confirmAddOfficer()">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Username <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="username" placeholder="Enter username">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" class="form-control" formControlName="email" placeholder="Enter email">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">First Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="firstName" placeholder="Enter first name">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="lastName" placeholder="Enter last name">
+              </div>
+              <div class="col-12 mb-3">
+                <label class="form-label">Password <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" formControlName="password" placeholder="Enter password (min 8 characters)">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 bg-light">
+            <button type="button" class="btn btn-secondary" (click)="closeAllModals()">
+              <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-success"
+              [disabled]="addOfficerForm.invalid || submittingOfficer">
+              <span *ngIf="submittingOfficer" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!submittingOfficer" class="fas fa-plus me-2"></i>
+              {{ submittingOfficer ? 'Adding...' : 'Add Officer' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showAddOfficerModal" *ngIf="showAddOfficerModal"></div>
+
+  <!-- Remove Officer Modal -->
+  <div class="modal fade" [class.show]="showRemoveOfficerModal" [style.display]="showRemoveOfficerModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-trash me-2"></i>Remove Officer
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeAllModals()"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to remove <strong>{{ selectedOfficer?.username }}</strong> from compliance officers?</p>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            This action cannot be undone. The officer will lose all compliance access.
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeAllModals()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmRemoveOfficer()">
+            <i class="fas fa-trash me-2"></i>Remove Officer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showRemoveOfficerModal" *ngIf="showRemoveOfficerModal"></div>
+</div>

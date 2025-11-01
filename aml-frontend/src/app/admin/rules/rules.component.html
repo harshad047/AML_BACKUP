@@ -1,35 +1,80 @@
 <div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-gavel me-2 text-primary"></i>
+          <span class="fw-bold">Rules Management</span>
+        </h2>
+        <p class="text-muted mb-0">Create and manage AML compliance rules</p>
+      </div>
+      <button class="btn btn-primary btn-lg" (click)="toggleCreateForm()">
+        <i class="fas fa-{{ editingRule ? 'times' : 'plus' }} me-2"></i>{{ editingRule ? 'Cancel Edit' : 'Create Rule' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
   <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center">
-        <h2><i class="fas fa-gavel me-2"></i>Rules Management</h2>
-        <button class="btn btn-primary" (click)="toggleCreateForm()">
-          <i class="fas fa-plus me-2"></i>{{ editingRule ? 'Cancel Edit' : 'Create Rule' }}
-        </button>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-danger-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getBlockRulesCount() }}</h4>
+          <p class="mb-0 text-muted">Block Rules</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-warning-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-flag"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getFlagRulesCount() }}</h4>
+          <p class="mb-0 text-muted">Flag Rules</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-success-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getActiveRulesCount() }}</h4>
+          <p class="mb-0 text-muted">Active Rules</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-primary-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-gavel"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getTotalRulesCount() }}</h4>
+          <p class="mb-0 text-muted">Total Rules</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Success/Error Messages -->
-  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
-    <i class="fas fa-check-circle me-2"></i>{{ success }}
-    <button type="button" class="btn-close" (click)="success = ''"></button>
-  </div>
-
-  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
-    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-    <button type="button" class="btn-close" (click)="error = ''"></button>
-  </div>
-
-  <!-- Create/Edit Rule Form -->
-  <div class="card mb-4" *ngIf="showCreateForm">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">
-        <i class="fas fa-{{ editingRule ? 'edit' : 'plus' }} me-2"></i>
-        {{ editingRule ? 'Edit Rule' : 'Create New Rule' }}
-      </h5>
-    </div>
-    <div class="card-body">
+  <!-- Create/Edit Rule Modal -->
+  <div class="modal fade" [class.show]="showCreateForm" [style.display]="showCreateForm ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-{{ editingRule ? 'edit' : 'plus' }} me-2"></i>
+            {{ editingRule ? 'Edit Rule' : 'Create New Rule' }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="toggleCreateForm()"></button>
+        </div>
+        <div class="modal-body">
       <form [formGroup]="ruleForm" (ngSubmit)="onSaveRule()">
         <div class="row">
           <div class="col-md-6 mb-3">
@@ -169,31 +214,62 @@
           </div>
         </div>
 
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-primary" [disabled]="ruleForm.invalid || savingRule">
+      </form>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-primary" (click)="onSaveRule()" [disabled]="ruleForm.invalid || savingRule">
             <span *ngIf="savingRule" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!savingRule" class="fas fa-{{ editingRule ? 'save' : 'plus' }} me-2"></i>
             {{ savingRule ? 'Saving...' : (editingRule ? 'Update Rule' : 'Create Rule') }}
           </button>
-          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">Cancel</button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
+  <div class="modal-backdrop fade" [class.show]="showCreateForm" *ngIf="showCreateForm"></div>
 
   <!-- Rules Table -->
-  <div class="card shadow-sm">
-    <div class="card-header rules-header">
-      <div class="d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Rules ({{ filteredRules.length }})</h5>
-        <div class="search-box">
-          <i class="fas fa-search search-icon"></i>
-          <input 
-            type="text" 
-            class="form-control form-control-sm" 
-            placeholder="Search rules..." 
-            [(ngModel)]="searchTerm"
-            (input)="filterRules()"
-          />
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Rules List
+          <span class="badge bg-white text-primary ms-2">{{ filteredRules.length }}</span>
+        </h5>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <!-- Search Box -->
+          <div class="search-box-mini">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              class="form-control form-control-sm" 
+              placeholder="Search rules..." 
+              [(ngModel)]="searchTerm"
+              (input)="filterRules()"
+            />
+          </div>
+          <!-- Action Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Action:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="actionFilter" (change)="filterRules()">
+              <option value="ALL">All</option>
+              <option value="BLOCK">Block</option>
+              <option value="FLAG">Flag</option>
+              <option value="REVIEW">Review</option>
+            </select>
+          </div>
+          <!-- Status Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold small">Status:</label>
+            <select class="form-select form-select-sm status-select" [(ngModel)]="statusFilter" (change)="filterRules()">
+              <option value="ALL">All</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>

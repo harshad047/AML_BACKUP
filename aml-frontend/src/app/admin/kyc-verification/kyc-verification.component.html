@@ -1,29 +1,91 @@
 <div class="container-fluid py-4">
-  <div class="row mb-4">
-    <div class="col-12">
-      <h2><i class="fas fa-id-card me-2"></i>KYC Document Verification</h2>
+  <!-- Page Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-id-card me-2 text-primary"></i>
+          <span class="fw-bold">KYC Document Verification</span>
+        </h2>
+        <p class="text-muted mb-0">Review and verify customer identity documents</p>
+      </div>
     </div>
   </div>
 
-  <div class="alert alert-success alert-dismissible fade show" *ngIf="success">
-    <i class="fas fa-check-circle me-2"></i>{{ success }}
-    <button type="button" class="btn-close" (click)="success = ''"></button>
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-warning-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getPendingCount() }}</h4>
+          <p class="mb-0 text-muted">Pending Review</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-success-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getVerifiedCount() }}</h4>
+          <p class="mb-0 text-muted">Verified</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-danger-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getRejectedCount() }}</h4>
+          <p class="mb-0 text-muted">Rejected</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card-mini bg-primary-soft">
+        <div class="stat-icon-mini">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="stat-content-mini">
+          <h4 class="mb-0">{{ getTotalCount() }}</h4>
+          <p class="mb-0 text-muted">Total Documents</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
-    <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
-    <button type="button" class="btn-close" (click)="error = ''"></button>
-  </div>
-
-  <div class="card">
-    <div class="card-header bg-white">
-      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h5 class="mb-0"><i class="fas fa-id-card me-2"></i>KYC Documents ({{ pendingDocuments.length }})</h5>
-        <div class="d-flex align-items-center gap-2">
-          <label class="me-2 mb-0">Status</label>
-          <select class="form-select form-select-sm" [ngModel]="selectedStatus" (ngModelChange)="onStatusChange($event)">
-            <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
-          </select>
+  <!-- Documents Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-gradient-primary text-white border-0">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <h5 class="mb-0">
+          <i class="fas fa-list me-2"></i>Documents List
+          <span class="badge bg-white text-primary ms-2">{{ pendingDocuments.length }}</span>
+        </h5>
+        <div class="d-flex align-items-center gap-3">
+          <!-- Search Box -->
+          <div class="search-box-mini">
+            <i class="fas fa-search"></i>
+            <input 
+              type="text" 
+              class="form-control form-control-sm" 
+              placeholder="Search customer..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="filterDocuments()">
+          </div>
+          <!-- Status Filter -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold">Filter:</label>
+            <select class="form-select form-select-sm status-select" [ngModel]="selectedStatus" (ngModelChange)="onStatusChange($event)">
+              <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -34,53 +96,196 @@
       </div>
 
       <div class="table-responsive" *ngIf="!loading">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover align-middle mb-0 enhanced-table">
           <thead class="table-light">
             <tr>
-              <th>ID</th>
-              <th>Customer</th>
-              <th>Document Type</th>
-              <th>File</th>
-              <th>Uploaded</th>
-              <th>Status</th>
-              <th *ngIf="selectedStatus === 'UPLOADED'">Actions</th>
+              <th class="text-center" style="width: 60px;">#</th>
+              <th><i class="fas fa-user me-2 text-primary"></i>Customer</th>
+              <th><i class="fas fa-file-alt me-2 text-primary"></i>Document Type</th>
+              <th><i class="fas fa-paperclip me-2 text-primary"></i>File</th>
+              <th><i class="fas fa-calendar me-2 text-primary"></i>Uploaded</th>
+              <th class="text-center"><i class="fas fa-info-circle me-2 text-primary"></i>Status</th>
+              <th class="text-center" style="width: 200px;">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let doc of pendingDocuments">
-              <td>{{ doc.id }}</td>
-              <td>{{ doc.customerName || 'Customer #' + doc.customerId }}</td>
+            <tr *ngFor="let doc of filteredDocuments; index as i" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ i + 1 }}</td>
               <td>
-                <span class="badge" [ngClass]="getDocumentTypeBadgeClass(doc.docType)">
-                  {{ doc.docType }}
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm me-2">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <span class="fw-semibold">{{ doc.customerName || 'Customer #' + doc.customerId }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge badge-lg" [ngClass]="getDocumentTypeBadgeClass(doc.docType)">
+                  <i class="fas fa-id-card me-1"></i>{{ formatDocType(doc.docType) }}
                 </span>
               </td>
               <td>
-                <a [href]="doc.storagePath" target="_blank" rel="noopener noreferrer">
-                  <i class="fas fa-external-link-alt me-1"></i>{{ getFileNameFromUrl(doc.storagePath) || 'View' }}
-                </a>
+                <button class="btn btn-sm btn-outline-primary" (click)="previewDocument(doc)">
+                  <i class="fas fa-eye me-1"></i>Preview
+                </button>
               </td>
-              <td>{{ doc.uploadedAt | date:'short' }}</td>
-              <td><span class="badge" [ngClass]="getStatusBadgeClass(doc.status)">{{ doc.status }}</span></td>
-              <td *ngIf="selectedStatus === 'UPLOADED'">
-                <div class="btn-group btn-group-sm">
-                  <button class="btn btn-success" (click)="verifyDocument(doc)">
-                    <i class="fas fa-check"></i> Verify
+              <td>
+                <small class="text-muted">
+                  <i class="fas fa-clock me-1"></i>{{ doc.uploadedAt | date:'MMM d, y, h:mm a' }}
+                </small>
+              </td>
+              <td class="text-center">
+                <span class="badge badge-lg" [ngClass]="getStatusBadgeClass(doc.status)">
+                  <i class="fas" [ngClass]="getStatusIcon(doc.status)" class="me-1"></i>{{ doc.status }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" *ngIf="doc.status === 'UPLOADED'">
+                  <button class="btn btn-success" (click)="openVerifyModal(doc)" title="Verify Document">
+                    <i class="fas fa-check-circle"></i> Verify
                   </button>
-                  <button class="btn btn-danger" (click)="rejectDocument(doc)">
-                    <i class="fas fa-times"></i> Reject
+                  <button class="btn btn-danger" (click)="openRejectModal(doc)" title="Reject Document">
+                    <i class="fas fa-times-circle"></i> Reject
                   </button>
                 </div>
+                <span *ngIf="doc.status !== 'UPLOADED'" class="text-muted small">
+                  <i class="fas fa-lock me-1"></i>Processed
+                </span>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div *ngIf="!loading && pendingDocuments.length === 0" class="text-center py-4 text-muted">
-        <i class="fas fa-id-card fa-3x mb-3"></i>
-        <p>{{ emptyText }}</p>
+      <div *ngIf="!loading && filteredDocuments.length === 0" class="text-center py-5 text-muted">
+        <i class="fas fa-folder-open fa-4x mb-3 opacity-50"></i>
+        <h5 class="text-muted">{{ emptyText }}</h5>
+        <p class="text-muted">{{ searchTerm ? 'Try adjusting your search' : 'Documents will appear here when uploaded' }}</p>
       </div>
     </div>
   </div>
+
+  <!-- Document Preview Modal -->
+  <div class="modal fade" [class.show]="showPreviewModal" [style.display]="showPreviewModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-gradient-primary text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-file-alt me-2"></i>Document Preview
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closePreviewModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedDocument">
+          <div class="document-info mb-3">
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <strong><i class="fas fa-user me-2 text-primary"></i>Customer:</strong>
+                <p class="mb-0">{{ selectedDocument.customerName || 'Customer #' + selectedDocument.customerId }}</p>
+              </div>
+              <div class="col-md-6 mb-2">
+                <strong><i class="fas fa-file-alt me-2 text-primary"></i>Document Type:</strong>
+                <p class="mb-0">{{ formatDocType(selectedDocument.docType) }}</p>
+              </div>
+              <div class="col-md-6 mb-2">
+                <strong><i class="fas fa-calendar me-2 text-primary"></i>Uploaded:</strong>
+                <p class="mb-0">{{ selectedDocument.uploadedAt | date:'medium' }}</p>
+              </div>
+              <div class="col-md-6 mb-2">
+                <strong><i class="fas fa-info-circle me-2 text-primary"></i>Status:</strong>
+                <p class="mb-0">
+                  <span class="badge" [ngClass]="getStatusBadgeClass(selectedDocument.status)">
+                    {{ selectedDocument.status }}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="document-preview text-center">
+            <iframe [src]="getSafeUrl(selectedDocument.storagePath)" class="document-frame"></iframe>
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-secondary" (click)="closePreviewModal()">
+            <i class="fas fa-times me-2"></i>Close
+          </button>
+          <a [href]="selectedDocument?.storagePath" target="_blank" class="btn btn-primary">
+            <i class="fas fa-external-link-alt me-2"></i>Open in New Tab
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showPreviewModal" *ngIf="showPreviewModal"></div>
+
+  <!-- Verify Modal -->
+  <div class="modal fade" [class.show]="showVerifyModal" [style.display]="showVerifyModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-check-circle me-2"></i>Verify Document
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeVerifyModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedDocument">
+          <p>Are you sure you want to verify this document?</p>
+          <div class="alert alert-info">
+            <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedDocument.customerName || 'Customer #' + selectedDocument.customerId }}<br>
+            <strong><i class="fas fa-file-alt me-2"></i>Document:</strong> {{ formatDocType(selectedDocument.docType) }}
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeVerifyModal()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button type="button" class="btn btn-success" (click)="confirmVerify()">
+            <i class="fas fa-check-circle me-2"></i>Verify Document
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showVerifyModal" *ngIf="showVerifyModal"></div>
+
+  <!-- Reject Modal -->
+  <div class="modal fade" [class.show]="showRejectModal" [style.display]="showRejectModal ? 'block' : 'none'" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white border-0">
+          <h5 class="modal-title">
+            <i class="fas fa-times-circle me-2"></i>Reject Document
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeRejectModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedDocument">
+          <p>Are you sure you want to reject this document?</p>
+          <div class="alert alert-warning">
+            <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedDocument.customerName || 'Customer #' + selectedDocument.customerId }}<br>
+            <strong><i class="fas fa-file-alt me-2"></i>Document:</strong> {{ formatDocType(selectedDocument.docType) }}
+          </div>
+          <div class="form-group">
+            <label class="form-label fw-semibold">Rejection Reason <span class="text-danger">*</span></label>
+            <textarea 
+              class="form-control" 
+              [(ngModel)]="rejectionReason" 
+              rows="3" 
+              placeholder="Enter reason for rejection..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" (click)="closeRejectModal()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-danger" 
+            (click)="confirmReject()"
+            [disabled]="!rejectionReason.trim()">
+            <i class="fas fa-times-circle me-2"></i>Reject Document
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade" [class.show]="showRejectModal" *ngIf="showRejectModal"></div>
 </div>

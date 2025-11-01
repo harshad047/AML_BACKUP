@@ -56,18 +56,43 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" routerLink="/admin/customers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-                <i class="fas fa-users me-1"></i> Customers
+              <a class="nav-link" routerLink="/admin/manage-users" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-users-cog me-1"></i> Users
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" routerLink="/admin/rules" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-                <i class="fas fa-cog me-1"></i> Rules
+              <a class="nav-link" routerLink="/admin/accounts" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-university me-1"></i> Accounts
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/kyc-verification" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-id-card me-1"></i> KYC
               </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" routerLink="/admin/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
                 <i class="fas fa-exchange-alt me-1"></i> Transactions
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/rules" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-gavel me-1"></i> Rules
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/keywords" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-key me-1"></i> Keywords
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/country-risks" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-globe me-1"></i> Country Risks
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/admin/audit-logs" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+                <i class="fas fa-history me-1"></i> Logs
               </a>
             </li>
           </ng-container>
@@ -176,13 +201,18 @@
                     </a>
                   </li>
                   <li>
-                    <a class="dropdown-item" routerLink="/admin/customers" (click)="closeDropdown()">
-                      <i class="fas fa-users me-2"></i>Customers
+                    <a class="dropdown-item" routerLink="/admin/manage-users" (click)="closeDropdown()">
+                      <i class="fas fa-users-cog me-2"></i>Manage Users
                     </a>
                   </li>
                   <li>
                     <a class="dropdown-item" routerLink="/admin/rules" (click)="closeDropdown()">
                       <i class="fas fa-cog me-2"></i>Rules
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" routerLink="/admin/transactions" (click)="closeDropdown()">
+                      <i class="fas fa-exchange-alt me-2"></i>Transactions
                     </a>
                   </li>
                 </ng-container>
