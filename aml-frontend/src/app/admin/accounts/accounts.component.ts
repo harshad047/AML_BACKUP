@@ -357,21 +357,21 @@ export class AccountsComponent implements OnInit {
   }
 
   getStatusBadgeClass(status: string): string {
-    switch (status?.toUpperCase()) {
-      case 'ACTIVE': return 'bg-success';
-      case 'PENDING': return 'bg-warning';
-      case 'SUSPENDED': return 'bg-danger';
-      case 'REJECTED': return 'bg-danger';
-      default: return 'bg-secondary';
+    switch ((status || '').toUpperCase()) {
+      case 'ACTIVE': return 'status-active';
+      case 'PENDING': return 'status-pending';
+      case 'SUSPENDED': return 'status-suspended';
+      case 'REJECTED': return 'status-rejected';
+      default: return 'status-pending';
     }
   }
 
   getApprovalBadgeClass(status: string): string {
-    switch (status?.toUpperCase()) {
-      case 'APPROVED': return 'bg-success';
-      case 'PENDING': return 'bg-warning';
-      case 'REJECTED': return 'bg-danger';
-      default: return 'bg-secondary';
+    switch ((status || '').toUpperCase()) {
+      case 'APPROVED': return 'approval-approved';
+      case 'PENDING': return 'approval-pending';
+      case 'REJECTED': return 'approval-rejected';
+      default: return 'approval-pending';
     }
   }
 

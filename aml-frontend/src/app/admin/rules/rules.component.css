@@ -90,6 +90,20 @@
   background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
 }
 
+/* Header toolbar polish */
+.card-header.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary-bank-blue, #0d6efd), var(--primary-bank-blue-dark, #0b5ed7)) !important;
+  color: #fff;
+  border: none;
+  padding: 1rem 1.25rem;
+}
+.card-header.bg-gradient-primary h5 { color: #fff; font-weight: 700; }
+.card-header.bg-gradient-primary .badge { border-radius: 999px; padding: 0.25rem 0.55rem; font-weight: 700; }
+.card-header.bg-gradient-primary .search-box-mini input,
+.card-header.bg-gradient-primary .status-select { border-radius: 999px; background: rgba(255,255,255,0.95); border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.card-header.bg-gradient-primary label { color: rgba(255,255,255,0.95); }
+.card-header.bg-gradient-primary .search-box-mini i { color: #6c757d; }
+
 /* Search Box Mini */
 .search-box-mini {
   position: relative;
@@ -215,22 +229,9 @@
 .modern-table {
   font-size: 0.9rem;
 }
-
-.modern-table thead {
-  background: linear-gradient(to bottom, var(--gray-50), var(--gray-100));
-  border-bottom: 2px solid var(--gray-300);
-}
-
-.modern-table thead th {
-  font-weight: 600;
-  color: var(--gray-700);
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  padding: 1rem 0.75rem;
-  border: none;
-  white-space: nowrap;
-}
+.table-responsive { border-radius: 0.75rem; overflow: hidden; }
+.modern-table thead { background: linear-gradient(135deg, var(--primary-bank-blue, #0d6efd), var(--primary-bank-blue-dark, #0b5ed7)); }
+.modern-table thead th { font-weight: 700; color: #fff; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em; padding: 0.9rem 0.75rem; border: none; white-space: nowrap; }
 
 .modern-table thead th.sortable {
   cursor: pointer;
@@ -258,10 +259,7 @@
   transition: all 0.2s ease;
 }
 
-.modern-table tbody tr:hover {
-  background-color: var(--gray-50);
-  transform: scale(1.001);
-}
+.modern-table tbody tr:hover { background-color: #f8fbff; transform: scale(1.001); }
 
 .modern-table tbody td {
   padding: 1rem 0.75rem;
@@ -281,10 +279,17 @@
   border-radius: 0.375rem;
 }
 
-.priority-badge {
-  background-color: #6c757d;
-  color: white;
-}
+.priority-badge { background-color: #6c757d; color: #fff; border-radius: 999px; padding: 0.35rem 0.6rem; font-weight: 700; }
+
+/* Themed chips for Action and Risk */
+.action-badge { color:#fff; font-weight:700; border-radius:999px; padding:0.25rem 0.5rem; }
+.action-block { background: linear-gradient(135deg, #dc3545, #c82333); }
+.action-flag { background: linear-gradient(135deg, #ffc107, #ff9800); color:#000; }
+.action-review { background: linear-gradient(135deg, #17a2b8, #138496); }
+.risk-badge { color:#fff; font-weight:700; border-radius:999px; padding:0.25rem 0.5rem; }
+.risk-low { background: linear-gradient(135deg, #28a745, #20c997); }
+.risk-medium { background: linear-gradient(135deg, #ffc107, #ff9800); color:#000; }
+.risk-high { background: linear-gradient(135deg, #dc3545, #c82333); }
 
 /* Status Switch - Original Styling */
 .form-check-input:checked {
