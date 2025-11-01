@@ -88,8 +88,8 @@ import { ToastService } from '../../core/services/toast.service';
     }
 
     .form-control:focus {
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      border-color: var(--primary-bank-blue);
+      box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.25);
     }
 
     .btn-primary {
@@ -115,7 +115,7 @@ import { ToastService } from '../../core/services/toast.service';
     }
 
     .btn-link:hover {
-      color: #0d6efd;
+      color: var(--primary-bank-blue);
       text-decoration: none;
     }
   `]

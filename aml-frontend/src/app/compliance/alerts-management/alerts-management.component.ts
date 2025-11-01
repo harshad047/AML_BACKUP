@@ -25,7 +25,7 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
       </div>
 
       <!-- Filters -->
-      <div class="row mb-4">
+      <div class="row mb-4 filters-bar align-items-center g-2">
         <div class="col-md-3">
           <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
             <option value="">All Statuses</option>
@@ -83,7 +83,7 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
             </div>
             <div class="card-body p-0">
               <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover modern-table mb-0">
                   <thead class="table-light">
                     <tr>
                       <th>Alert ID</th>
@@ -119,12 +119,12 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
                         </span>
                       </td>
                       <td>
-                        <span class="badge" [ngClass]="getRiskScoreClass(alert.riskScore)">
+                        <span class="risk-chip" [ngClass]="getRiskScoreClass(alert.riskScore)">
                           {{ alert.riskScore }}
                         </span>
                       </td>
                       <td>
-                        <span class="badge" [ngClass]="getStatusClass(alert.status)">
+                        <span class="status-chip" [ngClass]="getStatusClass(alert.status)">
                           {{ alert.status }}
                         </span>
                       </td>
@@ -275,19 +275,59 @@ import { AlertDto, CaseDto } from '../../core/models/compliance.models';
     </div>
   `,
   styles: [`
-    .table-responsive {
-      border-radius: 0.375rem;
+    /* Filters bar */
+    .filters-bar .form-select,
+    .filters-bar .form-control {
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color, #e9ecef);
+      box-shadow: none;
     }
-    
-    .alert-row-high { background-color: #fff5f5; }
-    .alert-row-medium { background-color: #fffbf0; }
-    .alert-row-low { background-color: #f0f9ff; }
-    
-    .text-truncate {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .filters-bar .form-control:focus,
+    .filters-bar .form-select:focus {
+      border-color: var(--primary-bank-blue);
+      box-shadow: 0 0 0 0.2rem rgba(46,163,242,0.15);
     }
+    .filters-bar .btn-primary {
+      background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark));
+      border: none;
+    }
+
+    /* Card/header */
+    .card { border: none; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card-header { background: #fff; border-bottom: 1px solid #e9ecef; border-radius: 0.75rem 0.75rem 0 0 !important; }
+
+    /* Table */
+    .modern-table thead { 
+      background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark));
+    }
+    .modern-table thead th { 
+      font-size: 0.8rem; 
+      text-transform: uppercase; 
+      letter-spacing: .04em; 
+      color: #fff !important;
+      border-bottom: none;
+    }
+    .modern-table thead tr th:first-child { border-top-left-radius: 0.5rem; }
+    .modern-table thead tr th:last-child { border-top-right-radius: 0.5rem; }
+    .modern-table tbody td { vertical-align: middle; }
+    .table-responsive { border-radius: 0.75rem; overflow: hidden; }
+    .table-hover tbody tr:hover { background: #f8fbff; }
+
+    /* Chips */
+    .risk-chip, .status-chip { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; color: #fff; }
+    .risk-low { background: linear-gradient(135deg, #28a745, #20c997); }
+    .risk-medium { background: linear-gradient(135deg, #ffc107, #ff9800); }
+    .risk-high { background: linear-gradient(135deg, #dc3545, #c82333); }
+    .status-open { background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark)); }
+    .status-escalated { background: linear-gradient(135deg, #17a2b8, #138496); }
+    .status-resolved { background: linear-gradient(135deg, #28a745, #20c997); }
+
+    /* Row tints by risk */
+    .alert-row-high { background-color: #fff5f7; }
+    .alert-row-medium { background-color: #fffaf2; }
+    .alert-row-low { background-color: #f5fbff; }
+
+    .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* Modal Styles */
     .modal {
@@ -469,18 +509,17 @@ export class AlertsManagementComponent implements OnInit {
   }
 
   getRiskScoreClass(riskScore: number): string {
-    if (riskScore >= 80) return 'bg-danger';
-    if (riskScore >= 60) return 'bg-warning';
-    if (riskScore >= 40) return 'bg-info';
-    return 'bg-success';
+    if (riskScore >= 80) return 'risk-high';
+    if (riskScore >= 60) return 'risk-medium';
+    return 'risk-low';
   }
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'OPEN': return 'bg-warning';
-      case 'ESCALATED': return 'bg-info';
-      case 'RESOLVED': return 'bg-success';
-      default: return 'bg-secondary';
+      case 'OPEN': return 'status-open';
+      case 'ESCALATED': return 'status-escalated';
+      case 'RESOLVED': return 'status-resolved';
+      default: return 'status-open';
     }
   }
 

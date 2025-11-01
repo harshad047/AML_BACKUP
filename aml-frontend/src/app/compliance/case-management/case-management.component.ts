@@ -134,33 +134,31 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
                 </small>
               </div>
             </div>
-            <div class="card-footer">
-              <div class="d-flex flex-column gap-2">
-                <button class="btn btn-outline-primary btn-sm w-100" 
-                        (click)="viewCaseDetails(case)">
-                  <i class="fas fa-eye me-1"></i>
-                  View Details
-                </button>
-                <button class="btn btn-purple btn-sm w-100" 
-                        (click)="generateSAR(case)"
-                        *ngIf="case.status === 'UNDER_INVESTIGATION'"
-                        title="Generate Suspicious Activity Report">
-                  <i class="fas fa-file-alt me-1"></i>
-                  Generate SAR
-                </button>
-                <div class="btn-group w-100" *ngIf="case.status === 'UNDER_INVESTIGATION'">
-                  <button class="btn btn-success btn-sm" 
-                          (click)="approveCaseFromCard(case)"
-                          title="Approve transaction and close case">
-                    <i class="fas fa-check me-1"></i>
-                    Approve
+            <div class="card-footer case-actions">
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <button class="btn btn-action btn-outline-primary w-100" (click)="viewCaseDetails(case)">
+                    <i class="fas fa-eye me-2"></i>
+                    View Details
                   </button>
-                  <button class="btn btn-danger btn-sm" 
-                          (click)="rejectCaseFromCard(case)"
-                          title="Reject transaction and close case">
-                    <i class="fas fa-times me-1"></i>
-                    Reject
+                </div>
+                <div class="col-12 col-sm-6" *ngIf="case.status === 'UNDER_INVESTIGATION'">
+                  <button class="btn btn-action btn-purple w-100" (click)="generateSAR(case)" title="Generate Suspicious Activity Report">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Generate SAR
                   </button>
+                </div>
+                <div class="col-12" *ngIf="case.status === 'UNDER_INVESTIGATION'">
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-action btn-approve flex-fill" (click)="approveCaseFromCard(case)">
+                      <i class="fas fa-check me-2"></i>
+                      Approve
+                    </button>
+                    <button class="btn btn-action btn-reject flex-fill" (click)="rejectCaseFromCard(case)">
+                      <i class="fas fa-times me-2"></i>
+                      Reject
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -614,26 +612,32 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
     
     .nav-tabs .nav-link {
       border: none;
-      color: #6c757d;
+      color: var(--text-secondary);
+      border-radius: 0.5rem;
+      transition: all 0.2s ease;
     }
-    
+    .nav-tabs .nav-link:hover {
+      background-color: rgba(46,163,242,0.08);
+      color: var(--primary-bank-blue);
+    }
     .nav-tabs .nav-link.active {
-      background-color: #007bff;
-      color: white;
-      border-color: #007bff;
+      background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark));
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(46,163,242,0.25);
     }
     
     /* Generate SAR Button (Purple) */
     .btn-purple {
-      background-color: #6f42c1;
-      border-color: #6f42c1;
+      background: linear-gradient(135deg, #6f42c1, #5a32a3);
+      border-color: #5a32a3;
       color: #fff;
       transition: all 0.3s ease;
     }
 
     .btn-purple:hover {
-      background-color: #5a32a3;
-      border-color: #59339d;
+      background: linear-gradient(135deg, #5a32a3, #4d2791);
+      border-color: #4d2791;
       color: #fff;
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4);
@@ -685,9 +689,70 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../core/models/compliance.m
     }
 
     .form-control:focus {
-      border-color: #80bdff;
-      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      border-color: var(--primary-bank-blue);
+      box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.25);
     }
+
+    /* Card polish */
+    .card.h-100 {
+      border: none;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card.h-100 .card-header {
+      background: linear-gradient(135deg, var(--primary-bank-blue-dark), var(--primary-bank-blue));
+      color: #fff;
+      border-radius: 0.75rem 0.75rem 0 0 !important;
+      border-bottom: none;
+    }
+    .card.h-100 .card-body {
+      background: #fff;
+    }
+    .card.h-100 .card-footer {
+      background: #fff;
+      border-top: 1px solid #e9ecef;
+      border-radius: 0 0 0.75rem 0.75rem !important;
+    }
+
+    /* Case actions */
+    .case-actions { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .btn-action {
+      border-radius: 0.5rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.55rem 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    .btn-approve { background: linear-gradient(135deg, #28a745, #20c997); color: #fff; border: none; }
+    .btn-approve:hover { filter: brightness(1.03); }
+    .btn-reject { background: linear-gradient(135deg, #dc3545, #c82333); color: #fff; border: none; }
+    .btn-reject:hover { filter: brightness(1.03); }
+
+    /* Outline primary within cards */
+    .btn-outline-primary {
+      border-color: var(--primary-bank-blue);
+      color: var(--primary-bank-blue);
+    }
+    .btn-outline-primary:hover {
+      background: var(--primary-bank-blue);
+      color: #fff;
+    }
+
+    /* Themed badges inside component */
+    .badge.bg-warning { background: linear-gradient(135deg, #ffc107, #ff9800) !important; color:#000; font-weight:700; }
+    .badge.bg-info { background: linear-gradient(135deg, #17a2b8, #138496) !important; color:#fff; font-weight:700; }
+    .badge.bg-success { background: linear-gradient(135deg, #28a745, #20c997) !important; color:#fff; font-weight:700; }
+    .badge.bg-danger { background: linear-gradient(135deg, #dc3545, #c82333) !important; color:#fff; font-weight:700; }
+
+    /* Case card accent by status */
+    .case-card-active { border-left: 4px solid #ffc107; }
+    .case-card-resolved { border-left: 4px solid #28a745; }
+    .case-card-closed { border-left: 4px solid #6c757d; }
 
     .alert ul {
       padding-left: 1.5rem;

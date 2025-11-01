@@ -99,7 +99,7 @@ import { AuthService, User } from '../../core/services/auth.service';
       margin-left: 250px;
       transition: margin-left 0.3s ease;
       min-height: 100vh;
-      background-color: #f8f9fa;
+      background-color: var(--bg-light);
     }
     
     .sidebar.collapsed + .main-content {
@@ -119,7 +119,7 @@ import { AuthService, User } from '../../core/services/auth.service';
     
     .nav-link.active {
       color: white;
-      background-color: #0d6efd;
+      background-color: var(--primary-bank-blue);
     }
     
     .avatar {

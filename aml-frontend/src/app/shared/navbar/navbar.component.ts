@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { AuthService, User } from '../../core/services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navbar',
@@ -10,10 +11,13 @@ import { AuthService, User } from '../../core/services/auth.service';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   isDropdownOpen = false;
   showLogoutModal = false;
+  isTransparent = false;
+
+  private scrollHandler = () => this.updateTransparencyOnScroll();
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -29,6 +33,19 @@ export class NavbarComponent implements OnInit {
         this.isDropdownOpen = false;
       }
     });
+
+    // Update navbar mode on route changes
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+      this.setInitialTransparency();
+    });
+
+    // Initial state and scroll listener
+    this.setInitialTransparency();
+    window.addEventListener('scroll', this.scrollHandler, { passive: true });
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.scrollHandler);
   }
 
   toggleDropdown(event: Event): void {
@@ -54,6 +71,24 @@ export class NavbarComponent implements OnInit {
 
   cancelLogout(): void {
     this.showLogoutModal = false;
+  }
+
+  private isLandingRoute(): boolean {
+    const url = this.router.url.split('?')[0];
+    return url === '/' || url === '' || url.startsWith('/login') || url.startsWith('/register');
+  }
+
+  private setInitialTransparency(): void {
+    // Transparent only on landing routes, and only when at top
+    this.isTransparent = this.isLandingRoute() && window.scrollY < 10;
+  }
+
+  private updateTransparencyOnScroll(): void {
+    if (!this.isLandingRoute()) {
+      this.isTransparent = false;
+      return;
+    }
+    this.isTransparent = window.scrollY < 10;
   }
 
   get dashboardRoute(): string {

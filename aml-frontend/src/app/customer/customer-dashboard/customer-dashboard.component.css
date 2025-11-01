@@ -6,12 +6,12 @@
 
 /* Header Section */
 .dashboard-header {
-  background: linear-gradient(135deg, #003d82 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
   color: white;
   padding: 2rem;
   border-radius: 1rem;
   margin-bottom: 2rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 61, 130, 0.2);
+  box-shadow: 0 0.5rem 1rem rgba(31, 75, 127, 0.2);
 }
 
 .dashboard-title {
@@ -42,7 +42,7 @@
   height: 50px;
   border-radius: 50%;
   background: white;
-  color: #003d82;
+  color: var(--primary-bank-blue-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +82,7 @@
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
-.stat-card-blue { border-left: 4px solid #003d82; }
+.stat-card-blue { border-left: 4px solid var(--primary-bank-blue-dark); }
 .stat-card-green { border-left: 4px solid #28a745; }
 .stat-card-orange { border-left: 4px solid #ffc107; }
 .stat-card-purple { border-left: 4px solid #6f42c1; }
@@ -91,7 +91,7 @@
   flex-shrink: 0;
 }
 
-.stat-card-blue .stat-icon { color: #003d82; }
+.stat-card-blue .stat-icon { color: var(--primary-bank-blue-dark); }
 .stat-card-green .stat-icon { color: #28a745; }
 .stat-card-orange .stat-icon { color: #ffc107; }
 .stat-card-purple .stat-icon { color: #6f42c1; }
@@ -121,7 +121,7 @@
 
 /* Quick Actions Card */
 .quick-actions-card .card-header {
-  background: linear-gradient(135deg, #003d82 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
   color: white;
   border: none;
 }
@@ -140,9 +140,9 @@
 }
 
 .action-button:hover {
-  border-color: #003d82;
+  border-color: var(--primary-bank-blue);
   transform: translateY(-3px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 61, 130, 0.15);
+  box-shadow: 0 0.5rem 1rem rgba(31, 75, 127, 0.15);
 }
 
 .action-icon {
@@ -155,7 +155,7 @@
   margin-bottom: 1rem;
 }
 
-.action-icon-blue { background: rgba(0, 61, 130, 0.1); color: #003d82; }
+.action-icon-blue { background: rgba(31, 75, 127, 0.1); color: var(--primary-bank-blue-dark); }
 .action-icon-green { background: rgba(40, 167, 69, 0.1); color: #28a745; }
 .action-icon-orange { background: rgba(255, 193, 7, 0.1); color: #ffc107; }
 .action-icon-purple { background: rgba(111, 66, 193, 0.1); color: #6f42c1; }
@@ -176,7 +176,7 @@
 }
 
 .card-header {
-  background: linear-gradient(135deg, #003d82 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue-dark) 0%, var(--primary-bank-blue) 100%);
   color: white;
   border: none;
   padding: 1rem 1.5rem;
@@ -245,7 +245,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #003d82;
+  background: var(--primary-bank-blue);
   color: white;
   display: flex;
   align-items: center;
@@ -364,7 +364,7 @@
 .balance-amount {
   font-weight: 700;
   font-size: 1.1rem;
-  color: #003d82;
+  color: var(--primary-bank-blue-dark);
 }
 
 .balance-currency {
@@ -385,7 +385,7 @@
 .badge.bg-danger { background-color: #dc3545 !important; }
 .badge.bg-info { background-color: #17a2b8 !important; }
 .badge.bg-secondary { background-color: #6c757d !important; }
-.badge.bg-primary { background-color: #003d82 !important; }
+.badge.bg-primary { background-color: var(--primary-bank-blue) !important; }
 
 /* Button Styles */
 .btn-outline-light {

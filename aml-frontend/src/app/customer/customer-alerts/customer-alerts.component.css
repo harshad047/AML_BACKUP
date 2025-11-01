@@ -150,7 +150,7 @@
 }
 
 .section-header {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   padding: 1rem 1.5rem;
   color: white;
 }
@@ -227,7 +227,7 @@
 
 /* View Button */
 .btn-view {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -238,7 +238,7 @@
 
 .btn-view:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  box-shadow: 0 4px 12px rgba(46, 163, 242, 0.3);
   color: white;
 }
 
@@ -250,7 +250,7 @@
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
   border-radius: 12px 12px 0 0;
   padding: 1.25rem 1.5rem;
@@ -290,7 +290,7 @@
   background: #f8f9fa;
   padding: 0.75rem;
   border-radius: 8px;
-  border-left: 3px solid #0d6efd;
+  border-left: 3px solid var(--primary-bank-blue);
 }
 
 .info-item label {

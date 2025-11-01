@@ -1,11 +1,11 @@
 :root {
-  --primary-color: #007bff;
-  --primary-hover: #0056b3;
-  --background-color: #f8f9fa;
-  --card-background: #ffffff;
-  --text-color: #333;
-  --text-muted: #6c757d;
-  --border-color: #dee2e6;
+  --primary-color: var(--primary-bank-blue);
+  --primary-hover: var(--primary-bank-blue-dark);
+  --background-color: var(--bg-light);
+  --card-background: var(--bg-card);
+  --text-color: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --border-color: var(--border-color);
 }
 
 .login-container {
@@ -52,12 +52,12 @@
 .login-logo-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(13, 110, 253, 0.3);
+  box-shadow: 0 3px 10px rgba(31, 75, 127, 0.25);
   transition: all 0.3s ease;
 }
 
@@ -75,9 +75,9 @@
   font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: 1.5px;
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
   margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Branding Panel Logo */
@@ -120,12 +120,12 @@
   color: white;
   margin: 0;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .login-branding {
   width: 50%;
-  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
   display: flex;
   justify-content: center;
@@ -158,7 +158,7 @@
 .rupee-symbol {
   font-size: 4rem;
   font-weight: 700;
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
   line-height: 1;
 }
 
@@ -260,13 +260,13 @@
 
 .input-group .btn-outline-secondary:hover {
   background: #f8f9fa;
-  color: #0d6efd;
-  border-color: #0d6efd;
+  color: var(--primary-bank-blue);
+  border-color: var(--primary-bank-blue);
 }
 
 .input-group .btn-outline-secondary:focus {
   box-shadow: none;
-  border-color: #0d6efd;
+  border-color: var(--primary-bank-blue);
 }
 
 .input-group .form-control {
@@ -275,11 +275,11 @@
 
 .input-group .form-control:focus {
   border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.25);
 }
 
 .input-group .form-control:focus + .btn-outline-secondary {
-  border-color: #0d6efd;
+  border-color: var(--primary-bank-blue);
 }
 
 /* Captcha Styles */

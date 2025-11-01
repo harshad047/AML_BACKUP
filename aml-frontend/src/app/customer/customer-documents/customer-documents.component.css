@@ -12,14 +12,14 @@
 }
 
 .upload-header {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   padding: 1.5rem;
   color: white;
   transition: all 0.3s ease;
 }
 
 .upload-header:hover {
-  background: linear-gradient(135deg, #0b5ed7 0%, #084298 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
 }
 
 .upload-icon-wrapper {
@@ -80,9 +80,9 @@
 }
 
 .modern-select:focus {
-  border-color: #0d6efd;
+  border-color: var(--primary-bank-blue);
   background-color: #ffffff;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+  box-shadow: 0 0 0 0.25rem rgba(46, 163, 242, 0.1);
 }
 
 /* Upload Zone */
@@ -98,12 +98,12 @@
 }
 
 .upload-zone:hover {
-  border-color: #0d6efd;
+  border-color: var(--primary-bank-blue);
   background: #f0f7ff;
 }
 
 .upload-zone.drag-over {
-  border-color: #0d6efd;
+  border-color: var(--primary-bank-blue);
   background: #e7f3ff;
   transform: scale(1.02);
 }
@@ -119,14 +119,14 @@
   width: 80px;
   height: 80px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   color: white;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  box-shadow: 0 4px 12px rgba(46, 163, 242, 0.3);
 }
 
 .upload-placeholder h6 {
@@ -288,16 +288,16 @@
 
 /* Uploaded Tile */
 .uploaded-tile::before {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
 }
 
 .uploaded-tile .tile-icon {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
 }
 
 .uploaded-tile .tile-count {
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
 }
 
 .uploaded-tile .tile-label {
@@ -360,19 +360,19 @@
 
 /* Upload Actions */
 .upload-actions .btn-primary {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border: none;
   border-radius: 10px;
   padding: 0.875rem;
   font-weight: 600;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  box-shadow: 0 4px 12px rgba(46, 163, 242, 0.3);
 }
 
 .upload-actions .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+  box-shadow: 0 6px 16px rgba(46, 163, 242, 0.4);
 }
 
 .upload-actions .btn-primary:disabled {

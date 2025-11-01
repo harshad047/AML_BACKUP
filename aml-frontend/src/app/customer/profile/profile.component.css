@@ -6,7 +6,7 @@
 }
 
 .card-header {
-  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border-radius: 1rem 1rem 0 0 !important;
   border: none;
   padding: 1.5rem;
@@ -49,8 +49,8 @@
 }
 
 .form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  border-color: var(--primary-bank-blue);
+  box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.25);
   transform: translateY(-1px);
 }
 
@@ -60,14 +60,14 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border: none;
   transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.3);
+  box-shadow: 0 0.5rem 1rem rgba(46, 163, 242, 0.3);
 }
 
 .btn-secondary {
@@ -168,7 +168,7 @@
 }
 
 .text-primary {
-  color: #0d6efd !important;
+  color: var(--primary-bank-blue) !important;
   font-weight: 600;
 }
 
@@ -184,7 +184,7 @@
   left: 0;
   width: 3rem;
   height: 3px;
-  background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border-radius: 2px;
 }
 
@@ -215,8 +215,8 @@
 }
 
 .btn-outline-primary {
-  border: 2px solid #0d6efd;
-  color: #0d6efd;
+  border: 2px solid var(--primary-bank-blue);
+  color: var(--primary-bank-blue);
   background: transparent;
   border-radius: 0.5rem;
   padding: 0.75rem 2rem;
@@ -225,7 +225,7 @@
 }
 
 .btn-outline-primary:hover {
-  background: #0d6efd;
+  background: var(--primary-bank-blue);
   color: white;
   transform: translateY(-2px);
 }

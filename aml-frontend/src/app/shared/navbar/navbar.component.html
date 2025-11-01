@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" [ngClass]="{ 'navbar--transparent': isTransparent, 'navbar--solid': !isTransparent }">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center" [routerLink]="currentUser ? dashboardRoute : '/login'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: brandExactMatch}">
       <div class="custom-logo me-2">

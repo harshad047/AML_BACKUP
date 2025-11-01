@@ -176,8 +176,8 @@
 }
 
 .form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  background-color: var(--primary-bank-blue);
+  border-color: var(--primary-bank-blue);
 }
 
 @media (max-width: 768px) {

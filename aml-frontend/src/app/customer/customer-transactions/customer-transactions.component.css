@@ -50,15 +50,15 @@
 
 /* Card Variants */
 .total-card {
-  border-left-color: #0d6efd;
+  border-left-color: var(--primary-bank-blue);
 }
 
 .total-card .stat-icon {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
 }
 
 .total-card .stat-count {
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
 }
 
 .approved-card {
@@ -120,8 +120,8 @@
 }
 
 .filter-select:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+  border-color: var(--primary-bank-blue);
+  box-shadow: 0 0 0 0.25rem rgba(46, 163, 242, 0.1);
 }
 
 /* Transactions Card */
@@ -138,7 +138,7 @@
 }
 
 .modern-table thead {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
 }
 
@@ -204,7 +204,7 @@
 }
 
 .icon-transfer {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
 }
 
 .icon-intercurrency {
@@ -230,7 +230,7 @@
 }
 
 .amount-neutral {
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
 }
 
 /* Status Badge */
@@ -275,7 +275,7 @@
 
 /* View Button */
 .btn-view {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -286,24 +286,24 @@
 
 .btn-view:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  box-shadow: 0 4px 12px rgba(46, 163, 242, 0.3);
   color: white;
 }
 
 /* Modern Button */
 .btn-modern {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   border: none;
   border-radius: 8px;
   padding: 0.625rem 1.25rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+  box-shadow: 0 2px 8px rgba(46, 163, 242, 0.3);
 }
 
 .btn-modern:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+  box-shadow: 0 4px 12px rgba(46, 163, 242, 0.4);
 }
 
 /* Empty State */
@@ -332,7 +332,7 @@
 
 /* Modal Styling */
 .modern-modal .modal-header {
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background: linear-gradient(135deg, var(--primary-bank-blue) 0%, var(--primary-bank-blue-dark) 100%);
   color: white;
   border-bottom: none;
   padding: 1.5rem;
@@ -371,7 +371,7 @@
 }
 
 .section-title {
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
   font-weight: 600;
   font-size: 1rem;
   margin-bottom: 1rem;
@@ -402,7 +402,7 @@
 .amount-large {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #0d6efd;
+  color: var(--primary-bank-blue);
 }
 
 .type-badge {
@@ -426,7 +426,7 @@
 }
 
 .risk-card:hover {
-  border-color: #0d6efd;
+  border-color: var(--primary-bank-blue);
   transform: translateY(-2px);
 }
 
