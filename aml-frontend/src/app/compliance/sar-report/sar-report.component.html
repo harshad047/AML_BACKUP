@@ -2,7 +2,7 @@
   <!-- Loading State -->
   <div *ngIf="loading" class="text-center py-5">
     <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-    <h5>Generating SAR Report...</h5>
+    <h5>Generating Professional SAR Report...</h5>
   </div>
 
   <!-- Error State -->
@@ -17,11 +17,8 @@
       <button class="btn btn-secondary" (click)="goBack()">
         <i class="fas fa-arrow-left me-2"></i>Back to Investigations
       </button>
-      <button class="btn btn-primary" (click)="printReport()">
-        <i class="fas fa-print me-2"></i>Print Report
-      </button>
       <button class="btn btn-success" (click)="downloadReport()">
-        <i class="fas fa-download me-2"></i>Download PDF
+        <i class="fas fa-download me-2"></i>Download Report
       </button>
     </div>
 
@@ -29,21 +26,62 @@
     <div class="report-container">
       <!-- Report Header -->
       <div class="report-header">
-        <div class="row">
-          <div class="col-6">
-            <h1 class="system-title">AML SYSTEM</h1>
-            <h2 class="report-title">SUSPICIOUS ACTIVITY REPORT</h2>
+        <div class="row align-items-center">
+          <div class="col-8">
+            <div class="d-flex align-items-center gap-3">
+              <div class="report-logo">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <div>
+                <h1 class="system-title mb-0">TRANSPECT AML SYSTEM</h1>
+                <h2 class="report-title mb-0">SUSPICIOUS ACTIVITY REPORT (SAR)</h2>
+                <p class="report-subtitle mb-0">FinCEN Form 111 - Bank Secrecy Act Compliance</p>
+              </div>
+            </div>
           </div>
-          <div class="col-6 text-end">
+          <div class="col-4 text-end">
             <div class="report-meta">
-              <p><strong>Report ID:</strong> {{ sarReport.reportId }}</p>
-              <p><strong>Date:</strong> {{ sarReport.date | date:'MMMM d, yyyy' }}</p>
+              <div class="meta-item">
+                <span class="meta-label">Report ID:</span>
+                <span class="meta-value">{{ sarReport.reportId }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Filing Date:</span>
+                <span class="meta-value">{{ sarReport.filingDate | date:'MMMM d, yyyy' }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Reporting Period:</span>
+                <span class="meta-value">{{ sarReport.reportingPeriod.start | date:'MM/dd/yyyy' }} - {{ sarReport.reportingPeriod.end | date:'MM/dd/yyyy' }}</span>
+              </div>
             </div>
           </div>
         </div>
-        <div class="row mt-2">
+        
+        <div class="row mt-3">
           <div class="col-12">
-            <p><strong>Prepared By:</strong> {{ sarReport.preparedBy }}</p>
+            <div class="approval-chain">
+              <div class="approval-item">
+                <i class="fas fa-user-edit"></i>
+                <span><strong>Prepared By:</strong> {{ sarReport.preparedBy }}</span>
+              </div>
+              <div class="approval-item">
+                <i class="fas fa-user-check"></i>
+                <span><strong>Reviewed By:</strong> {{ sarReport.reviewedBy }}</span>
+              </div>
+              <div class="approval-item">
+                <i class="fas fa-user-shield"></i>
+                <span><strong>Approved By:</strong> {{ sarReport.approvedBy }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="confidentiality-notice">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>CONFIDENTIAL:</strong> This SAR and any information that would reveal the existence of a SAR are confidential per 31 CFR 1020.320. Unauthorized disclosure is prohibited and may result in civil and criminal penalties.
+            </div>
           </div>
         </div>
       </div>
@@ -93,9 +131,24 @@
 
       <!-- 2. Summary of Suspicious Activity -->
       <div class="report-section">
-        <h3 class="section-title">2. SUMMARY OF SUSPICIOUS ACTIVITY</h3>
+        <h3 class="section-title">2. SUSPICIOUS ACTIVITY INFORMATION</h3>
         <div class="summary-content">
-          <p>{{ sarReport.summary }}</p>
+          <div class="mb-3">
+            <strong>Activity Types:</strong>
+            <ul class="mt-2">
+              <li *ngFor="let type of sarReport.suspiciousActivity.activityType">{{ type }}</li>
+            </ul>
+          </div>
+          <div class="mb-3">
+            <strong>Date Detected:</strong> {{ sarReport.suspiciousActivity.dateDetected | date:'MMMM d, yyyy, h:mm a' }}
+          </div>
+          <div class="mb-3">
+            <strong>Amount Involved:</strong> {{ sarReport.suspiciousActivity.amountInvolved | currency:sarReport.suspiciousActivity.currency }}
+          </div>
+          <div class="mb-3">
+            <strong>Summary:</strong>
+            <p class="mt-2">{{ sarReport.suspiciousActivity.summary }}</p>
+          </div>
         </div>
       </div>
 
@@ -135,14 +188,171 @@
         </div>
       </div>
 
-      <!-- 5. Analysis & Observations -->
+      <!-- 3. Detailed Narrative -->
       <div class="report-section">
-        <h3 class="section-title">5. ANALYSIS & OBSERVATIONS</h3>
-        <ul class="observations-list">
-          <li *ngFor="let observation of sarReport.analysisObservations">
-            {{ observation }}
-          </li>
-        </ul>
+        <h3 class="section-title">3. DETAILED NARRATIVE</h3>
+        <div class="narrative-content">
+          <div class="mb-4">
+            <h5>Description of Suspicious Activity:</h5>
+            <p style="white-space: pre-line;">{{ sarReport.narrative.description }}</p>
+          </div>
+          
+          <div class="mb-4">
+            <h5>Timeline of Events:</h5>
+            <table class="timeline-table">
+              <thead>
+                <tr>
+                  <th>Date/Time</th>
+                  <th>Event</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let event of sarReport.narrative.timeline">
+                  <td>{{ event.date | date:'MM/dd/yyyy, h:mm a' }}</td>
+                  <td>{{ event.event }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="mb-3">
+            <h5>Red Flags Identified:</h5>
+            <ul class="red-flags-list">
+              <li *ngFor="let flag of sarReport.narrative.redFlags">
+                <i class="fas fa-flag text-danger me-2"></i>{{ flag }}
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Risk Assessment Summary -->
+      <div class="report-section">
+        <h3 class="section-title">4. RISK ASSESSMENT SUMMARY</h3>
+        
+        <div class="risk-summary-cards mb-4">
+          <div class="row">
+            <div class="col-md-3">
+              <div class="risk-card" [ngClass]="getRiskLevelClass(sarReport.riskAssessment.riskScore)">
+                <div class="risk-label">Overall Risk Level</div>
+                <div class="risk-value">{{ sarReport.riskAssessment.overallRiskLevel }}</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="risk-card risk-combined">
+                <div class="risk-label">Combined Score</div>
+                <div class="risk-value">{{ sarReport.riskAssessment.riskScore }}/100</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="risk-card risk-nlp">
+                <div class="risk-label">NLP Score</div>
+                <div class="risk-value">{{ sarReport.riskAssessment.nlpScore }}/100</div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="risk-card risk-rule">
+                <div class="risk-label">Rule Engine Score</div>
+                <div class="risk-value">{{ sarReport.riskAssessment.ruleEngineScore }}/100</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <h5 class="mb-3">Triggered AML Rules:</h5>
+        <div class="table-responsive">
+          <table class="risk-table">
+            <thead>
+              <tr>
+                <th>Rule Name</th>
+                <th>Action</th>
+                <th>Risk Weight</th>
+                <th>Priority</th>
+                <th>Details</th>
+                <th>Evaluated At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let rule of sarReport.riskAssessment.triggeredRules">
+                <td>{{ rule.ruleName }}</td>
+                <td>
+                  <span class="action-badge" [ngClass]="getActionBadgeClass(rule.action)">
+                    {{ rule.action }}
+                  </span>
+                </td>
+                <td>{{ rule.riskWeight }}</td>
+                <td>{{ rule.priority }}</td>
+                <td class="details-cell">{{ rule.details }}</td>
+                <td>{{ rule.evaluatedAt | date:'M/d/yy, h:mm a' }}</td>
+              </tr>
+              <tr *ngIf="!sarReport.riskAssessment.triggeredRules || sarReport.riskAssessment.triggeredRules.length === 0">
+                <td colspan="6" class="text-center text-muted">No rules triggered</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 5. Analysis & Recommendations -->
+      <div class="report-section">
+        <h3 class="section-title">5. ANALYSIS & RECOMMENDATIONS</h3>
+        
+        <div class="mb-4">
+          <h5>Observations:</h5>
+          <ul class="observations-list">
+            <li *ngFor="let observation of sarReport.analysis.observations">
+              {{ observation }}
+            </li>
+          </ul>
+        </div>
+        
+        <div class="mb-4">
+          <h5>Recommendations:</h5>
+          <ul class="recommendations-list">
+            <li *ngFor="let recommendation of sarReport.analysis.recommendations">
+              <i class="fas fa-check-circle text-success me-2"></i>{{ recommendation }}
+            </li>
+          </ul>
+        </div>
+        
+        <div class="regulatory-action-box">
+          <h5><i class="fas fa-gavel me-2"></i>Regulatory Action Required:</h5>
+          <p class="mb-0">{{ sarReport.analysis.regulatoryAction }}</p>
+        </div>
+      </div>
+
+      <!-- 6. Supporting Documentation -->
+      <div class="report-section">
+        <h3 class="section-title">6. SUPPORTING DOCUMENTATION</h3>
+        <div class="supporting-docs">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Documents Attached:</h5>
+              <ul class="doc-checklist">
+                <li>
+                  <i class="fas" [ngClass]="sarReport.supportingDocs.transactionRecords ? 'fa-check-square text-success' : 'fa-square text-muted'"></i>
+                  Transaction Records
+                </li>
+                <li>
+                  <i class="fas" [ngClass]="sarReport.supportingDocs.accountStatements ? 'fa-check-square text-success' : 'fa-square text-muted'"></i>
+                  Account Statements
+                </li>
+                <li>
+                  <i class="fas" [ngClass]="sarReport.supportingDocs.customerDueDiligence ? 'fa-check-square text-success' : 'fa-square text-muted'"></i>
+                  Customer Due Diligence (CDD/EDD)
+                </li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h5>Other Documentation:</h5>
+              <ul class="doc-list">
+                <li *ngFor="let doc of sarReport.supportingDocs.otherDocuments">
+                  <i class="fas fa-file-alt text-primary me-2"></i>{{ doc }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Report Footer -->
@@ -155,7 +365,7 @@
           </div>
           <div class="col-6 text-end">
             <p class="small text-muted">
-              Generated by Transpect on {{ sarReport.date | date:'medium' }}
+              Generated by Transpect on {{ sarReport.filingDate | date:'medium' }}
             </p>
           </div>
         </div>

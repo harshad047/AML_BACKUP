@@ -242,8 +242,23 @@ export class ComplianceAnalyticsService {
   private groupCasesByOfficer(cases: any[]): any[] {
     const officerMap = new Map();
     
+    console.log('Grouping cases by officer. Sample case:', cases[0]);
+    
     cases.forEach(c => {
-      const officer = c.assignedTo?.username || 'Unassigned';
+      // Handle different assignedTo formats:
+      // 1. Object with username property: c.assignedTo.username
+      // 2. Direct string: c.assignedTo
+      // 3. Null/undefined: 'Unassigned'
+      let officer = 'Unassigned';
+      
+      if (c.assignedTo) {
+        if (typeof c.assignedTo === 'object' && c.assignedTo.username) {
+          officer = c.assignedTo.username;
+        } else if (typeof c.assignedTo === 'string') {
+          officer = c.assignedTo;
+        }
+      }
+      
       if (!officerMap.has(officer)) {
         officerMap.set(officer, { officer, active: 0, resolved: 0 });
       }
@@ -252,6 +267,7 @@ export class ComplianceAnalyticsService {
       if (c.status === 'RESOLVED') data.resolved++;
     });
     
+    console.log('Cases by officer result:', Array.from(officerMap.values()));
     return Array.from(officerMap.values());
   }
 
