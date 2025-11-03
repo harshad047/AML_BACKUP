@@ -7,11 +7,61 @@ import { AuthService } from '../../core/services/auth.service';
 
 interface SARReport {
   reportId: string;
-  date: Date;
+  filingDate: Date;
+  reportingPeriod: { start: Date; end: Date };
   preparedBy: string;
+  reviewedBy: string;
+  approvedBy: string;
   transaction: TransactionDto;
-  summary: string;
-  analysisObservations: string[];
+  
+  // Part I - Subject Information
+  subjectInfo: {
+    accountNumber: string;
+    accountType: string;
+    accountHolder: string;
+    dateOpened: string;
+    currentBalance: string;
+  };
+  
+  // Part II - Suspicious Activity Information
+  suspiciousActivity: {
+    activityType: string[];
+    dateDetected: Date;
+    amountInvolved: number;
+    currency: string;
+    summary: string;
+  };
+  
+  // Part III - Narrative
+  narrative: {
+    description: string;
+    timeline: { date: Date; event: string }[];
+    redFlags: string[];
+  };
+  
+  // Part IV - Risk Assessment
+  riskAssessment: {
+    overallRiskLevel: string;
+    riskScore: number;
+    nlpScore: number;
+    ruleEngineScore: number;
+    triggeredRules: any[];
+  };
+  
+  // Part V - Analysis & Recommendations
+  analysis: {
+    observations: string[];
+    recommendations: string[];
+    regulatoryAction: string;
+  };
+  
+  // Part VI - Supporting Documentation
+  supportingDocs: {
+    transactionRecords: boolean;
+    accountStatements: boolean;
+    customerDueDiligence: boolean;
+    otherDocuments: string[];
+  };
 }
 
 @Component({
@@ -26,13 +76,15 @@ export class SarReportComponent implements OnInit {
   error: string | null = null;
   transaction: TransactionDto | null = null;
   sarReport: SARReport | null = null;
-  currentUser = '';
+  currentUser = ''; // This should come from auth service
+  reviewedBy = 'Senior Compliance Officer';
+  approvedBy = 'Chief Compliance Officer';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private complianceService: ComplianceService,
-    private authService: AuthService
+    private authService: AuthService,
+    private complianceService: ComplianceService
   ) {}
 
   ngOnInit(): void {
@@ -72,21 +124,189 @@ export class SarReportComponent implements OnInit {
   }
 
   generateSARReport(transaction: TransactionDto): void {
-    const reportId = `SAR-${new Date().getFullYear()}-${String(transaction.id).padStart(3, '0')}`;
-    
-    // Generate summary based on transaction details
-    const summary = this.generateSummary(transaction);
-    
-    // Generate analysis and observations
-    const analysisObservations = this.generateAnalysisObservations(transaction);
+    const reportId = `SAR-${new Date().getFullYear()}-${String(transaction.id).padStart(6, '0')}`;
+    const filingDate = new Date();
+    const reportingPeriod = {
+      start: new Date(transaction.createdAt),
+      end: new Date()
+    };
 
     this.sarReport = {
       reportId,
-      date: new Date(),
+      filingDate,
+      reportingPeriod,
       preparedBy: this.currentUser,
+      reviewedBy: this.reviewedBy,
+      approvedBy: this.approvedBy,
       transaction,
-      summary,
-      analysisObservations
+      
+      subjectInfo: this.generateSubjectInfo(transaction),
+      suspiciousActivity: this.generateSuspiciousActivityInfo(transaction),
+      narrative: this.generateNarrative(transaction),
+      riskAssessment: this.generateRiskAssessment(transaction),
+      analysis: this.generateAnalysis(transaction),
+      supportingDocs: this.generateSupportingDocs(transaction)
+    };
+  }
+
+  generateSubjectInfo(transaction: TransactionDto): any {
+    return {
+      accountNumber: transaction.toAccountNumber || 'N/A',
+      accountType: 'Savings Account',
+      accountHolder: 'Account Holder Name',
+      dateOpened: 'To be verified',
+      currentBalance: 'To be verified'
+    };
+  }
+
+  generateSuspiciousActivityInfo(transaction: TransactionDto): any {
+    const activityTypes = [];
+    
+    if (transaction.description?.toLowerCase().includes('hawala')) {
+      activityTypes.push('Suspected Hawala Transaction');
+      activityTypes.push('Unregistered Money Service Business');
+    }
+    if (transaction.combinedRiskScore && transaction.combinedRiskScore >= 80) {
+      activityTypes.push('Structuring/Smurfing');
+      activityTypes.push('Unusual Transaction Pattern');
+    }
+    if (transaction.status === 'BLOCKED') {
+      activityTypes.push('High-Risk Transaction');
+    }
+    
+    return {
+      activityType: activityTypes.length > 0 ? activityTypes : ['Suspicious Transaction'],
+      dateDetected: new Date(transaction.createdAt),
+      amountInvolved: transaction.amount,
+      currency: transaction.currency,
+      summary: this.generateSummary(transaction)
+    };
+  }
+
+  generateNarrative(transaction: TransactionDto): any {
+    const timeline = [
+      {
+        date: new Date(transaction.createdAt),
+        event: `Transaction initiated: ${transaction.transactionType} of ${transaction.amount} ${transaction.currency}`
+      },
+      {
+        date: new Date(transaction.createdAt),
+        event: `AML Rule Engine triggered ${transaction.obstructedRules?.length || 0} rule(s)`
+      },
+      {
+        date: new Date(),
+        event: `Transaction ${transaction.status} - SAR report generated`
+      }
+    ];
+
+    const redFlags = [];
+    if (transaction.description?.toLowerCase().includes('hawala')) {
+      redFlags.push('Transaction description contains keywords associated with informal value transfer systems (Hawala)');
+    }
+    if (transaction.combinedRiskScore && transaction.combinedRiskScore >= 80) {
+      redFlags.push(`Extremely high combined risk score (${transaction.combinedRiskScore}/100) indicating multiple risk factors`);
+    }
+    if (transaction.obstructedRules && transaction.obstructedRules.length >= 3) {
+      redFlags.push(`Multiple AML rules triggered (${transaction.obstructedRules.length} rules) suggesting systematic suspicious pattern`);
+    }
+    if (transaction.amount >= 10000) {
+      redFlags.push('Transaction amount exceeds reporting threshold');
+    }
+
+    return {
+      description: this.generateDetailedNarrative(transaction),
+      timeline,
+      redFlags: redFlags.length > 0 ? redFlags : ['Unusual transaction pattern detected']
+    };
+  }
+
+  generateDetailedNarrative(transaction: TransactionDto): string {
+    let narrative = `On ${new Date(transaction.createdAt).toLocaleDateString()}, our automated AML monitoring system detected a suspicious transaction (Ref: ${transaction.transactionReference}) `;
+    narrative += `involving a ${transaction.transactionType.toLowerCase()} of ${transaction.amount} ${transaction.currency}. `;
+    
+    if (transaction.fromAccountNumber) {
+      narrative += `The transaction originated from account ${transaction.fromAccountNumber} `;
+    }
+    narrative += `and was directed to account ${transaction.toAccountNumber}. `;
+    
+    narrative += `\n\nThe transaction was automatically flagged by our multi-layered AML detection system, which combines Natural Language Processing (NLP Score: ${transaction.nlpScore || 0}/100) `;
+    narrative += `and rule-based analysis (Rule Engine Score: ${transaction.ruleEngineScore || 0}/100), resulting in a combined risk score of ${transaction.combinedRiskScore || 0}/100. `;
+    
+    if (transaction.description) {
+      narrative += `\n\nThe transaction description reads: "${transaction.description}". `;
+      if (transaction.description.toLowerCase().includes('hawala')) {
+        narrative += `This description contains terminology commonly associated with informal value transfer systems (Hawala), which are often used to circumvent formal banking channels and may indicate money laundering or terrorist financing activities. `;
+      }
+    }
+    
+    narrative += `\n\nBased on the risk assessment, the transaction was automatically ${transaction.status.toLowerCase()} pending compliance review. `;
+    narrative += `This action was taken in accordance with our AML policies and regulatory obligations under the Bank Secrecy Act (BSA) and USA PATRIOT Act.`;
+    
+    return narrative;
+  }
+
+  generateRiskAssessment(transaction: TransactionDto): any {
+    return {
+      overallRiskLevel: this.getRiskLevel(transaction.combinedRiskScore || 0),
+      riskScore: transaction.combinedRiskScore || 0,
+      nlpScore: transaction.nlpScore || 0,
+      ruleEngineScore: transaction.ruleEngineScore || 0,
+      triggeredRules: transaction.obstructedRules || []
+    };
+  }
+
+  generateAnalysis(transaction: TransactionDto): any {
+    return {
+      observations: this.generateAnalysisObservations(transaction),
+      recommendations: this.generateRecommendations(transaction),
+      regulatoryAction: this.determineRegulatoryAction(transaction)
+    };
+  }
+
+  generateRecommendations(transaction: TransactionDto): string[] {
+    const recommendations = [];
+    
+    recommendations.push('Conduct Enhanced Due Diligence (EDD) on the subject account and account holder');
+    recommendations.push('Review all historical transactions for the past 12 months for similar patterns');
+    recommendations.push('Verify source of funds and beneficial ownership information');
+    recommendations.push('Consider account monitoring for a minimum of 90 days');
+    
+    if (transaction.combinedRiskScore && transaction.combinedRiskScore >= 80) {
+      recommendations.push('Recommend immediate filing of SAR with FinCEN within 30 days of initial detection');
+      recommendations.push('Consider account restrictions or closure pending investigation outcome');
+    }
+    
+    if (transaction.description?.toLowerCase().includes('hawala')) {
+      recommendations.push('Coordinate with law enforcement if evidence of unlicensed money service business');
+      recommendations.push('Review for potential terrorist financing indicators');
+    }
+    
+    recommendations.push('Document all findings in the case management system');
+    recommendations.push('Update customer risk rating in the system');
+    
+    return recommendations;
+  }
+
+  determineRegulatoryAction(transaction: TransactionDto): string {
+    if (transaction.combinedRiskScore && transaction.combinedRiskScore >= 80) {
+      return 'RECOMMEND FILING SAR WITH FINCEN - High priority case requiring immediate regulatory reporting within 30 days of detection. Maintain confidentiality per 31 CFR 1020.320.';
+    } else if (transaction.combinedRiskScore && transaction.combinedRiskScore >= 60) {
+      return 'CONTINUE MONITORING - Escalate to SAR filing if additional suspicious activity is detected within monitoring period.';
+    } else {
+      return 'ENHANCED MONITORING - Document findings and continue surveillance for 90 days.';
+    }
+  }
+
+  generateSupportingDocs(transaction: TransactionDto): any {
+    return {
+      transactionRecords: true,
+      accountStatements: true,
+      customerDueDiligence: false,
+      otherDocuments: [
+        'AML Rule Engine Logs',
+        'NLP Analysis Report',
+        'Transaction Screenshot'
+      ]
     };
   }
 
@@ -164,45 +384,9 @@ export class SarReportComponent implements OnInit {
     return action === 'BLOCK' ? 'bg-danger' : 'bg-warning';
   }
 
-  printReport(): void {
-    window.print();
-  }
-
   downloadReport(): void {
-    // Create a printable version
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      const reportContent = document.getElementById('sar-report-content');
-      if (reportContent) {
-        printWindow.document.write(`
-          <html>
-            <head>
-              <title>SAR Report - ${this.sarReport?.reportId}</title>
-              <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                .report-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-                .section { margin-bottom: 30px; }
-                .section-title { font-weight: bold; font-size: 16px; margin-bottom: 10px; border-bottom: 1px solid #ccc; }
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                table, th, td { border: 1px solid #ddd; }
-                th, td { padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-                .bg-warning { background-color: #ffc107; color: #000; }
-                .bg-danger { background-color: #dc3545; color: #fff; }
-                ul { margin-left: 20px; }
-                li { margin-bottom: 10px; }
-              </style>
-            </head>
-            <body>
-              ${reportContent.innerHTML}
-            </body>
-          </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
-      }
-    }
+    // Trigger browser print dialog which allows saving as PDF
+    window.print();
   }
 
   goBack(): void {
