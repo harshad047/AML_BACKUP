@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { TransactionService, TransactionDto } from '../../core/services/transaction.service';
@@ -37,13 +37,16 @@ export class CustomerNewTransactionComponent implements OnInit {
     private location: Location,
     private toastService: ToastService
   ) {
-    this.form = this.fb.group({
-      type: ['DEPOSIT', Validators.required],
-      amount: [0, [Validators.required, Validators.min(0.01)]],
-      description: [''],
-      toAccountNumber: ['', Validators.required],
-      fromAccountNumber: ['']
-    });
+    this.form = this.fb.group(
+      {
+        type: ['DEPOSIT', Validators.required],
+        amount: [0, [Validators.required, Validators.min(0.01)]],
+        description: [''],
+        toAccountNumber: ['', Validators.required],
+        fromAccountNumber: ['']
+      },
+      { validators: this.differentAccountsValidator() }
+    );
   }
 
   ngOnInit(): void {
@@ -78,6 +81,7 @@ export class CustomerNewTransactionComponent implements OnInit {
 
       this.form.get('toAccountNumber')?.updateValueAndValidity();
       this.form.get('fromAccountNumber')?.updateValueAndValidity();
+      this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
     });
   }
 
@@ -149,5 +153,17 @@ export class CustomerNewTransactionComponent implements OnInit {
   createAnother(): void {
     this.resetForm();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  private differentAccountsValidator(): ValidatorFn {
+    return (group: AbstractControl): ValidationErrors | null => {
+      const fg = group as FormGroup;
+      const type = fg.get('type')?.value;
+      if (type !== 'TRANSFER') return null;
+      const from = fg.get('fromAccountNumber')?.value;
+      const to = fg.get('toAccountNumber')?.value;
+      if (!from || !to) return null;
+      return from === to ? { sameAccount: true } : null;
+    };
   }
 }

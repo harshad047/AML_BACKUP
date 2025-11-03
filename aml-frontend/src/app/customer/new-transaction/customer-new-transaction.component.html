@@ -82,12 +82,18 @@
             <i class="fas fa-exclamation-triangle me-2"></i>
             No active accounts available.
           </div>
+          <div class="text-danger small mt-2" *ngIf="form.errors?.['sameAccount']">
+            From and To accounts cannot be the same.
+          </div>
         </div>
         <div class="col-md-6" *ngIf="form.value.type === 'TRANSFER'">
           <label class="form-label fw-semibold">
             <i class="fas fa-university me-2"></i>To Account Number
           </label>
           <input type="text" class="form-control modern-input" formControlName="toAccountNumber" placeholder="e.g. ACC987" />
+          <div class="text-danger small mt-2" *ngIf="form.errors?.['sameAccount']">
+            From and To accounts cannot be the same.
+          </div>
         </div>
         <div class="col-md-12">
           <label class="form-label fw-semibold">

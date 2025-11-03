@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ComplianceService } from '../../core/services/compliance.service';
 import { TransactionDto } from '../../core/models/compliance.models';
+import { AuthService } from '../../core/services/auth.service';
 
 interface SARReport {
   reportId: string;
@@ -25,15 +26,21 @@ export class SarReportComponent implements OnInit {
   error: string | null = null;
   transaction: TransactionDto | null = null;
   sarReport: SARReport | null = null;
-  currentUser = 'Harshad Pachani'; // This should come from auth service
+  currentUser = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private complianceService: ComplianceService
+    private complianceService: ComplianceService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getCurrentUser();
+    if (user) {
+      const displayName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username || user.email || 'User';
+      this.currentUser = displayName;
+    }
     const transactionId = this.route.snapshot.paramMap.get('id');
     if (transactionId) {
       this.loadTransactionAndGenerateReport(+transactionId);
