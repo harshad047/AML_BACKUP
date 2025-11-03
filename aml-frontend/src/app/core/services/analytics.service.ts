@@ -61,7 +61,7 @@ export class AnalyticsService {
         console.error('Error fetching transactions:', err);
         return of([]);
       })),
-      alerts: this.http.get<any[]>(`${this.apiUrl}/compliance/alerts`).pipe(catchError((err) => {
+      alerts: this.http.get<any[]>(`${this.apiUrl}/compliance/alerts/all`).pipe(catchError((err) => {
         console.error('Error fetching alerts:', err);
         return of([]);
       })),
@@ -391,10 +391,29 @@ export class AnalyticsService {
   }
 
   private groupCasesByOfficer(cases: any[]): any[] {
+    console.log('Grouping cases by officer. Total cases:', cases.length);
+    console.log('Sample case:', cases[0]);
+    
     const officerMap = new Map();
     
     cases.forEach(c => {
-      const officer = c.assignedTo || 'Unassigned';
+      // Try multiple ways to get officer name
+      let officer = 'Unassigned';
+      
+      if (c.assignedTo) {
+        if (typeof c.assignedTo === 'string') {
+          officer = c.assignedTo;
+        } else if (c.assignedTo.username) {
+          officer = c.assignedTo.username;
+        } else if (c.assignedTo.firstName) {
+          officer = `${c.assignedTo.firstName} ${c.assignedTo.lastName || ''}`.trim();
+        } else if (c.assignedTo.email) {
+          officer = c.assignedTo.email;
+        }
+      }
+      
+      console.log(`Case ${c.id}: officer = ${officer}, status = ${c.status}`);
+      
       if (!officerMap.has(officer)) {
         officerMap.set(officer, { resolved: 0, pending: 0 });
       }
@@ -403,11 +422,14 @@ export class AnalyticsService {
       else data.pending++;
     });
     
-    return Array.from(officerMap.entries()).map(([officer, data]) => ({
+    const result = Array.from(officerMap.entries()).map(([officer, data]) => ({
       officer,
       resolved: data.resolved,
       pending: data.pending
     }));
+    
+    console.log('Cases by officer result:', result);
+    return result;
   }
 
   private calculateResolutionTime(cases: any[]): any[] {

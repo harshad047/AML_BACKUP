@@ -54,7 +54,7 @@ export class ComplianceAnalyticsService {
 
   getComplianceAnalytics(): Observable<ComplianceAnalyticsData> {
     return forkJoin({
-      alerts: this.http.get<any[]>(`${this.apiUrl}/compliance/alerts`).pipe(catchError((err) => {
+      alerts: this.http.get<any[]>(`${this.apiUrl}/compliance/alerts/all`).pipe(catchError((err) => {
         console.error('Error fetching alerts:', err);
         return of([]);
       })),
@@ -95,6 +95,14 @@ export class ComplianceAnalyticsService {
     const blockedTxns = data.blockedTxns || [];
     const reviewTxns = data.reviewTxns || [];
     const allTransactions = [...flaggedTxns, ...blockedTxns, ...reviewTxns];
+
+    console.log('Processing compliance data:');
+    console.log('- Alerts count:', alerts.length);
+    console.log('- Sample alert:', alerts[0]);
+    console.log('- Active cases:', casesActive.length);
+    console.log('- Flagged transactions:', flaggedTxns.length);
+    console.log('- Blocked transactions:', blockedTxns.length);
+    console.log('- Review transactions:', reviewTxns.length);
 
     return {
       // KPIs
@@ -313,10 +321,11 @@ export class ComplianceAnalyticsService {
   // Performance Metrics
   private calculateAverageResponseTime(alerts: any[]): number {
     const responseTimes = alerts
-      .filter(a => a.updatedAt && a.createdAt)
+      .filter(a => a.createdAt)
       .map(a => {
         const created = new Date(a.createdAt).getTime();
-        const updated = new Date(a.updatedAt).getTime();
+        // Use updatedAt if available, otherwise use current time for open alerts
+        const updated = a.updatedAt ? new Date(a.updatedAt).getTime() : Date.now();
         return (updated - created) / (1000 * 60 * 60); // hours
       });
     
@@ -327,13 +336,33 @@ export class ComplianceAnalyticsService {
 
   private calculateSLACompliance(alerts: any[]): number {
     const SLA_HOURS = 24; // 24 hour SLA
-    const withinSLA = alerts.filter(a => {
-      if (!a.updatedAt || !a.createdAt) return false;
-      const hours = (new Date(a.updatedAt).getTime() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60);
+    
+    // Only calculate SLA for resolved/escalated alerts (not open ones)
+    const closedAlerts = alerts.filter(a => a.status === 'RESOLVED' || a.status === 'ESCALATED');
+    
+    if (closedAlerts.length === 0) {
+      // If no closed alerts, check if open alerts are within SLA
+      const openAlerts = alerts.filter(a => a.status === 'OPEN' && a.createdAt);
+      if (openAlerts.length === 0) return 100;
+      
+      const withinSLA = openAlerts.filter(a => {
+        const created = new Date(a.createdAt).getTime();
+        const hours = (Date.now() - created) / (1000 * 60 * 60);
+        return hours <= SLA_HOURS;
+      }).length;
+      
+      return Math.round((withinSLA / openAlerts.length) * 100);
+    }
+    
+    const withinSLA = closedAlerts.filter(a => {
+      if (!a.createdAt || !a.updatedAt) return false;
+      const created = new Date(a.createdAt).getTime();
+      const updated = new Date(a.updatedAt).getTime();
+      const hours = (updated - created) / (1000 * 60 * 60);
       return hours <= SLA_HOURS;
     }).length;
     
-    return alerts.length > 0 ? Math.round((withinSLA / alerts.length) * 100) : 100;
+    return Math.round((withinSLA / closedAlerts.length) * 100);
   }
 
   private calculateAlertResponseTimes(alerts: any[]): any[] {
@@ -346,9 +375,11 @@ export class ComplianceAnalyticsService {
     
     alerts.forEach(a => {
       const date = this.safeFormatDate(a.createdAt);
-      if (date && timeMap.has(date) && a.updatedAt && a.createdAt) {
+      if (date && timeMap.has(date) && a.createdAt) {
         try {
-          const hours = (new Date(a.updatedAt).getTime() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60);
+          const created = new Date(a.createdAt).getTime();
+          const updated = a.updatedAt ? new Date(a.updatedAt).getTime() : Date.now();
+          const hours = (updated - created) / (1000 * 60 * 60);
           const data = timeMap.get(date);
           data.total += hours;
           data.count++;

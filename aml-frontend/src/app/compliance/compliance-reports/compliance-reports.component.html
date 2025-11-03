@@ -114,7 +114,11 @@
             <h5><i class="fas fa-chart-pie me-2"></i>Alerts by Risk Level</h5>
           </div>
           <div class="chart-body">
-            <canvas baseChart
+            <div *ngIf="analyticsData.totalAlerts === 0" class="text-center text-muted py-5">
+              <i class="fas fa-chart-pie fa-3x mb-3 opacity-25"></i>
+              <p class="mb-0">No alert data available</p>
+            </div>
+            <canvas *ngIf="analyticsData.totalAlerts > 0" baseChart
                     [data]="alertsByRiskChart!"
                     [options]="pieChartOptions"
                     [type]="'pie'"
@@ -132,7 +136,11 @@
             <h5><i class="fas fa-chart-bar me-2"></i>Top Alert Types</h5>
           </div>
           <div class="chart-body">
-            <canvas baseChart
+            <div *ngIf="analyticsData.alertsByType.length === 0" class="text-center text-muted py-5">
+              <i class="fas fa-chart-bar fa-3x mb-3 opacity-25"></i>
+              <p class="mb-0">No alert type data available</p>
+            </div>
+            <canvas *ngIf="analyticsData.alertsByType.length > 0" baseChart
                     [data]="alertsByTypeChart!"
                     [options]="barChartOptions"
                     [type]="'bar'"
