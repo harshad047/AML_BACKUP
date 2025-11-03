@@ -144,7 +144,7 @@
                     [data]="alertsByTypeChart!"
                     [options]="barChartOptions"
                     [type]="'bar'"
-                    style="height: 300px;">
+                    style="height: 380px;">
             </canvas>
           </div>
         </div>
@@ -384,75 +384,9 @@
       </div>
     </div>
 
-    <!-- High Risk Customers -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="table-card">
-          <div class="table-header">
-            <h5><i class="fas fa-user-shield me-2"></i>High Risk Customers</h5>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Customer ID</th>
-                  <th>Customer Name</th>
-                  <th>Risk Score</th>
-                  <th>Alert Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let customer of analyticsData.highRiskCustomers">
-                  <td>{{ customer.customerId }}</td>
-                  <td>{{ customer.customerName }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="{
-                      'bg-danger': customer.riskScore >= 80,
-                      'bg-warning': customer.riskScore >= 60 && customer.riskScore < 80
-                    }">{{ customer.riskScore }}</span>
-                  </td>
-                  <td><span class="badge bg-info">{{ customer.alertCount }}</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Officer Performance -->
-    <div class="section-header mb-3">
-      <h3><i class="fas fa-user-tie me-2"></i>Officer Performance</h3>
-    </div>
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="table-card">
-          <div class="table-header">
-            <h5><i class="fas fa-chart-bar me-2"></i>Performance Metrics</h5>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Officer</th>
-                  <th>Alerts Reviewed</th>
-                  <th>Cases Resolved</th>
-                  <th>Avg Response Time (hrs)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let perf of analyticsData.officerPerformance">
-                  <td>{{ perf.officer }}</td>
-                  <td><span class="badge bg-info">{{ perf.alertsReviewed }}</span></td>
-                  <td><span class="badge bg-success">{{ perf.casesResolved }}</span></td>
-                  <td>{{ perf.avgResponseTime }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+
+
 
   </div>
 </div>

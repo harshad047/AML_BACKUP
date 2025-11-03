@@ -44,7 +44,35 @@ export class ComplianceReportsComponent implements OnInit {
   barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { enabled: true } }
+    layout: {
+      padding: {
+        bottom: 50,
+        right: 5
+      }
+    },
+    plugins: { 
+      legend: { display: false }, 
+      tooltip: { enabled: true } 
+    },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: false,
+          maxRotation: 45,
+          minRotation: 45,
+          font: {
+            size: 11
+          },
+          padding: 8
+        }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0
+        }
+      }
+    }
   };
 
   pieChartOptions: ChartConfiguration<'pie'>['options'] = {
@@ -311,23 +339,7 @@ export class ComplianceReportsComponent implements OnInit {
     const highRiskSheet = XLSX.utils.aoa_to_sheet(highRiskData);
     XLSX.utils.book_append_sheet(wb, highRiskSheet, 'High Risk Txns');
 
-    // High Risk Customers
-    const highRiskCustomersData = [
-      ['High Risk Customers'],
-      ['Customer ID', 'Customer Name', 'Risk Score', 'Alert Count'],
-      ...this.analyticsData.highRiskCustomers.map(c => [c.customerId, c.customerName, c.riskScore, c.alertCount])
-    ];
-    const highRiskCustomersSheet = XLSX.utils.aoa_to_sheet(highRiskCustomersData);
-    XLSX.utils.book_append_sheet(wb, highRiskCustomersSheet, 'High Risk Customers');
-
-    // Officer Performance
-    const performanceData = [
-      ['Officer Performance'],
-      ['Officer', 'Alerts Reviewed', 'Cases Resolved', 'Avg Response Time (hrs)'],
-      ...this.analyticsData.officerPerformance.map(p => [p.officer, p.alertsReviewed, p.casesResolved, p.avgResponseTime])
-    ];
-    const performanceSheet = XLSX.utils.aoa_to_sheet(performanceData);
-    XLSX.utils.book_append_sheet(wb, performanceSheet, 'Officer Performance');
+    
 
     // Generate filename
     const date = new Date();
