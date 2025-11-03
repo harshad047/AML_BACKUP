@@ -1,0 +1,155 @@
+    /* Filters bar */
+    .filters-bar .form-select,
+    .filters-bar .form-control {
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color, #e9ecef);
+      box-shadow: none;
+    }
+    .filters-bar .form-control:focus,
+    .filters-bar .form-select:focus {
+      border-color: var(--primary-bank-blue);
+      box-shadow: 0 0 0 0.2rem rgba(46,163,242,0.15);
+    }
+    .filters-bar .btn-primary {
+      background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark));
+      border: none;
+    }
+
+    /* Card/header */
+    .card { border: none; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card-header { background: #fff; border-bottom: 1px solid #e9ecef; border-radius: 0.75rem 0.75rem 0 0 !important; }
+
+    /* Table */
+    .modern-table thead { 
+      background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark));
+    }
+    .modern-table thead th { 
+      font-size: 0.8rem; 
+      text-transform: uppercase; 
+      letter-spacing: .04em; 
+      color: #fff !important;
+      border-bottom: none;
+    }
+    .modern-table thead tr th:first-child { border-top-left-radius: 0.5rem; }
+    .modern-table thead tr th:last-child { border-top-right-radius: 0.5rem; }
+    .modern-table tbody td { vertical-align: middle; }
+    .table-responsive { border-radius: 0.75rem; overflow: hidden; }
+    .table-hover tbody tr:hover { background: #f8fbff; }
+
+    /* Chips */
+    .risk-chip, .status-chip { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; color: #fff; }
+    .risk-low { background: linear-gradient(135deg, #28a745, #20c997); }
+    .risk-medium { background: linear-gradient(135deg, #ffc107, #ff9800); }
+    .risk-high { background: linear-gradient(135deg, #dc3545, #c82333); }
+    .status-open { background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark)); }
+    .status-escalated { background: linear-gradient(135deg, #17a2b8, #138496); }
+    .status-resolved { background: linear-gradient(135deg, #28a745, #20c997); }
+
+    /* Row tints by risk */
+    .alert-row-high { background-color: #fff5f7; }
+    .alert-row-medium { background-color: #fffaf2; }
+    .alert-row-low { background-color: #f5fbff; }
+
+    .text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Modal Styles */
+    .modal {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+      display: block !important;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .modal-dialog-centered {
+      display: flex;
+      align-items: center;
+      min-height: calc(100% - 1rem);
+    }
+
+    .modal-content {
+      border-radius: 1rem;
+      border: none;
+      box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
+      animation: slideDown 0.3s ease-in-out;
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #fff8e1 0%, #ffffff 100%);
+      border-radius: 1rem 1rem 0 0;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      color: #212529;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      font-size: 1rem;
+      color: #6c757d;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      background-color: #f8f9fa;
+      border-radius: 0 0 1rem 1rem;
+    }
+
+    .modal-footer .btn {
+      padding: 0.5rem 1.5rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .modal-footer .btn-secondary {
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+
+    .modal-footer .btn-secondary:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    .modal-footer .btn-warning {
+      background-color: #ffc107;
+      border-color: #ffc107;
+      color: #000;
+    }
+
+    .modal-footer .btn-warning:hover {
+      background-color: #e0a800;
+      border-color: #d39e00;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+    }
+
+    .modal-backdrop.show {
+      opacity: 0.5;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }

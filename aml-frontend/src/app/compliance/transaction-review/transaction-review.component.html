@@ -1,0 +1,257 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Transaction Review</h1>
+        <button class="btn btn-secondary" routerLink="/compliance">
+          <i class="fas fa-arrow-left me-2"></i>
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'review'" (click)="switchTab('review')">
+            For Review ({{ reviewTransactions.length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'flagged'" (click)="switchTab('flagged')">
+            Flagged ({{ flaggedTransactions.length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'blocked'" (click)="switchTab('blocked')">
+            Blocked ({{ blockedTransactions.length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab === 'all'" (click)="switchTab('all')">
+            All Transactions
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="row mb-4 filters-bar align-items-center g-2">
+    <div class="col-md-3">
+      <select class="form-select" [(ngModel)]="typeFilter" (change)="applyFilters()">
+        <option value="">All Types</option>
+        <option value="DEPOSIT">Deposit</option>
+        <option value="WITHDRAWAL">Withdrawal</option>
+        <option value="TRANSFER">Transfer</option>
+        <option value="INTERCURRENCY_TRANSFER">Intercurrency Transfer</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select class="form-select" [(ngModel)]="riskFilter" (change)="applyFilters()">
+        <option value="">All Risk Levels</option>
+        <option value="high">High Risk (80+)</option>
+        <option value="medium">Medium Risk (60-79)</option>
+        <option value="low">Low Risk (<60)</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <input type="text" class="form-control" placeholder="Search transactions..." [(ngModel)]="searchTerm" (input)="applyFilters()">
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-primary w-100" (click)="loadTransactions()">
+        <i class="fas fa-sync-alt me-2"></i>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <h5 class="mb-2">{{ loadingMessage || 'Loading transactions...' }}</h5>
+      <p class="text-muted mb-0">Please wait</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="row" *ngIf="error && !loading">
+    <div class="col-12">
+      <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ error }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="row" *ngIf="!loading">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{ getTabTitle() }} ({{ filteredTransactions.length }})</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover modern-table mb-0">
+              <thead>
+                <tr>
+                  <th>Transaction ID</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>From/To</th>
+                  <th>Risk Score</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="filteredTransactions.length === 0">
+                  <td colspan="7" class="text-center py-4 text-muted">
+                    No transactions found matching your criteria
+                  </td>
+                </tr>
+                <tr *ngFor="let transaction of filteredTransactions" [class]="getTransactionRowClass(transaction)">
+                  <td>
+                    <strong>#{{ transaction.id }}</strong>
+                    <br>
+                    <small class="text-muted">{{ transaction.transactionReference }}</small>
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary">{{ transaction.transactionType }}</span>
+                  </td>
+                  <td>
+                    <strong>{{ transaction.amount | currency:transaction.currency }}</strong>
+                  </td>
+                  <td>
+                    <div class="small">
+                      <div *ngIf="transaction.fromAccountNumber"><strong>From:</strong> {{ transaction.fromAccountNumber }}</div>
+                      <div *ngIf="transaction.toAccountNumber"><strong>To:</strong> {{ transaction.toAccountNumber }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="risk-chip" [ngClass]="getRiskScoreClass(transaction.combinedRiskScore || 0)">{{ transaction.combinedRiskScore || 0 }}</span>
+                  </td>
+                  <td>
+                    <span class="status-chip" [ngClass]="getStatusClass(transaction.status)">{{ transaction.status }}</span>
+                  </td>
+                  <td>
+                    <small>{{ transaction.createdAt | date:'short' }}</small>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Details Modal -->
+  <div class="modal fade" id="transactionDetailsModal" tabindex="-1" *ngIf="selectedTransaction">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Transaction #{{ selectedTransaction.id }} Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6>Transaction Information</h6>
+              <table class="table table-sm">
+                <tr><td><strong>ID:</strong></td><td>{{ selectedTransaction.id }}</td></tr>
+                <tr><td><strong>Reference:</strong></td><td>{{ selectedTransaction.transactionReference }}</td></tr>
+                <tr><td><strong>Type:</strong></td><td>{{ selectedTransaction.transactionType }}</td></tr>
+                <tr><td><strong>Amount:</strong></td><td>{{ selectedTransaction.amount | currency:selectedTransaction.currency }}</td></tr>
+                <tr><td><strong>From Account:</strong></td><td>{{ selectedTransaction.fromAccountNumber || 'N/A' }}</td></tr>
+                <tr><td><strong>To Account:</strong></td><td>{{ selectedTransaction.toAccountNumber || 'N/A' }}</td></tr>
+                <tr><td><strong>Status:</strong></td><td><span class="badge" [ngClass]="getStatusClass(selectedTransaction.status)">{{ selectedTransaction.status }}</span></td></tr>
+                <tr><td><strong>Description:</strong></td><td>{{ selectedTransaction.description || 'N/A' }}</td></tr>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <h6>Risk Assessment</h6>
+              <table class="table table-sm">
+                <tr><td><strong>NLP Score:</strong></td><td>{{ selectedTransaction.nlpScore || 'N/A' }}</td></tr>
+                <tr><td><strong>Rule Engine Score:</strong></td><td>{{ selectedTransaction.ruleEngineScore || 'N/A' }}</td></tr>
+                <tr>
+                  <td><strong>Combined Risk Score:</strong></td>
+                  <td><span class="badge" [ngClass]="getRiskScoreClass(selectedTransaction.combinedRiskScore || 0)">{{ selectedTransaction.combinedRiskScore || 0 }}</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Threshold Exceeded:</strong></td>
+                  <td><span class="badge" [ngClass]="selectedTransaction.thresholdExceeded ? 'bg-danger' : 'bg-success'">{{ selectedTransaction.thresholdExceeded ? 'Yes' : 'No' }}</span></td>
+                </tr>
+                <tr><td><strong>Created:</strong></td><td>{{ selectedTransaction.createdAt | date:'medium' }}</td></tr>
+                <tr><td><strong>Updated:</strong></td><td>{{ selectedTransaction.updatedAt | date:'medium' }}</td></tr>
+              </table>
+            </div>
+          </div>
+          
+          <!-- Obstructed Rules -->
+          <div class="mt-4" *ngIf="selectedTransaction.obstructedRules && selectedTransaction.obstructedRules.length > 0">
+            <h6>Triggered Rules</h6>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Rule Name</th>
+                    <th>Action</th>
+                    <th>Risk Weight</th>
+                    <th>Priority</th>
+                    <th>Details</th>
+                    <th>Evaluated At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let rule of selectedTransaction.obstructedRules">
+                    <td>{{ rule.ruleName }}</td>
+                    <td><span class="badge" [ngClass]="rule.action === 'BLOCK' ? 'bg-danger' : 'bg-warning'">{{ rule.action }}</span></td>
+                    <td>{{ rule.riskWeight }}</td>
+                    <td>{{ rule.priority }}</td>
+                    <td>{{ rule.details }}</td>
+                    <td>{{ rule.evaluatedAt | date:'short' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-success" (click)="approveTransaction(selectedTransaction)" [disabled]="!canApproveReject(selectedTransaction.status)" *ngIf="activeTab === 'review' || activeTab === 'flagged'">Approve Transaction</button>
+          <button type="button" class="btn btn-danger" (click)="rejectTransaction(selectedTransaction)" [disabled]="!canApproveReject(selectedTransaction.status)" *ngIf="activeTab === 'review' || activeTab === 'flagged'">Reject Transaction</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rejection Reason Modal -->
+  <div class="modal fade" id="rejectionReasonModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rejection Reason</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="rejectionReason" class="form-label">Please provide a reason for rejection:</label>
+            <textarea class="form-control" id="rejectionReason" rows="3" [(ngModel)]="rejectionReason" placeholder="Enter rejection reason..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="confirmReject()">Confirm Rejection</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

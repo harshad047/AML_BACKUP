@@ -1,0 +1,77 @@
+/* Filters bar */
+.filters-bar .form-select,
+.filters-bar .form-control { border-radius: 0.5rem; border: 1px solid var(--border-color, #e9ecef); box-shadow: none; }
+.filters-bar .form-control:focus,
+.filters-bar .form-select:focus { border-color: var(--primary-bank-blue); box-shadow: 0 0 0 0.2rem rgba(46,163,242,0.15); }
+.filters-bar .btn-primary { background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark)); border: none; }
+
+/* Card/header */
+.card { border: none; border-radius: 0.75rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: box-shadow 0.3s ease; }
+.card-header { background: #fff; border-bottom: 1px solid #e9ecef; border-radius: 0.75rem 0.75rem 0 0 !important; }
+.card:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+
+/* Table */
+.modern-table thead { background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark)); }
+.modern-table thead th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: .04em; color: #fff !important; border-bottom: none; }
+.modern-table thead tr th:first-child { border-top-left-radius: 0.5rem; }
+.modern-table thead tr th:last-child { border-top-right-radius: 0.5rem; }
+.modern-table tbody td { vertical-align: middle; }
+.table-responsive { border-radius: 0.75rem; overflow: hidden; }
+.table-hover tbody tr:hover { background: #f8fbff; cursor: pointer; }
+.table td { vertical-align: middle; }
+
+/* Chips */
+.risk-chip, .status-chip { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; color: #fff; }
+.risk-low { background: linear-gradient(135deg, #28a745, #20c997); }
+.risk-medium { background: linear-gradient(135deg, #ffc107, #ff9800); color: #000; }
+.risk-high { background: linear-gradient(135deg, #dc3545, #c82333); }
+.status-pending, .status-flagged { background: linear-gradient(135deg, #ffc107, #ff9800); color: #000; }
+.status-blocked, .status-rejected { background: linear-gradient(135deg, #dc3545, #c82333); }
+.status-approved, .status-completed { background: linear-gradient(135deg, #28a745, #20c997); }
+
+/* Nav tabs */
+.nav-tabs .nav-link { border: none; color: #6c757d; transition: all 0.3s ease; }
+.nav-tabs .nav-link:hover { color: #007bff; background-color: #f8f9fa; }
+.nav-tabs .nav-link.active { background-color: #007bff; color: white; border-color: #007bff; font-weight: 600; }
+
+/* Row highlighting by risk */
+.transaction-row-high { background-color: #fff5f5; border-left: 4px solid #dc3545; }
+.transaction-row-medium { background-color: #fffbf0; border-left: 4px solid #ffc107; }
+.transaction-row-low { background-color: #f0f9ff; border-left: 4px solid #17a2b8; }
+
+/* Buttons */
+.btn-outline-warning { border-width: 2px; font-weight: 500; transition: all 0.3s ease; }
+.btn-outline-warning:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3); }
+.btn-outline-warning:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-outline-success, .btn-outline-danger { border-width: 2px; font-weight: 500; transition: all 0.3s ease; }
+.btn-outline-success:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3); }
+.btn-outline-danger:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3); }
+
+/* Action Buttons */
+.action-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-start; align-items: center; }
+.btn-action { font-weight: 500; padding: 0.375rem 0.75rem; border-width: 1.5px; border-radius: 0.375rem; transition: all 0.3s ease; white-space: nowrap; min-width: 90px; display: inline-flex; align-items: center; justify-content: center; }
+.btn-action i { font-size: 0.875rem; }
+.btn-action .btn-text { font-size: 0.875rem; font-weight: 600; }
+.btn-info.btn-action { background-color: #0dcaf0; border-color: #0dcaf0; color: #000; }
+.btn-info.btn-action:hover:not(:disabled) { background-color: #31d2f2; border-color: #25cff2; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(13, 202, 240, 0.4); }
+.btn-warning.btn-action { background-color: #ffc107; border-color: #ffc107; color: #000; }
+.btn-warning.btn-action:hover:not(:disabled) { background-color: #ffca2c; border-color: #ffc720; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(255, 193, 7, 0.4); }
+.btn-success.btn-action { background-color: #198754; border-color: #198754; color: #fff; }
+.btn-success.btn-action:hover:not(:disabled) { background-color: #157347; border-color: #146c43; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(25, 135, 84, 0.4); }
+.btn-danger.btn-action { background-color: #dc3545; border-color: #dc3545; color: #fff; }
+.btn-danger.btn-action:hover:not(:disabled) { background-color: #bb2d3b; border-color: #b02a37; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4); }
+.btn-purple.btn-action { background-color: #6f42c1; border-color: #6f42c1; color: #fff; }
+.btn-purple.btn-action:hover:not(:disabled) { background-color: #5a32a3; border-color: #59339d; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4); }
+.btn-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* Loading Overlay */
+.loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.loading-content { background: white; padding: 2rem; border-radius: 0.5rem; text-align: center; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3); }
+
+/* Badge Enhancements */
+.badge { font-weight: 600; padding: 0.4rem 0.8rem; font-size: 0.85rem; letter-spacing: 0.5px; }
+
+/* Responsive */
+@media (max-width: 992px) { .action-buttons { flex-direction: column; align-items: stretch; gap: 0.375rem; } .btn-action { width: 100%; min-width: auto; } }
+@media (max-width: 768px) { .btn-group-sm .btn { padding: 0.25rem 0.5rem; font-size: 0.875rem; } .btn-action { padding: 0.5rem 0.75rem; font-size: 0.875rem; } .btn-action .btn-text { font-size: 0.8125rem; } }
+@media (min-width: 1200px) { .action-buttons { gap: 0.625rem; } .btn-action { min-width: 100px; padding: 0.5rem 1rem; } }

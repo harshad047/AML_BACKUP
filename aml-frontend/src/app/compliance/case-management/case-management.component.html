@@ -1,0 +1,575 @@
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Case Management</h1>
+            <button class="btn btn-secondary" routerLink="/compliance">
+              <i class="fas fa-arrow-left me-2"></i>
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <ul class="nav nav-tabs">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab === 'active'" 
+                      (click)="switchTab('active')">
+                Active Cases ({{ activeCases.length }})
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab === 'resolved'" 
+                      (click)="switchTab('resolved')">
+                Resolved Cases ({{ resolvedCases.length }})
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <input type="text" class="form-control" placeholder="Search cases..." 
+                 [(ngModel)]="searchTerm" (input)="applyFilters()">
+        </div>
+        <div class="col-md-4">
+          <input type="date" class="form-control" placeholder="Filter by date" 
+                 [(ngModel)]="dateFilter" (change)="applyFilters()">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary w-100" (click)="loadCases()">
+            <i class="fas fa-sync-alt me-2"></i>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="row" *ngIf="loading">
+        <div class="col-12 text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Loading cases...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div class="row" *ngIf="error && !loading">
+        <div class="col-12">
+          <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Cases Grid -->
+      <div class="row" *ngIf="!loading">
+        <div class="col-12" *ngIf="filteredCases.length === 0">
+          <div class="text-center py-5">
+            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No cases found</h5>
+            <p class="text-muted">No cases match your current filter criteria.</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-6 col-xl-4 mb-4" *ngFor="let case of filteredCases">
+          <div class="card h-100" [class]="getCaseCardClass(case.status)">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">Case #{{ case.id }}</h6>
+              <span class="badge" [ngClass]="getStatusClass(case.status)">
+                {{ case.status }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <strong>Alert:</strong> #{{ case.alert.id }}
+                <br>
+                <small class="text-muted">{{ case.alert.reason }}</small>
+              </div>
+              
+              <div class="mb-3">
+                <strong>Risk Score:</strong>
+                <span class="badge ms-2" [ngClass]="getRiskScoreClass(case.alert.riskScore)">
+                  {{ case.alert.riskScore }}
+                </span>
+              </div>
+              
+              <div class="mb-3">
+                <strong>Assigned to:</strong> {{ case.assignedTo }}
+              </div>
+              
+              <div class="mb-3">
+                <strong>Created:</strong>
+                <br>
+                <small>{{ case.createdAt | date:'medium' }}</small>
+              </div>
+              
+              <div class="mb-3" *ngIf="case.notes && case.notes.length > 0">
+                <strong>Latest Note:</strong>
+                <br>
+                <small class="text-muted">
+                  {{ case.notes[case.notes.length - 1].content | slice:0:100 }}
+                  <span *ngIf="case.notes[case.notes.length - 1].content.length > 100">...</span>
+                </small>
+              </div>
+            </div>
+            <div class="card-footer case-actions">
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <button class="btn btn-action btn-outline-primary w-100" (click)="viewCaseDetails(case)">
+                    <i class="fas fa-eye me-2"></i>
+                    View Details
+                  </button>
+                </div>
+                <div class="col-12 col-sm-6" *ngIf="case.status === 'UNDER_INVESTIGATION'">
+                  <button class="btn btn-action btn-purple w-100" (click)="generateSAR(case)" title="Generate Suspicious Activity Report">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Generate SAR
+                  </button>
+                </div>
+                <div class="col-12" *ngIf="case.status === 'UNDER_INVESTIGATION'">
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-action btn-approve flex-fill" (click)="approveCaseFromCard(case)">
+                      <i class="fas fa-check me-2"></i>
+                      Approve
+                    </button>
+                    <button class="btn btn-action btn-reject flex-fill" (click)="rejectCaseFromCard(case)">
+                      <i class="fas fa-times me-2"></i>
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Details Modal -->
+      <div class="modal fade" id="caseDetailsModal" tabindex="-1" *ngIf="selectedCase">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Case #{{ selectedCase.id }} Details</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <!-- Case Information -->
+                <div class="col-md-6">
+                  <h6>Case Information</h6>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Case ID:</strong></td>
+                      <td>{{ selectedCase.id }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Status:</strong></td>
+                      <td>
+                        <span class="badge" [ngClass]="getStatusClass(selectedCase.status)">
+                          {{ selectedCase.status }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Assigned To:</strong></td>
+                      <td>{{ selectedCase.assignedTo }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Created:</strong></td>
+                      <td>{{ selectedCase.createdAt | date:'medium' }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Last Updated:</strong></td>
+                      <td>{{ selectedCase.updatedAt | date:'medium' }}</td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- Alert Information -->
+                <div class="col-md-6">
+                  <h6>Related Alert</h6>
+                  <table class="table table-sm">
+                    <tr>
+                      <td><strong>Alert ID:</strong></td>
+                      <td>#{{ selectedCase.alert.id }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Transaction ID:</strong></td>
+                      <td>#{{ selectedCase.alert.transactionId }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Reason:</strong></td>
+                      <td>{{ selectedCase.alert.reason }}</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Risk Score:</strong></td>
+                      <td>
+                        <span class="badge" [ngClass]="getRiskScoreClass(selectedCase.alert.riskScore)">
+                          {{ selectedCase.alert.riskScore }}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Alert Status:</strong></td>
+                      <td>
+                        <span class="badge" [ngClass]="getAlertStatusClass(selectedCase.alert.status)">
+                          {{ selectedCase.alert.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Transaction Details -->
+              <div class="mt-4" *ngIf="selectedCase.alert.transaction">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Transaction Details</h6>
+                  <button class="btn btn-sm" 
+                          [ngClass]="showTransactionHistory ? 'btn-info' : 'btn-outline-info'"
+                          (click)="viewTransactionHistory(selectedCase.alert.transaction)"
+                          title="Toggle transaction history">
+                    <i class="fas" [ngClass]="showTransactionHistory ? 'fa-chevron-up' : 'fa-history'" class="me-1"></i>
+                    {{ showTransactionHistory ? 'Hide' : 'View' }} Transaction History
+                  </button>
+                </div>
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                          <tr>
+                            <td class="text-muted" style="width: 40%;"><strong>Transaction ID:</strong></td>
+                            <td><strong>#{{ selectedCase.alert.transaction.id }}</strong></td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Reference:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.transactionReference }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Type:</strong></td>
+                            <td><span class="badge bg-secondary">{{ selectedCase.alert.transaction.transactionType }}</span></td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Amount:</strong></td>
+                            <td><strong class="text-primary">{{ selectedCase.alert.transaction.amount | currency:selectedCase.alert.transaction.currency }}</strong></td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Currency:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.currency }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Status:</strong></td>
+                            <td><span class="badge" [ngClass]="getTransactionStatusClass(selectedCase.alert.transaction.status)">{{ selectedCase.alert.transaction.status }}</span></td>
+                          </tr>
+                        </table>
+                      </div>
+                      <div class="col-md-6">
+                        <table class="table table-sm table-borderless">
+                          <tr>
+                            <td class="text-muted" style="width: 40%;"><strong>From Account:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.fromAccountNumber || 'N/A' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>To Account:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.toAccountNumber || 'N/A' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Description:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.description || 'N/A' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Created:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.createdAt | date:'medium' }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Combined Risk:</strong></td>
+                            <td>
+                              <span class="badge" [ngClass]="getRiskScoreClass(selectedCase.alert.transaction.combinedRiskScore || 0)">
+                                {{ selectedCase.alert.transaction.combinedRiskScore || 0 }}
+                              </span>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>NLP Score:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.nlpScore || 0 }}</td>
+                          </tr>
+                          <tr>
+                            <td class="text-muted"><strong>Rule Score:</strong></td>
+                            <td>{{ selectedCase.alert.transaction.ruleEngineScore || 0 }}</td>
+                          </tr>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transaction History Section -->
+              <div class="mt-3" *ngIf="showTransactionHistory && selectedCase.alert.transaction">
+                <div class="card border-info">
+                  <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                      <i class="fas fa-history me-2"></i>
+                      Recent Transaction History (Last 5 Transactions)
+                      <span *ngIf="selectedCase.alert.transaction.fromAccountNumber && selectedCase.alert.transaction.toAccountNumber">
+                        - Accounts: {{ selectedCase.alert.transaction.fromAccountNumber }} & {{ selectedCase.alert.transaction.toAccountNumber }}
+                      </span>
+                      <span *ngIf="selectedCase.alert.transaction.toAccountNumber && !selectedCase.alert.transaction.fromAccountNumber">
+                        - Account: {{ selectedCase.alert.transaction.toAccountNumber }}
+                      </span>
+                      <span *ngIf="selectedCase.alert.transaction.fromAccountNumber && !selectedCase.alert.transaction.toAccountNumber">
+                        - Account: {{ selectedCase.alert.transaction.fromAccountNumber }}
+                      </span>
+                    </h6>
+                  </div>
+                  <div class="card-body">
+                    <div *ngIf="loadingHistory" class="text-center py-3">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2 text-muted">Loading transaction history...</p>
+                    </div>
+                    
+                    <div *ngIf="!loadingHistory && transactionHistory.length === 0" class="text-center py-3 text-muted">
+                      <i class="fas fa-info-circle fa-2x mb-2"></i>
+                      <p>No previous transactions found for this account.</p>
+                    </div>
+
+                    <div *ngIf="!loadingHistory && transactionHistory.length > 0" class="table-responsive">
+                      <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>From/To</th>
+                            <th>Status</th>
+                            <th>Risk Score</th>
+                            <th>Description</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let txn of transactionHistory">
+                            <td><strong>#{{ txn.id }}</strong></td>
+                            <td class="small">{{ txn.createdAt | date:'short' }}</td>
+                            <td><span class="badge bg-secondary">{{ txn.transactionType }}</span></td>
+                            <td><strong>{{ txn.amount | currency:txn.currency }}</strong></td>
+                            <td class="small">
+                              <div *ngIf="txn.fromAccountNumber">From: {{ txn.fromAccountNumber }}</div>
+                              <div *ngIf="txn.toAccountNumber">To: {{ txn.toAccountNumber }}</div>
+                            </td>
+                            <td>
+                              <span class="badge" [ngClass]="getTransactionStatusClass(txn.status)">
+                                {{ txn.status }}
+                              </span>
+                            </td>
+                            <td>
+                              <span class="badge" [ngClass]="getRiskScoreClass(txn.combinedRiskScore || 0)">
+                                {{ txn.combinedRiskScore || 0 }}
+                              </span>
+                            </td>
+                            <td class="small">{{ txn.description || 'N/A' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Triggered Rules -->
+              <div class="mt-4" *ngIf="selectedCase.alert.transaction && selectedCase.alert.transaction.obstructedRules && selectedCase.alert.transaction.obstructedRules.length > 0">
+                <h6>Triggered Rules ({{ selectedCase.alert.transaction.obstructedRules.length }})</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Rule Name</th>
+                        <th>Action</th>
+                        <th>Risk Weight</th>
+                        <th>Priority</th>
+                        <th>Details</th>
+                        <th>Evaluated At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let rule of selectedCase.alert.transaction.obstructedRules">
+                        <td><strong>{{ rule.ruleName }}</strong></td>
+                        <td>
+                          <span class="badge" [ngClass]="rule.action === 'BLOCK' ? 'bg-danger' : 'bg-warning'">
+                            {{ rule.action }}
+                          </span>
+                        </td>
+                        <td><span class="badge bg-info">{{ rule.riskWeight }}</span></td>
+                        <td>{{ rule.priority }}</td>
+                        <td class="small">{{ rule.details }}</td>
+                        <td class="small">{{ rule.evaluatedAt | date:'short' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Investigation Notes -->
+              <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6>Investigation Notes ({{ selectedCase.notes?.length || 0 }})</h6>
+                  <button class="btn btn-sm btn-outline-primary" 
+                          (click)="showAddNoteForm = !showAddNoteForm"
+                          *ngIf="selectedCase.status === 'UNDER_INVESTIGATION'">
+                    <i class="fas fa-plus me-1"></i>
+                    Add Note
+                  </button>
+                </div>
+
+                <!-- Add Note Form -->
+                <div class="card mb-3" *ngIf="showAddNoteForm">
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <label for="newNoteContent" class="form-label">Note Content</label>
+                      <textarea class="form-control" id="newNoteContent" rows="3" 
+                                [(ngModel)]="newNoteContent" 
+                                placeholder="Enter your investigation note..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button class="btn btn-primary btn-sm" 
+                              (click)="saveNote()"
+                              [disabled]="!newNoteContent.trim()">
+                        Save Note
+                      </button>
+                      <button class="btn btn-secondary btn-sm" 
+                              (click)="cancelAddNote()">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Notes List -->
+                <div *ngIf="selectedCase.notes && selectedCase.notes.length > 0">
+                  <div class="card mb-2" *ngFor="let note of selectedCase.notes; trackBy: trackByNoteId">
+                    <div class="card-body py-2">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                          <p class="mb-1">{{ note.content }}</p>
+                        </div>
+                      </div>
+                      <small class="text-muted">
+                        <i class="fas fa-user me-1"></i>
+                        {{ note.author }} • {{ note.createdAt | date:'medium' }}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                
+                <div *ngIf="!selectedCase.notes || selectedCase.notes.length === 0" 
+                     class="text-center py-3 text-muted">
+                  <i class="fas fa-sticky-note fa-2x mb-2"></i>
+                  <p>No investigation notes yet</p>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Approve Case Modal -->
+    <div class="modal fade" [class.show]="showApproveModal" [style.display]="showApproveModal ? 'block' : 'none'" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-check-circle me-2"></i>
+              Approve Case
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="showApproveModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-3">Are you sure you want to approve this case?</p>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>This action will:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Approve the associated transaction</li>
+                <li>Execute the money movement</li>
+                <li>Resolve the case</li>
+                <li>Close the alert</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="showApproveModal = false">
+              <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button type="button" class="btn btn-success" (click)="selectedCase ? confirmApproveCaseDetail() : confirmApproveCase()">
+              <i class="fas fa-check me-2"></i>Approve Case
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade" [class.show]="showApproveModal" *ngIf="showApproveModal"></div>
+
+    <!-- Reject Case Modal -->
+    <div class="modal fade" [class.show]="showRejectModal" [style.display]="showRejectModal ? 'block' : 'none'" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">
+              <i class="fas fa-times-circle me-2"></i>
+              Reject Case
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="showRejectModal = false; rejectionReason = ''"></button>
+          </div>
+          <div class="modal-body">
+            <p class="mb-3">Please provide a detailed reason for rejecting this case:</p>
+            <div class="form-group">
+              <label for="rejectionReason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+              <textarea 
+                id="rejectionReason"
+                class="form-control" 
+                [(ngModel)]="rejectionReason" 
+                rows="4" 
+                placeholder="Enter detailed reason for rejection..."
+                required></textarea>
+            </div>
+            <div class="alert alert-warning mt-3">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>This action will:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Reject the associated transaction</li>
+                <li>Resolve the case</li>
+                <li>Close the alert with rejection reason</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="showRejectModal = false; rejectionReason = ''">
+              <i class="fas fa-times me-2"></i>Cancel
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-danger" 
+              (click)="selectedCase ? confirmRejectCaseDetail() : confirmRejectCase()"
+              [disabled]="!rejectionReason.trim()">
+              <i class="fas fa-ban me-2"></i>Reject Case
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade" [class.show]="showRejectModal" *ngIf="showRejectModal"></div>

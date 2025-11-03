@@ -1,0 +1,159 @@
+    .case-card-active {
+      border-left: 4px solid #ffc107;
+    }
+    
+    .case-card-resolved {
+      border-left: 4px solid #198754;
+    }
+    
+    .case-card-closed {
+      border-left: 4px solid #6c757d;
+    }
+    
+    .card {
+      transition: transform 0.2s;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .nav-tabs .nav-link {
+      border: none;
+      color: var(--text-secondary);
+      border-radius: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .nav-tabs .nav-link:hover {
+      background-color: rgba(46,163,242,0.08);
+      color: var(--primary-bank-blue);
+    }
+    .nav-tabs .nav-link.active {
+      background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark));
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 18px rgba(46,163,242,0.25);
+    }
+    
+    /* Generate SAR Button (Purple) */
+    .btn-purple {
+      background: linear-gradient(135deg, #6f42c1, #5a32a3);
+      border-color: #5a32a3;
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .btn-purple:hover {
+      background: linear-gradient(135deg, #5a32a3, #4d2791);
+      border-color: #4d2791;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(111, 66, 193, 0.4);
+    }
+
+    .btn-purple:active {
+      background-color: #59339d;
+      border-color: #4e2d8f;
+    }
+
+    /* Modal Styles */
+    .modal.show {
+      display: block !important;
+    }
+
+    .modal-backdrop.show {
+      opacity: 0.5;
+    }
+
+    .modal {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      animation: modalSlideIn 0.3s ease-out;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+    }
+
+    .modal-footer {
+      border-bottom-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-bank-blue);
+      box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.25);
+    }
+
+    /* Card polish */
+    .card.h-100 {
+      border: none;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .card.h-100 .card-header {
+      background: linear-gradient(135deg, var(--primary-bank-blue-dark), var(--primary-bank-blue));
+      color: #fff;
+      border-radius: 0.75rem 0.75rem 0 0 !important;
+      border-bottom: none;
+    }
+    .card.h-100 .card-body {
+      background: #fff;
+    }
+    .card.h-100 .card-footer {
+      background: #fff;
+      border-top: 1px solid #e9ecef;
+      border-radius: 0 0 0.75rem 0.75rem !important;
+    }
+
+    /* Case actions */
+    .case-actions { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .btn-action {
+      border-radius: 0.5rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.55rem 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+    .btn-approve { background: linear-gradient(135deg, #28a745, #20c997); color: #fff; border: none; }
+    .btn-approve:hover { filter: brightness(1.03); }
+    .btn-reject { background: linear-gradient(135deg, #dc3545, #c82333); color: #fff; border: none; }
+    .btn-reject:hover { filter: brightness(1.03); }
+
+    /* Outline primary within cards */
+    .btn-outline-primary {
+      border-color: var(--primary-bank-blue);
+      color: var(--primary-bank-blue);
+    }
+    .btn-outline-primary:hover {
+      background: var(--primary-bank-blue);
+      color: #fff;
+    }
+
+    /* Themed badges inside component */
+    .badge.bg-warning { background: linear-gradient(135deg, #ffc107, #ff9800) !important; color:#000; font-weight:700; }
+    .badge.bg-info { background: linear-gradient(135deg, #17a2b8, #138496) !important; color:#fff; font-weight:700; }
+    .badge.bg-success { background: linear-gradient(135deg, #28a745, #20c997) !important; color:#fff; font-weight:700; }
+    .badge.bg-danger { background: linear-gradient(135deg, #dc3545, #c82333) !important; color:#fff; font-weight:700; }

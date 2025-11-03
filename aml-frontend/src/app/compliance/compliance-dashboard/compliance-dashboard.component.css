@@ -1,0 +1,148 @@
+    .card {
+      border: none;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      border-radius: 0.75rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+    }
+
+    .btn-sm {
+      font-size: 0.75rem;
+    }
+
+    /* Skeleton loaders */
+    .skeleton { background: linear-gradient(135deg, #f3f4f6, #e9ecef); color: transparent; }
+    .skeleton-line { height: 12px; border-radius: 6px; background: #dee2e6; }
+
+    /* Risk chips */
+    .risk-chip { display:inline-block; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #fff; }
+    .risk-low { background: linear-gradient(135deg, #28a745, #20c997); }
+    .risk-medium { background: linear-gradient(135deg, #ffc107, #ff9800); }
+    .risk-high { background: linear-gradient(135deg, #dc3545, #c82333); }
+
+    /* Status chip */
+    .status-chip { padding: 0.25rem 0.5rem; border-radius: 999px; background: var(--neutral-200, #eef2f7); color: var(--text-primary); font-size: 0.75rem; font-weight: 600; }
+    .status-in-progress { background: linear-gradient(135deg, #17a2b8, #138496); color: #fff; }
+    .status-under-investigation { background: linear-gradient(135deg, #6f42c1, #5a32a3); color: #fff; }
+    .status-on-hold { background: linear-gradient(135deg, #6c757d, #495057); color: #fff; }
+    .status-open { background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark)); color: #fff; }
+    .status-closed { background: linear-gradient(135deg, #28a745, #20c997); color: #fff; }
+
+    /* Sparklines */
+    .sparkline { display:flex; align-items:flex-end; gap:2px; height:28px; }
+    .sparkline span { width:6px; border-radius:2px; background: rgba(255,255,255,0.8); display:block; }
+
+    /* Stat cards */
+    .stat-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 0.75rem;
+      color: white;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.2);
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-label {
+      font-size: 0.825rem;
+      opacity: 0.95;
+    }
+    .stat-number {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .stat-warning { background: linear-gradient(135deg, #ffc107, #ff9800); }
+    .stat-danger  { background: linear-gradient(135deg, #dc3545, #c82333); }
+    .stat-info    { background: linear-gradient(135deg, #17a2b8, #138496); }
+    .stat-success { background: linear-gradient(135deg, #28a745, #20c997); }
+
+    /* Lists in cards */
+    .list-group-item {
+      border: none;
+      border-bottom: 1px solid #e9ecef;
+      padding: 0.75rem 0;
+    }
+    .list-group-item:last-child {
+      border-bottom: none;
+    }
+    .card-header {
+      padding: 0.875rem 1.25rem;
+      background: #ffffff;
+      border-bottom: 1px solid #e9ecef;
+      border-radius: 0.75rem 0.75rem 0 0 !important;
+    }
+    .btn-outline-primary {
+      border-color: var(--primary-bank-blue);
+      color: var(--primary-bank-blue);
+    }
+    .btn-outline-primary:hover {
+      background: var(--primary-bank-blue);
+      color: #fff;
+    }
+
+    /* Recent Alerts - improved presentation */
+    .alert-item {
+      border-radius: 0.5rem;
+      background: #fff;
+      padding: 0.9rem 0.25rem;
+    }
+    .alert-left { flex: 1 1 auto; }
+    .alert-title { margin-bottom: 0.25rem; }
+    .id-pill {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--primary-bank-blue);
+      background: rgba(46,163,242,0.12);
+      border: 1px solid rgba(46,163,242,0.25);
+    }
+    .alert-summary {
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0.25rem 0 0.35rem;
+    }
+    .alert-meta { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.82rem; }
+    .meta-item { display: inline-flex; align-items: center; }
+    .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--neutral-300, #dfe5ec); display: inline-block; }
+    .alert-right .btn { padding: 0.25rem 0.6rem; }
+    @media (max-width: 576px) {
+      .alert-item { flex-direction: column; gap: 0.5rem; }
+      .alert-right { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+    }
+
+    /* Active Investigations - improved presentation */
+    .case-item {
+      border-radius: 0.5rem;
+      background: #fff;
+      padding: 0.9rem 0.25rem;
+    }
+    .case-left { flex: 1 1 auto; }
+    .case-title { margin-bottom: 0.25rem; }
+    .case-summary { color: var(--text-primary); font-size: 0.95rem; margin: 0.25rem 0 0.35rem; }
+    .case-meta { display:flex; align-items:center; gap:0.5rem; color: var(--text-secondary); font-size: 0.82rem; }
+    .case-right { min-width: 160px; }
