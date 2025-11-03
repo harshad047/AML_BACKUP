@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BaseChartDirective } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { ComplianceAnalyticsService, ComplianceAnalyticsData } from '../../core/services/compliance-analytics.service';
 import * as XLSX from 'xlsx';
@@ -13,7 +13,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-compliance-reports',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, RouterModule, FormsModule, NgChartsModule],
   templateUrl: './compliance-reports.component.html',
   styleUrls: ['./compliance-reports.component.css']
 })

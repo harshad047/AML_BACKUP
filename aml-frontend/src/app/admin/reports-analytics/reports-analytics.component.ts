@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { BaseChartDirective } from 'ng2-charts';
+import { NgChartsModule } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartData, ChartType, registerables } from 'chart.js';
 import { AnalyticsService, AnalyticsData } from '../../core/services/analytics.service';
 import * as XLSX from 'xlsx';
@@ -13,7 +13,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-reports-analytics',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, BaseChartDirective],
+  imports: [CommonModule, RouterModule, FormsModule, NgChartsModule],
   templateUrl: './reports-analytics.component.html',
   styleUrls: ['./reports-analytics.component.css']
 })
