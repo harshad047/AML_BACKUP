@@ -441,10 +441,23 @@ export class ComplianceDashboardComponent implements OnInit {
       }
     });
 
-    // Load active investigations
+    // Load active investigations - filter to show only logged-in officer's cases
     this.complianceService.getCasesUnderInvestigation().subscribe({
       next: (cases) => {
-        this.activeInvestigations = cases.slice(0, 5);
+        // Filter cases to show only those assigned to the current user
+        const currentUsername = this.currentUser?.username;
+        const myCases = cases.filter(c => {
+          if (!c.assignedTo) return false;
+          // Handle both string and object assignedTo formats
+          const assignedTo: any = c.assignedTo;
+          if (typeof assignedTo === 'string') {
+            return assignedTo === currentUsername;
+          } else if (typeof assignedTo === 'object' && assignedTo.username) {
+            return assignedTo.username === currentUsername;
+          }
+          return false;
+        });
+        this.activeInvestigations = myCases.slice(0, 5);
       },
       error: (error) => {
         console.error('Error loading cases:', error);
