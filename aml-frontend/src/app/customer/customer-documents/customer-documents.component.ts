@@ -3,6 +3,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DocumentService, DocumentDto } from '../../core/services/document.service';
 import { trigger, state, style, transition, animate } from '@angular/animations';
+import { UploadRestrictionModalComponent } from './upload-restriction-modal.component';
+import { DocumentPreviewModalComponent } from './document-preview-modal.component';
 
 interface DocumentWithStatus {
   id: number;
@@ -38,7 +40,7 @@ interface DocumentWithStatus {
 @Component({
   selector: 'app-customer-documents',
   standalone: true,
-  imports: [CommonModule, DatePipe, ReactiveFormsModule],
+  imports: [CommonModule, DatePipe, ReactiveFormsModule, UploadRestrictionModalComponent, DocumentPreviewModalComponent],
   templateUrl: './customer-documents.component.html',
   styleUrls: ['./customer-documents.component.css'],
   animations: [
@@ -66,6 +68,16 @@ export class CustomerDocumentsComponent implements OnInit {
   selectedFile: File | null = null;
   isDragOver = false;
   isUploadFormExpanded = false;
+  
+  // Modal properties
+  showRestrictionModal = false;
+  modalDocumentType = '';
+  modalStatus = '';
+  modalRestrictionType: 'verified' | 'review' | 'restricted' = 'review';
+  
+  // Document preview modal properties
+  showPreviewModal = false;
+  previewDocument: DocumentWithStatus | null = null;
 
   constructor(private docs: DocumentService, private fb: FormBuilder) {
     this.uploadForm = this.fb.group({
@@ -293,17 +305,13 @@ export class CustomerDocumentsComponent implements OnInit {
 
   viewDocument(doc: DocumentWithStatus): void {
     console.log('Viewing document with ID:', doc.id);
+    this.previewDocument = doc;
+    this.showPreviewModal = true;
+  }
 
-    // Get the direct URL (should include storagePath now)
-    const directUrl = this.getDocumentUrl(doc);
-
-    if (directUrl) {
-      console.log('Opening document URL:', directUrl);
-      window.open(directUrl, '_blank');
-    } else {
-      console.error('No document URL found for document:', doc);
-      this.error = 'Document link not available. Please contact support.';
-    }
+  closePreviewModal(): void {
+    this.showPreviewModal = false;
+    this.previewDocument = null;
   }
 
   downloadDocument(doc: DocumentWithStatus): void {
@@ -445,7 +453,48 @@ export class CustomerDocumentsComponent implements OnInit {
 
   // Toggle upload form visibility
   toggleUploadForm(): void {
+    if (this.isUploadDisabled()) {
+      this.showUploadDisabledAlert();
+      return;
+    }
     this.isUploadFormExpanded = !this.isUploadFormExpanded;
+  }
+
+  showUploadDisabledAlert(): void {
+    // Find the blocking document to get details
+    const blockingDoc = this.documents.find(doc => {
+      const status = this.getStatus(doc).toUpperCase();
+      return status === 'UPLOADED' || 
+             status === 'PENDING' || 
+             status === 'VERIFIED' || 
+             status === 'UNDER_REVIEW' || 
+             status === 'IN_REVIEW' ||
+             status === 'APPROVED' ||
+             status === 'COMPLETED';
+    });
+
+    if (blockingDoc) {
+      const status = this.getStatus(blockingDoc);
+      this.modalDocumentType = this.getDocumentType(blockingDoc);
+      this.modalStatus = status;
+      
+      // Determine restriction type
+      if (status.toUpperCase() === 'VERIFIED' || status.toUpperCase() === 'APPROVED' || status.toUpperCase() === 'COMPLETED') {
+        this.modalRestrictionType = 'verified';
+      } else {
+        this.modalRestrictionType = 'review';
+      }
+    } else {
+      this.modalDocumentType = '';
+      this.modalStatus = '';
+      this.modalRestrictionType = 'restricted';
+    }
+
+    this.showRestrictionModal = true;
+  }
+
+  closeRestrictionModal(): void {
+    this.showRestrictionModal = false;
   }
 
   // Drag and Drop handlers
@@ -526,5 +575,59 @@ export class CustomerDocumentsComponent implements OnInit {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  // Upload restriction logic
+  isUploadDisabled(): boolean {
+    // Allow upload if no documents exist
+    if (this.documents.length === 0) {
+      return false;
+    }
+
+    // Check if any document has status: UPLOADED, PENDING, or VERIFIED
+    const hasActiveDocument = this.documents.some(doc => {
+      const status = this.getStatus(doc).toUpperCase();
+      return status === 'UPLOADED' || 
+             status === 'PENDING' || 
+             status === 'VERIFIED' || 
+             status === 'UNDER_REVIEW' || 
+             status === 'IN_REVIEW' ||
+             status === 'APPROVED' ||
+             status === 'COMPLETED';
+    });
+
+    // Disable upload if there's any active document
+    return hasActiveDocument;
+  }
+
+  getUploadRestrictionMessage(): string {
+    if (!this.isUploadDisabled()) {
+      return '';
+    }
+
+    // Find the document that's blocking upload
+    const blockingDoc = this.documents.find(doc => {
+      const status = this.getStatus(doc).toUpperCase();
+      return status === 'UPLOADED' || 
+             status === 'PENDING' || 
+             status === 'VERIFIED' || 
+             status === 'UNDER_REVIEW' || 
+             status === 'IN_REVIEW' ||
+             status === 'APPROVED' ||
+             status === 'COMPLETED';
+    });
+
+    if (blockingDoc) {
+      const status = this.getStatus(blockingDoc);
+      const docType = this.getDocumentType(blockingDoc);
+      
+      if (status.toUpperCase() === 'VERIFIED' || status.toUpperCase() === 'APPROVED' || status.toUpperCase() === 'COMPLETED') {
+        return `🔒 Document Already Verified\n\nYour ${docType} document has been successfully verified.\n\nYou cannot upload new documents at this time.\n\nIf you need to update your documents, please contact support.`;
+      } else {
+        return `⏳ Document Under Review\n\nYour ${docType} document is currently being reviewed (Status: ${status}).\n\nPlease wait for the review to complete before uploading new documents.\n\nYou will be able to upload a new document only if this one is rejected.`;
+      }
+    }
+
+    return '🚫 Upload Restricted\n\nDocument upload is currently not available.\n\nPlease contact support for assistance.';
   }
 }

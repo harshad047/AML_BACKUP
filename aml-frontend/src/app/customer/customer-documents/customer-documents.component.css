@@ -11,6 +11,23 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
+.upload-card.disabled {
+  opacity: 0.85;
+}
+
+.upload-card.disabled .upload-header {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  cursor: pointer !important;
+}
+
+.upload-card.disabled .upload-header:hover {
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+}
+
+.upload-card.disabled .upload-icon-wrapper {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 .upload-header {
   background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
   padding: 1.5rem;
