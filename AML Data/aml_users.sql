@@ -42,7 +42,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,_binary '','$2a$10$bGiMWNrFT0WJqmBOHOmaGui9bDjw9vnz3i/PEg6fa63IAaajAVbsO','CUSTOMER','john_doe','dhyey.shiyal@tssconsultancy.com','John','Doe'),(2,_binary '','$2a$10$RVcOifpQN/hsI5Zg8GL8t.aeBuxz6kSaAmtJ3zrpHSmBncErC8Nh.','ADMIN',NULL,'admin@aml.com','Admin','User'),(4,_binary '','$2a$10$x/DKjEVfPvg6qbIBxo.UD.qWRGVZm5cKuvI6J1eltRx59G6V8JkzG','ADMIN','admin_user','admin2@aml.com','Admin','User'),(5,_binary '','$2a$10$vJ44DAXuOnmgkGV6CwKPGOKtmHov.UfT0ectxfQto3wqoaWQts3G.','CUSTOMER','harshad_panchani','harshadkumar.panchani119400@marwadiuniversity.ac.in','Harshad','Panchani'),(6,_binary '','$2a$10$Uu7RMjUH1Cr07xpIynBAo.NFvXnUD2Vs2k.mxeKCJ1gFgRJkyxASy','CUSTOMER','rishit_rathod','rishit.rathod@tssconsultancy.com','Rishit','Rathod'),(7,_binary '','$2a$10$DiBqWJLz3UfwUL0bpjEzBOmudN0PuxnbwHFzVTsOEOy8jWa09c6Vm','OFFICER','john_smith_co','john.smith@company.com','John','Smith');
+INSERT INTO `users` VALUES (1,_binary '\0','$2a$10$m4NDEHR0KWGi4bMJqkX7G.cYZV6Ydw//Y5rvftnhYxeBZ2bQEQj0q','CUSTOMER','dhyey_shiyal','shiyald26@gmail.com','Dhyey','Shiyal'),(2,_binary '','$2a$10$DquslW.6YCg922oJe.zQL.n4MyNm3l5Umpr7WETJ3HkNoatEA8N0S','ADMIN','admin_user','admin@aml.com','Admin','User'),(3,_binary '','$2a$10$sT9p5k5QmnvC/zwOCVSSMOjmtUp2mP80DSjP4zLXRe7kqz3rK5PCq','CUSTOMER','harshad_panchani','harshadpanchani6939@gmail.com','Harshad','Panchani'),(6,_binary '','$2a$10$xYKIRcyzT4AcXBnUdAF0WOykA42Ovdw6y07/LNuWdIeAe0RZ/T3tS','OFFICER','Rishit_rarthod','dhyey.shiyal@tssconsultancy.com','Rishit ','Rathod'),(7,_binary '','$2a$10$Lig0WGYPiQO7uwwpA/OD.er1d4tQj6.DQekVL.d42xnWRuxa0lKG2','CUSTOMER','mahek_morzariya','cloudgenai45@gmail.com','Mahek','Morzariya');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -55,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-10-06 14:11:57
+-- Dump completed on 2025-11-04 11:01:26

@@ -37,8 +37,8 @@ CREATE TABLE `customers` (
   `middle_name` varchar(100) DEFAULT NULL,
   `password` varchar(100) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
-  `role` enum('ADMIN','CUSTOMER') NOT NULL,
   `username` varchar(255) NOT NULL,
+  `dob` varchar(20) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `UKrfbvkrffamfql7cjmen8v976v` (`email`),
   UNIQUE KEY `UKbepynu3b6l8k2ppuq6b33xfxc` (`username`)
@@ -51,7 +51,7 @@ CREATE TABLE `customers` (
 
 LOCK TABLES `customers` WRITE;
 /*!40000 ALTER TABLE `customers` DISABLE KEYS */;
-INSERT INTO `customers` VALUES (1,'Anytown','USA','12345','CA','123 Main St','2025-10-03 11:53:34.445367','dhyey.shiyal@tssconsultancy.com','John','PENDING','Doe','Q','$2a$10$Fs7ZYwzGpsYd.P2nriyiFOE9oWqU8gFkUgDmThy82PyVsdrLrvTDu','123-456-7890','ADMIN','john_doe'),(2,'Anytown','USA','12345','CA','123 Main St','2025-10-04 04:00:36.239164','harshadkumar.panchani119400@marwadiuniversity.ac.in','Harshad','PENDING','Panchani','A','$2a$10$vLAv5fK0F.YlCyPHW0PcteFY1lnG9ISoNJyv265Y8cR71FYYKBrzi','123-456-7891','ADMIN','harshad_panchani'),(3,NULL,NULL,NULL,NULL,NULL,'2025-10-04 08:42:22.322923','rishit.rathod@tssconsultancy.com','Rishit','PENDING','Rathod',NULL,'$2a$10$oKmycP..IbFgESG/0He/oeEe4l1QI6O0gINKr0IZztMdqDYoHQOTO',NULL,'ADMIN','rishit_rathod');
+INSERT INTO `customers` VALUES (1,'Porbandar','India','360575','Gujarat','Chowpati beach ','2025-10-29 04:39:34.301796','shiyald26@gmail.com','Dhyey','APPROVED','Shiyal','S','$2a$10$mTjfqUDLrA/6aeBQvjNrYeI0VQWGNJtqIsQzcKZaRnFyGZVvDa3ZW','7069423407','dhyey_shiyal','2003-06-15'),(2,'Porbandar','India','360575','Gujarat','Hmp colony','2025-10-29 04:54:31.328463','harshadpanchani6939@gmail.com','Harshad','APPROVED','Panchani','A','$2a$10$ARhqDMDNTs6QcuROq0gRSOpYdMevNRbS8QSU1aZ9kOAjBoLxCnO.K','9714838435','harshad_panchani','2005-02-21'),(3,'Porbandar','India','360575','Gujarat','Hmp colony','2025-10-31 05:35:18.202056','cloudgenai45@gmail.com','Mahek','APPROVED','Morzariya','M','$2a$10$XCF1VcJFjbhFljZePUU.KOf.gtNVHRpnLWqZx3eVLacrBgYIGEf7W','7069423407','mahek_morzariya','2003-06-15');
 /*!40000 ALTER TABLE `customers` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -64,4 +64,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-10-06 14:11:54
+-- Dump completed on 2025-11-04 11:01:22

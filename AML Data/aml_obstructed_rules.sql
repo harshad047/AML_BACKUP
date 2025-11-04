@@ -16,32 +16,35 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `investigation_note`
+-- Table structure for table `obstructed_rules`
 --
 
-DROP TABLE IF EXISTS `investigation_note`;
+DROP TABLE IF EXISTS `obstructed_rules`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `investigation_note` (
+CREATE TABLE `obstructed_rules` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `author` varchar(255) DEFAULT NULL,
-  `content` text,
-  `created_at` datetime(6) DEFAULT NULL,
-  `case_id` bigint DEFAULT NULL,
+  `details` varchar(255) DEFAULT NULL,
+  `evaluated_at` datetime(6) DEFAULT NULL,
+  `priority` int DEFAULT NULL,
+  `risk_weight` double DEFAULT NULL,
+  `rule_action` varchar(255) DEFAULT NULL,
+  `rule_id` bigint DEFAULT NULL,
+  `rule_name` varchar(255) DEFAULT NULL,
+  `alert_id` bigint DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FKp8j1r1sinfvkwj2qrhymecahu` (`case_id`),
-  CONSTRAINT `FKp8j1r1sinfvkwj2qrhymecahu` FOREIGN KEY (`case_id`) REFERENCES `cases` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `FK5kn18x5gwxg7s9665hq000wrh` (`alert_id`),
+  CONSTRAINT `FK5kn18x5gwxg7s9665hq000wrh` FOREIGN KEY (`alert_id`) REFERENCES `alert` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `investigation_note`
+-- Dumping data for table `obstructed_rules`
 --
 
-LOCK TABLES `investigation_note` WRITE;
-/*!40000 ALTER TABLE `investigation_note` DISABLE KEYS */;
-INSERT INTO `investigation_note` VALUES (1,'Rishit_rarthod','Case approved. Transaction 13 has been approved and processed. Case resolved.','2025-10-30 08:45:05.709174',2),(2,'Rishit_rarthod','Case approved. Transaction 12 has been approved and processed. Case resolved.','2025-10-30 08:45:10.380287',1),(3,'Rishit_rarthod','Case approved. Transaction 14 has been approved and processed. Case resolved.','2025-10-30 08:50:38.497609',3),(4,'Rishit_rarthod','Further Review Required','2025-10-31 09:43:10.027229',5);
-/*!40000 ALTER TABLE `investigation_note` ENABLE KEYS */;
+LOCK TABLES `obstructed_rules` WRITE;
+/*!40000 ALTER TABLE `obstructed_rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `obstructed_rules` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -53,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-04 11:01:19
+-- Dump completed on 2025-11-04 11:01:27

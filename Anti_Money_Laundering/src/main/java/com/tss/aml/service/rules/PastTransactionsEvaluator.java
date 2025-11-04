@@ -24,44 +24,59 @@ public class PastTransactionsEvaluator implements RuleEvaluator {
         try {
             customerId = Long.parseLong(input.getCustomerId());
         } catch (NumberFormatException e) {
-            // If customerId is not a valid number, return false
             return false;
         }
 
-        // Parse parameters from condition value (format: "lookbackDays|threshold")
-        String[] parts = condition.getValue().split("\\|");
-        if (parts.length < 2) {
-            System.out.println("    PastTransactionsEvaluator: invalid value format: " + condition.getValue());
-            return false;
-        }
+        int lookbackDays = 30; // default
+        String thresholdStr = null;
 
-        int lookbackDays;
-        String thresholdStr;
+        // Try to parse condition.getValue()
+        String value = condition.getValue().trim();
+        String[] parts = value.split("\\|");
+
         try {
-            lookbackDays = Integer.parseInt(parts[0].trim());
-            thresholdStr = parts[1].trim();
+            if (parts.length == 2) {
+                // Old format: "lookbackDays|threshold"
+                lookbackDays = Integer.parseInt(parts[0].trim());
+                thresholdStr = parts[1].trim();
+            } else if ("count".equalsIgnoreCase(condition.getField())) {
+                // For count rule, interpret value as lookbackDays
+                lookbackDays = Integer.parseInt(value);
+                thresholdStr = "0"; // default threshold (compare count to 0)
+            } else if ("sum".equalsIgnoreCase(condition.getField())) {
+                // For sum rule, interpret value as threshold amount
+                thresholdStr = value;
+                lookbackDays = 30; // default lookback window
+            }
         } catch (NumberFormatException e) {
-            System.out.println("    PastTransactionsEvaluator: invalid number format: " + condition.getValue());
+            System.out.println("PastTransactionsEvaluator: invalid value format: " + value);
             return false;
         }
 
-        // Get past transactions for this customer in the specified lookback period
+        // Get past transactions for this customer
         LocalDateTime lookbackTime = LocalDateTime.now().minusDays(lookbackDays);
-        List<Transaction> pastTransactions = transactionRepository.findByCustomerIdAndCreatedAtAfterOrderByCreatedAtDesc(
-                customerId,
-                lookbackTime
-        );
+        List<Transaction> pastTransactions = transactionRepository
+                .findByCustomerIdAndCreatedAtAfterOrderByCreatedAtDesc(customerId, lookbackTime);
 
+        // Evaluate rule
         if ("count".equalsIgnoreCase(condition.getField())) {
-            boolean result = compareNumber(pastTransactions.size(), condition.getOperator(), thresholdStr);
-            System.out.println("    PastTransactionsEvaluator (count): " + pastTransactions.size() + " " + condition.getOperator() + " " + thresholdStr + " = " + result + " (lookback: " + lookbackDays + " days)");
+            int count = pastTransactions.size();
+            boolean result = compareNumber(count, condition.getOperator(), thresholdStr);
+            System.out.printf(
+                    "PastTransactionsEvaluator (count): %d %s %s = %b (lookback: %d days)%n",
+                    count, condition.getOperator(), thresholdStr, result, lookbackDays
+            );
             return result;
         } else if ("sum".equalsIgnoreCase(condition.getField())) {
             BigDecimal totalAmount = pastTransactions.stream()
-                .map(Transaction::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(Transaction::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
             boolean result = compareNumber(totalAmount, condition.getOperator(), thresholdStr);
-            System.out.println("    PastTransactionsEvaluator (sum): " + totalAmount + " " + condition.getOperator() + " " + thresholdStr + " = " + result + " (lookback: " + lookbackDays + " days)");
+            System.out.printf(
+                    "PastTransactionsEvaluator (sum): %s %s %s = %b (lookback: %d days)%n",
+                    totalAmount, condition.getOperator(), thresholdStr, result, lookbackDays
+            );
             return result;
         }
 
@@ -88,4 +103,3 @@ public class PastTransactionsEvaluator implements RuleEvaluator {
         }
     }
 }
-
