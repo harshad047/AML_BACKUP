@@ -83,7 +83,7 @@
                 [(ngModel)]="selectedAccountNumber" 
                 (ngModelChange)="onAccountChange()">
           <option value="">All Accounts</option>
-          <option *ngFor="let acc of accounts" [value]="acc.accountNumber">
+          <option *ngFor="let acc of getActiveAndSuspendedAccounts()" [value]="acc.accountNumber">
             {{ acc.accountType }} ({{ acc.accountNumber }})
           </option>
         </select>
@@ -93,7 +93,7 @@
               [disabled]="transactions.length === 0" 
               title="Download statement as PDF">
         <i class="fas fa-file-pdf me-2"></i>
-        Download Statement
+        Generate Statement
       </button>
 
     </div>
@@ -186,7 +186,7 @@
               <label class="form-label">Account</label>
               <select class="form-select" [(ngModel)]="statementAccountNumber">
                 <option value="">All Accounts</option>
-                <option *ngFor="let acc of accounts" [value]="acc.accountNumber">
+                <option *ngFor="let acc of getActiveAndSuspendedAccounts()" [value]="acc.accountNumber">
                   {{ acc.accountType }} ({{ acc.accountNumber }})
                 </option>
               </select>

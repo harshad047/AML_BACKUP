@@ -220,6 +220,13 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     return 'amount-neutral';
   }
 
+  // Filter accounts to show only ACTIVE and SUSPENDED (exclude PENDING)
+  getActiveAndSuspendedAccounts(): AccountDto[] {
+    return this.accounts.filter(acc => 
+      acc.status === 'ACTIVE' || acc.status === 'SUSPENDED'
+    );
+  }
+
   hasObstructedRules(): boolean {
     const tx: any = this.selectedTransaction as any;
     const list = tx && Array.isArray(tx.obstructedRules) ? tx.obstructedRules : [];
@@ -374,27 +381,94 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
 
     const doc = new jsPDF();
     const filterText = this.filterStatus.charAt(0).toUpperCase() + this.filterStatus.slice(1);
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
 
     const effectiveAccountLabel = effectiveAccountNumber && effectiveAccountNumber !== ''
       ? effectiveAccountNumber
       : 'All Accounts';
 
-    // 1. Set Title and Header Info
-    doc.setFontSize(18);
-    doc.text('Account Statement', 14, 22);
+    // 1. Professional Header with Branding
+    // Header background
+    doc.setFillColor(13, 110, 253); // Primary blue color
+    doc.rect(0, 0, pageWidth, 35, 'F');
 
+    // Company/App Name
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TRANSPECT', 14, 15);
+
+    // Tagline
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Anti-Money Laundering Banking System', 14, 22);
+
+    // Statement Title
     doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Account Number: ${effectiveAccountLabel}`, 14, 32);
-    doc.text(`Generated On: ${this.datePipe.transform(new Date(), 'longDate')}`, 14, 38);
-    doc.text(`Filtered By: ${filterText} Transactions`, 14, 44);
+    doc.text('ACCOUNT STATEMENT', 14, 29);
+
+    // Add decorative line
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.line(14, 31, pageWidth - 14, 31);
+
+    // 2. Statement Information Section
+    let yPos = 45;
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
+    // Left column - Account Info
+    doc.setFont('helvetica', 'bold');
+    doc.text('Account Number:', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(effectiveAccountLabel, 55, yPos);
+
+    yPos += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Statement Period:', 14, yPos);
+    doc.setFont('helvetica', 'normal');
     if (dateFromLabel || dateToLabel) {
-      const range = `${dateFromLabel || 'Start'} to ${dateToLabel || 'End'}`;
-      doc.text(`Date Range: ${range}`, 14, 50);
+      const range = `${dateFromLabel || 'Beginning'} to ${dateToLabel || 'Present'}`;
+      doc.text(range, 55, yPos);
+    } else {
+      doc.text('All Transactions', 55, yPos);
     }
-    // Currency note
-    doc.text('All amounts are in INR (₹)', 14, dateFromLabel || dateToLabel ? 56 : 50);
-    const startY = (dateFromLabel || dateToLabel) ? 62 : 56;
+
+    yPos += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Transaction Filter:', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${filterText} Transactions`, 55, yPos);
+
+    // Right column - Generation Info
+    const rightX = pageWidth - 70;
+    yPos = 45;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Generated On:', rightX, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(this.datePipe.transform(new Date(), 'dd MMM yyyy, h:mm a') || '', rightX + 30, yPos);
+
+    yPos += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Currency:', rightX, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text('INR (₹)', rightX + 30, yPos);
+
+    yPos += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Records:', rightX, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(data.length.toString(), rightX + 30, yPos);
+
+    // Add separator line
+    yPos += 4;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(14, yPos, pageWidth - 14, yPos);
+
+    const startY = yPos + 6;
 
     // 2. Define Table Columns
     const head = [['Date', 'Type', 'Description', 'Status', 'Amount']];
@@ -408,34 +482,111 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
       this.currencyPipe.transform(t.amount, 'INR', '', '1.2-2') || '-'
     ]);
 
-    // 4. Generate the table using autoTable
+    // 4. Generate the table using autoTable with enhanced styling
     autoTable(doc, {
       head,
       body,
       startY,
-      theme: 'grid',
+      theme: 'striped',
       headStyles: {
         fillColor: [13, 110, 253],
-        textColor: 255,
-        fontStyle: 'bold'
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 10,
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 9,
+        textColor: [60, 60, 60]
+      },
+      alternateRowStyles: {
+        fillColor: [245, 247, 250]
       },
       columnStyles: {
-        4: { halign: 'right' }
+        0: { cellWidth: 38 },  // Date
+        1: { cellWidth: 32 },  // Type
+        2: { cellWidth: 55 },  // Description
+        3: { cellWidth: 28, halign: 'center' },  // Status
+        4: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }  // Amount
       },
-      didDrawPage: (data) => {
-        doc.setFontSize(10);
-        doc.setTextColor(150);
+      margin: { top: 35, bottom: 30, left: 14, right: 14 },
+      didDrawPage: (data: { pageNumber: number }) => {
+        // Footer section
+        const footerY = pageHeight - 20;
+        
+        // Footer separator line
+        doc.setDrawColor(13, 110, 253);
+        doc.setLineWidth(0.5);
+        doc.line(14, footerY - 5, pageWidth - 14, footerY - 5);
+        
+        // Footer content
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.setFont('helvetica', 'normal');
+        
+        // Left side - Company info
+        doc.text('TRANSPECT - AML Banking System', 14, footerY);
+        doc.text('Secure • Compliant • Transparent', 14, footerY + 4);
+        
+        // Center - Disclaimer
+        doc.setFontSize(7);
+        doc.setTextColor(120, 120, 120);
+        const disclaimerText = 'This is a system-generated statement and does not require a signature.';
+        const textWidth = doc.getTextWidth(disclaimerText);
+        doc.text(disclaimerText, (pageWidth - textWidth) / 2, footerY + 8);
+        
+        // Right side - Page number
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
         const pageCount = (doc as any).internal.getNumberOfPages();
-        doc.text(`Page ${data.pageNumber} of ${pageCount}`, doc.internal.pageSize.width - 28, doc.internal.pageSize.height - 10);
+        const pageText = `Page ${data.pageNumber} of ${pageCount}`;
+        const pageTextWidth = doc.getTextWidth(pageText);
+        doc.text(pageText, pageWidth - 14 - pageTextWidth, footerY);
+        
+        // Confidential notice
+        doc.setFontSize(7);
+        doc.setTextColor(150, 150, 150);
+        const confText = 'CONFIDENTIAL - For account holder use only';
+        const confTextWidth = doc.getTextWidth(confText);
+        doc.text(confText, pageWidth - 14 - confTextWidth, footerY + 4);
       }
     });
 
-    // 5. Save the PDF
-    const accountFilePart = effectiveAccountLabel === 'All Accounts' ? 'all' : effectiveAccountLabel;
-    const datePart = this.tempDateFrom || this.tempDateTo
-      ? `${this.tempDateFrom || 'start'}_${this.tempDateTo || 'end'}`
-      : this.datePipe.transform(new Date(), 'yyyy-MM-dd');
-    doc.save(`statement-${accountFilePart}-${datePart}.pdf`);
+    // 5. Add summary section after table
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    
+    // Calculate totals
+    const totalAmount = data.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const approvedCount = data.filter(t => t.status?.toLowerCase() === 'approved').length;
+    const flaggedCount = data.filter(t => t.status?.toLowerCase() === 'flagged').length;
+    const blockedCount = data.filter(t => t.status?.toLowerCase() === 'blocked').length;
+    
+    // Summary box
+    if (finalY < pageHeight - 60) {
+      doc.setDrawColor(13, 110, 253);
+      doc.setLineWidth(0.5);
+      doc.line(14, finalY, pageWidth - 14, finalY);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Transaction Summary', 14, finalY + 8);
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total Transactions: ${data.length}`, 14, finalY + 15);
+      doc.text(`Approved: ${approvedCount}`, 14, finalY + 21);
+      doc.text(`Flagged: ${flaggedCount}`, 70, finalY + 21);
+      doc.text(`Blocked: ${blockedCount}`, 120, finalY + 21);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total Amount: ${this.currencyPipe.transform(totalAmount, 'INR', 'symbol', '1.2-2')}`, 14, finalY + 27);
+    }
+
+    // 6. Save the PDF with professional filename
+    const accountFilePart = effectiveAccountLabel === 'All Accounts' ? 'AllAccounts' : effectiveAccountLabel.replace(/[^a-zA-Z0-9]/g, '');
+    const datePart = this.datePipe.transform(new Date(), 'yyyyMMdd-HHmmss');
+    doc.save(`TRANSPECT-Statement-${accountFilePart}-${datePart}.pdf`);
   }
   // --- END: New PDF Generation Method ---
 
