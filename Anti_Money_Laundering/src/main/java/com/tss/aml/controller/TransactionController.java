@@ -19,7 +19,7 @@ import com.tss.aml.dto.transaction.IntercurrencyTransferDto;
 import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.dto.transaction.TransferDto;
 import com.tss.aml.dto.transaction.WithdrawalDto;
-import com.tss.aml.service.TransactionService;
+import com.tss.aml.service.impl.TransactionServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'CUSTOMER')")
 public class TransactionController {
 
-    private final TransactionService txService;
+    private final TransactionServiceImpl txService;
 
     @PostMapping("/deposit")
     public ResponseEntity<TransactionDto> deposit(@RequestBody DepositDto depositDto) {

@@ -19,8 +19,8 @@ import com.tss.aml.entity.User;
 import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
-import com.tss.aml.service.EmailService;
-import com.tss.aml.service.OtpService;
+import com.tss.aml.service.impl.EmailService;
+import com.tss.aml.service.impl.OtpService;
 
 import jakarta.validation.constraints.NotBlank;
 

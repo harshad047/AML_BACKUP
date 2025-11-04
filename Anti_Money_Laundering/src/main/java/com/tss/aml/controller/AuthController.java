@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tss.aml.dto.Auth.AuthResponse;
 import com.tss.aml.dto.Auth.LoginDto;
-import com.tss.aml.service.AuthService;
+import com.tss.aml.service.impl.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")

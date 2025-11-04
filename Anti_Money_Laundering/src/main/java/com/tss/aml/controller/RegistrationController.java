@@ -20,9 +20,9 @@ import com.tss.aml.dto.Auth.RegistrationRequest;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
 import com.tss.aml.repository.CustomerRepository;
-import com.tss.aml.service.CloudinaryService;
-import com.tss.aml.service.EmailService;
-import com.tss.aml.service.RegistrationService;
+import com.tss.aml.service.impl.CloudinaryService;
+import com.tss.aml.service.impl.EmailService;
+import com.tss.aml.service.impl.RegistrationServiceImpl;
 import com.tss.aml.util.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -32,7 +32,7 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "*") // Allow requests from all origins
 public class RegistrationController {
 
-    @Autowired private RegistrationService regService;
+    @Autowired private RegistrationServiceImpl regService;
     @Autowired private JwtUtil jwtUtil;
     @Autowired private EmailService emailService;
     @Autowired private CloudinaryService cloudinaryService;

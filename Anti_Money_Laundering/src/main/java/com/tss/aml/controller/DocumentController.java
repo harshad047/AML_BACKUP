@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tss.aml.entity.Document;
-import com.tss.aml.service.DocumentService;
+import com.tss.aml.service.impl.DocumentServiceImpl;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -26,7 +26,7 @@ import com.tss.aml.service.DocumentService;
 public class DocumentController {
 
     @Autowired
-    private DocumentService documentService;
+    private DocumentServiceImpl documentService;
 
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file,

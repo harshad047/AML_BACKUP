@@ -1,0 +1,116 @@
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-form">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold text-primary mb-2">Welcome Back</h3>
+        <p class="text-muted mb-0">Sign in to your account</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email address</label>
+          <input
+            type="email"
+            class="form-control form-control-lg"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [class.is-invalid]="isFieldInvalid('email')"
+          >
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+            Please enter a valid email address
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <div class="input-group input-group-lg">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              class="form-control"
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              [class.is-invalid]="isFieldInvalid('password')"
+            >
+            <button 
+              class="btn btn-outline-secondary" 
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+              <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+            </button>
+          </div>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+            Password is required
+          </div>
+        </div>
+
+        <!-- Captcha Section -->
+        <div class="mb-3">
+          <label for="captcha" class="form-label">Verification Code</label>
+          <div class="captcha-container mb-2">
+            <canvas #captchaCanvas class="captcha-canvas"></canvas>
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-refresh"
+              (click)="generateCaptcha()"
+              title="Refresh captcha">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <input
+            type="text"
+            class="form-control form-control-lg"
+            id="captcha"
+            formControlName="captcha"
+            placeholder="Enter the code shown above"
+            [class.is-invalid]="isFieldInvalid('captcha') || captchaError"
+            autocomplete="off"
+          >
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('captcha')">
+            Please enter the verification code
+          </div>
+        </div>
+
+        <div class="d-grid">
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg"
+            [disabled]="loginForm.invalid || isLoading"
+          >
+            <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            {{ isLoading ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </div>
+
+        <div class="text-center mt-3">
+          <a routerLink="/auth/forgot-password" class="text-decoration-none">Forgot password?</a>
+        </div>
+      </form>
+
+      <div class="text-center mt-4">
+        <p class="mb-0">Don't have an account?
+          <a routerLink="/auth/register" class="text-decoration-none fw-bold">Sign up</a>
+        </p>
+      </div>
+    </div>
+    <div class="login-branding">
+      <div class="branding-content">
+        <div class="simple-branding">
+          <div class="branding-logo-container">
+            <div class="branding-logo-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h1 class="branding-logo-title">TRANSPECT</h1>
+          </div>
+          <p class="subtitle">Anti-Money Laundering Platform</p>
+          <div class="divider"></div>
+          <p class="description">
+            Secure, compliant, and intelligent financial monitoring system designed to detect and prevent money laundering activities.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

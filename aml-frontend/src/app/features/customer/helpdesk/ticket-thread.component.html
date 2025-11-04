@@ -1,0 +1,120 @@
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="thread-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="mb-1"><i class="fas fa-comments me-2"></i>Ticket Conversation</h2>
+          <p class="mb-0 opacity-75">View and respond to your support ticket</p>
+        </div>
+        <a class="btn btn-light" routerLink="/customer/helpdesk/tickets">
+          <i class="fas fa-arrow-left me-2"></i>Back to My Tickets
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Information Card -->
+  <div class="ticket-info-card" *ngIf="ticket">
+    <div class="row align-items-center mb-3">
+      <div class="col-md-8">
+        <h4 class="mb-2">
+          <i class="fas fa-ticket-alt me-2 text-primary"></i>{{ ticket.subject }}
+        </h4>
+      </div>
+      <div class="col-md-4 text-end">
+        <span class="status-badge status-{{ ticket.status }}">
+          <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>{{ ticket.status }}
+        </span>
+      </div>
+    </div>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label"><i class="fas fa-hashtag me-1"></i>Ticket ID</div>
+        <div class="info-value">#{{ ticket.id }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label"><i class="fas fa-exchange-alt me-1"></i>Transaction</div>
+        <div class="info-value">
+          <span class="transaction-badge-large">#{{ ticket.transactionId }}</span>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label"><i class="fas fa-clock me-1"></i>Created</div>
+        <div class="info-value">{{ ticket.createdAt | date:'medium' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="card shadow-sm" *ngIf="loading">
+    <div class="card-body text-center py-5">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading conversation...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="alert alert-danger" *ngIf="error && !loading">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+  </div>
+
+  <!-- Messages Container -->
+  <div class="messages-container" *ngIf="!loading && !error">
+    <div *ngIf="messages.length === 0" class="empty-messages">
+      <i class="fas fa-comments"></i>
+      <h5 class="mt-3">No Messages Yet</h5>
+      <p class="text-muted">Your conversation will appear here</p>
+    </div>
+
+    <div *ngFor="let m of messages" 
+         class="message-bubble" 
+         [ngClass]="m.senderType === 'CUSTOMER' ? 'customer-message' : 'officer-message'">
+      <div class="message-content">
+        <div class="message-header">
+          <span class="sender-badge" 
+                [ngClass]="m.senderType === 'CUSTOMER' ? 'customer-badge' : 'officer-badge'">
+            <i class="fas" [ngClass]="m.senderType === 'CUSTOMER' ? 'fa-user' : 'fa-user-tie'"></i>
+            {{ m.senderType }}
+          </span>
+          <span class="message-time">{{ m.createdAt | date:'short' }}</span>
+        </div>
+        <div class="message-text">{{ m.content }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-controls" *ngIf="!loading && messages.length > 0 && total > pageSize">
+    <button class="btn btn-outline-secondary btn-sm" [disabled]="pageIndex===0" (click)="onPageChange(-1)">
+      <i class="fas fa-chevron-left me-2"></i>Previous
+    </button>
+    <div class="text-muted">
+      Page <strong>{{ pageIndex + 1 }}</strong> of <strong>{{ Math.max(1, Math.ceil(total / pageSize)) }}</strong>
+    </div>
+    <button class="btn btn-outline-secondary btn-sm" [disabled]="(pageIndex+1)*pageSize >= total" (click)="onPageChange(1)">
+      Next<i class="fas fa-chevron-right ms-2"></i>
+    </button>
+  </div>
+
+  <!-- Reply Section -->
+  <div class="reply-section">
+    <h5 class="mb-3"><i class="fas fa-reply me-2"></i>Your Message</h5>
+    <div class="mb-3">
+      <textarea 
+        class="form-control reply-textarea" 
+        rows="4" 
+        [(ngModel)]="newMessage" 
+        placeholder="Type your message to the support team..."></textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-send" (click)="send()" [disabled]="!newMessage.trim()">
+        <i class="fas fa-paper-plane me-2"></i>Send Message
+      </button>
+    </div>
+    <small class="text-muted d-block mt-2">
+      <i class="fas fa-info-circle me-1"></i>
+      Our support team will respond to your message within 24-48 hours.
+    </small>
+  </div>
+</div>

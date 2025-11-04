@@ -1,20 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { NavbarComponent } from './shared/navbar/navbar.component';
-import { ToastContainerComponent } from './shared/toast/toast-container.component';
+import { NavbarComponent } from './shared/components/navbar/navbar.component';
+import { ToastContainerComponent } from './shared/components/toast/toast-container.component';
 import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, ToastContainerComponent, CommonModule],
+  imports: [RouterOutlet, NavbarComponent, CommonModule, ToastContainerComponent],
   template: `
     <app-navbar *ngIf="showNavbar"></app-navbar>
-    <app-toast-container></app-toast-container>
     <main [class.with-navbar]="showNavbar" [class.auth-page]="!showNavbar">
       <router-outlet></router-outlet>
     </main>
+    <app-toast-container></app-toast-container>
   `,
   styles: [`
     main.with-navbar {
@@ -29,6 +29,7 @@ import { filter } from 'rxjs/operators';
   `]
 })
 export class AppComponent implements OnInit {
+  title = 'AML Banking System';
   showNavbar = false;
 
   constructor(private router: Router) {}
@@ -49,8 +50,8 @@ export class AppComponent implements OnInit {
     // Get the URL without query parameters
     const urlWithoutParams = url.split('?')[0];
     
-    // Hide navbar for authentication routes (check if URL starts with these paths)
-    const authRoutes = ['/login', '/register', '/otp-verification', '/forgot-password'];
+    // Hide navbar for authentication routes
+    const authRoutes = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/otp-verification'];
     this.showNavbar = !authRoutes.some(route => urlWithoutParams.startsWith(route) || urlWithoutParams === '/');
   }
 }

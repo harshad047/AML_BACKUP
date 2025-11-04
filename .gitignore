@@ -2,3 +2,6 @@
 
 aml-frontend/node_modules
 aml-frontend/.angular
+
+# Backup folders
+aml-frontend/src/app_backup_*

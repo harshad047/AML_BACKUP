@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../models/helpdesk.models';
+import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../../shared/models/helpdesk.models';
 
 @Injectable({ providedIn: 'root' })
 export class HelpdeskApiService {

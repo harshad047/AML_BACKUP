@@ -72,7 +72,6 @@ public class PatternDepositWithdrawEvaluator implements RuleEvaluator {
 
         // --- Step 5: Flag if pattern threshold reached ---
         if (pairCount >= requiredPairs) {
-            // This means the next transaction (after 3 pairs) is suspicious
             return true;
         }
 

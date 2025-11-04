@@ -1,0 +1,406 @@
+<div class="container py-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="mb-1">All Transactions</h3>
+      <p class="text-muted small mb-0">View and manage your transaction history</p>
+    </div>
+    <a class="btn btn-primary btn-modern" [routerLink]="['/customer/transactions/new']">
+      <i class="fas fa-plus me-2"></i>
+      New Transaction
+    </a>
+  </div>
+
+  <!-- Transaction Statistics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card total-card">
+        <div class="stat-icon">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getTotalTransactions() }}</h4>
+          <p class="stat-label">Total</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card approved-card">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getApprovedTransactions() }}</h4>
+          <p class="stat-label">Approved</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card flagged-card">
+        <div class="stat-icon">
+          <i class="fas fa-flag"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getFlaggedTransactionsOnly() }}</h4>
+          <p class="stat-label">Flagged</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+      <div class="stat-card blocked-card">
+        <div class="stat-icon">
+          <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content">
+          <h4 class="stat-count">{{ getBlockedTransactions() }}</h4>
+          <p class="stat-label">Blocked</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+      <div class="d-flex align-items-center gap-2">
+        <label class="filter-label">
+          <i class="fas fa-filter me-2"></i>Filter:
+        </label>
+        <select class="form-select filter-select" [ngModel]="filterStatus" (ngModelChange)="onFilterChange($event)">
+          <option value="all">All transactions</option>
+          <option value="approved">Approved transactions</option>
+          <option value="flagged">Flagged transactions</option>
+          <option value="blocked">Blocked transactions</option>
+          <option value="pending">Pending transactions</option>
+        </select>
+      </div>
+
+      <div class="d-flex align-items-center gap-2" *ngIf="accounts.length > 0">
+        <label class="filter-label">
+          <i class="fas fa-university me-2"></i>Account:
+        </label>
+        <select class="form-select filter-select" 
+                [(ngModel)]="selectedAccountNumber" 
+                (ngModelChange)="onAccountChange()">
+          <option value="">All Accounts</option>
+          <option *ngFor="let acc of accounts" [value]="acc.accountNumber">
+            {{ acc.accountType }} ({{ acc.accountNumber }})
+          </option>
+        </select>
+      </div>
+      <button class="btn btn-outline-primary ms-auto" 
+              (click)="openStatementModal()"
+              [disabled]="transactions.length === 0" 
+              title="Download statement as PDF">
+        <i class="fas fa-file-pdf me-2"></i>
+        Download Statement
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="transactions-card">
+    <div class="card-body p-0">
+      <div class="text-center text-muted py-5" *ngIf="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading transactions...</p>
+      </div>
+      <div class="alert alert-danger m-3" *ngIf="error">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+      </div>
+      <div class="table-responsive" *ngIf="!loading && transactions.length > 0">
+        <table class="table modern-table mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of transactions; index as i" class="transaction-row">
+              <td><span class="row-number">{{ i + 1 }}</span></td>
+              <td>
+                <div class="transaction-type">
+                  <div class="type-icon" [ngClass]="getTypeIconClass(t)">
+                    <i class="fas" [ngClass]="getTypeIcon(t)"></i>
+                  </div>
+                  <strong>{{ getTransactionType(t) }}</strong>
+                </div>
+              </td>
+              <td>
+                <span class="amount-text" [ngClass]="getAmountClass(t)">
+                  {{ t.amount | currency:'INR':'symbol':'1.2-2' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge status-badge" [ngClass]="statusClass(t.status)">
+                  {{ getStatusText(t) }}
+                </span>
+              </td>
+              <td class="text-muted">{{ t.createdAt | date:'short' }}</td>
+              <td class="text-muted">{{ t.description || '-' }}</td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-sm btn-view" (click)="viewTransactionDetails(t)" title="View Details">
+                    <i class="fas fa-eye me-1"></i>View
+                  </button>
+                  <button *ngIf="canRaiseTicket(t)" class="btn btn-sm btn-outline-warning" (click)="openTicketModal(t)" title="Raise Support Ticket">
+                    <i class="fas fa-headset me-1"></i>Raise Ticket
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="!loading && transactions.length === 0">
+        <div class="empty-icon">
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h5>No transactions found</h5>
+        <p class="text-muted">Start by creating a new transaction</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Statement Modal -->
+  <div class="modal fade" id="statementModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-file-pdf me-2"></i>Generate Statement</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small">Select an account and optional date range. Leave blank to include all transactions.</p>
+          <div class="row g-3">
+            <div class="col-12" *ngIf="accounts.length > 0">
+              <label class="form-label">Account</label>
+              <select class="form-select" [(ngModel)]="statementAccountNumber">
+                <option value="">All Accounts</option>
+                <option *ngFor="let acc of accounts" [value]="acc.accountNumber">
+                  {{ acc.accountType }} ({{ acc.accountNumber }})
+                </option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">From</label>
+              <input type="date" class="form-control" [(ngModel)]="tempDateFrom"/>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">To</label>
+              <input type="date" class="form-control" [(ngModel)]="tempDateTo"/>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="clearTempDates()">Clear dates</button>
+          <button type="button" class="btn btn-primary" (click)="applyDatesAndGenerate()" [disabled]="transactions.length === 0">
+            <i class="fas fa-download me-2"></i>Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Details Modal -->
+  <div class="modal fade" id="transactionModal" tabindex="-1" *ngIf="selectedTransaction">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title">
+              <i class="fas fa-file-invoice me-2"></i>Transaction Details
+            </h5>
+            <p class="text-muted small mb-0">Transaction ID: #{{ selectedTransaction.id }}</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Transaction Overview -->
+          <div class="detail-section">
+            <h6 class="section-title">
+              <i class="fas fa-info-circle me-2"></i>Overview
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Transaction Type</label>
+                  <div class="detail-value">
+                    <span class="type-badge" [ngClass]="getTypeIconClass(selectedTransaction)">
+                      <i class="fas" [ngClass]="getTypeIcon(selectedTransaction)"></i>
+                      {{ getTransactionType(selectedTransaction) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Amount</label>
+                  <div class="detail-value amount-large">
+                    {{ selectedTransaction.amount | currency:'INR':'symbol':'1.2-2' }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Status</label>
+                  <div class="detail-value">
+                    <span class="badge status-badge" [ngClass]="statusClass(selectedTransaction.status)">
+                      {{ getStatusText(selectedTransaction) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>Date & Time</label>
+                  <div class="detail-value">{{ selectedTransaction.createdAt | date:'medium' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Information -->
+          <div class="detail-section">
+            <h6 class="section-title">
+              <i class="fas fa-university me-2"></i>Account Information
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>From Account</label>
+                  <div class="detail-value">{{ selectedTransaction.fromAccountNumber || 'N/A' }}</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="detail-item">
+                  <label>To Account</label>
+                  <div class="detail-value">{{ selectedTransaction.toAccountNumber || 'N/A' }}</div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="detail-item">
+                  <label>Description</label>
+                  <div class="detail-value">{{ selectedTransaction.description || 'No description provided' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Obstructed Rules -->
+          <div class="detail-section" *ngIf="hasObstructedRules()">
+            <h6 class="section-title">
+              <i class="fas fa-exclamation-circle me-2"></i>Triggered Rules
+            </h6>
+            <div class="rules-list">
+              <div class="rule-item" *ngFor="let rule of getObstructedRules()">
+                <div class="rule-header">
+                  <span class="rule-name">{{ rule.ruleName }}</span>
+                  <span class="badge" [ngClass]="getRuleActionClass(rule.action)">{{ rule.action }}</span>
+                </div>
+                <div class="rule-details">
+                  <span class="rule-meta">Risk Weight: {{ rule.riskWeight }} | Priority: {{ rule.priority }}</span>
+                </div>
+                <div class="rule-description" *ngIf="rule.details">{{ rule.details }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="detail-section" *ngIf="selectedTransaction.transactionReference || selectedTransaction.alertId">
+            <h6 class="section-title">
+              <i class="fas fa-clipboard-list me-2"></i>Additional Information
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6" *ngIf="selectedTransaction.transactionReference">
+                <div class="detail-item">
+                  <label>Transaction Reference</label>
+                  <div class="detail-value">{{ selectedTransaction.transactionReference }}</div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngIf="selectedTransaction.alertId">
+                <div class="detail-item">
+                  <label>Alert ID</label>
+                  <div class="detail-value">{{ selectedTransaction.alertId }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raise Ticket Modal -->
+  <div class="modal fade" id="ticketModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header bg-warning text-dark">
+          <div>
+            <h5 class="modal-title">
+              <i class="fas fa-headset me-2"></i>Raise Support Ticket
+            </h5>
+            <p class="small mb-0" *ngIf="ticketTransaction">
+              Transaction #{{ ticketTransaction.id }} - {{ ticketTransaction.status }}
+            </p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-success" *ngIf="ticketSuccess">
+            <i class="fas fa-check-circle me-2"></i>{{ ticketSuccess }}
+          </div>
+          <div class="alert alert-danger" *ngIf="ticketError">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ ticketError }}
+          </div>
+
+          <form [formGroup]="ticketForm" (ngSubmit)="submitTicket()">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Subject *</label>
+              <input type="text" class="form-control" formControlName="subject" 
+                     placeholder="Brief description of your issue" maxlength="200">
+              <small class="text-muted">Maximum 200 characters</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Message *</label>
+              <textarea class="form-control" formControlName="message" rows="5"
+                        placeholder="Please describe your issue in detail..." maxlength="1000"></textarea>
+              <small class="text-muted">Maximum 1000 characters</small>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Note:</strong> Our compliance team will review your ticket and respond within 24-48 hours.
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-warning" [disabled]="ticketForm.invalid || submittingTicket">
+                <span *ngIf="submittingTicket" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!submittingTicket" class="fas fa-paper-plane me-2"></i>
+                {{ submittingTicket ? 'Submitting...' : 'Submit Ticket' }}
+              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
