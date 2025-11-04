@@ -287,13 +287,16 @@
 
             <div class="col-md-4 mb-3">
               <label for="country" class="form-label">Country</label>
-              <input
-                type="text"
-                class="form-control"
+              <select
+                class="form-select"
                 id="country"
                 formControlName="country"
-                placeholder="India"
               >
+                <option value="">Select Country</option>
+                <option *ngFor="let country of countries" [value]="country.code">
+                  {{ country.name }}
+                </option>
+              </select>
             </div>
 
             <div class="col-md-4 mb-3">
