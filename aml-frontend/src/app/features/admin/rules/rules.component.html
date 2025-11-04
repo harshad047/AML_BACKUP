@@ -119,73 +119,141 @@
 
         <!-- Conditions -->
         <div class="mb-3">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label mb-0">Conditions</label>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <label class="form-label mb-0 fw-semibold">Conditions</label>
             <button type="button" class="btn btn-sm btn-outline-primary" (click)="addCondition()">
               <i class="fas fa-plus me-1"></i>Add Condition
             </button>
           </div>
 
-          <div formArrayName="conditions">
-            <div *ngFor="let condition of conditions.controls; let i = index" [formGroupName]="i" class="condition-row mb-3 p-3 border rounded bg-light">
-              <div class="row g-2">
-                <div class="col-md-3">
-                  <label class="form-label small fw-bold">Condition Type</label>
-                  <select class="form-select form-select-sm" formControlName="type">
-                    <option value="AMOUNT">Amount</option>
-                    <option value="COUNTRY_RISK">Country Risk</option>
-                    <option value="NLP_SCORE">NLP Score</option>
-                    <option value="KEYWORD_MATCH">Keyword Match</option>
-                    <option value="PAST_TRANSACTIONS">Past Transactions</option>
-                    <option value="VELOCITY">Velocity</option>
-                    <option value="STRUCTURING">Structuring</option>
-                    <option value="BEHAVIORAL_DEVIATION">Behavioral Deviation</option>
-                    <option value="AMOUNT_BALANCE_RATIO">Amount Balance Ratio</option>
-                    <option value="DAILY_TOTAL">Daily Total</option>
-                    <option value="NEW_COUNTERPARTY">New Counterparty</option>
-                    <option value="PATTERN_DEPOSIT_WITHDRAW">Pattern Deposit/Withdraw</option>
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <label class="form-label small fw-bold">Field</label>
-                  <select class="form-select form-select-sm" formControlName="field">
-                    <option value="amount">amount (numeric)</option>
-                    <option value="countryCode">countryCode (risk score)</option>
-                    <option value="nlpScore">nlpScore (0-100)</option>
-                    <option value="text">text (description/keywords)</option>
-                    <option value="count">count (velocity)</option>
-                    <option value="ratio">ratio (balance ratio)</option>
-                    <option value="transactionType">transactionType</option>
-                    <option value="customerId">customerId</option>
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label small fw-bold">Operator</label>
-                  <select class="form-select form-select-sm" formControlName="operator">
-                    <option value=">">></option>
-                    <option value=">=">>=</option>
-                    <option value="<"><</option>
-                    <option value="<="><=</option>
-                    <option value="==">==</option>
-                  </select>
-                </div>
-                <div class="col-md-2">
-                  <label class="form-label small fw-bold">Value</label>
-                  <input type="text" class="form-control form-control-sm" formControlName="value" 
-                         placeholder="See help below" 
-                         title="Format depends on condition type" />
-                </div>
-                <div class="col-md-1">
-                  <label class="form-label small fw-bold">Active</label>
-                  <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" formControlName="active" [id]="'cond-active-' + i">
+          <!-- Conditions Container -->
+          <div class="conditions-container" *ngIf="conditions.length > 0">
+            <!-- Table Header -->
+            <div class="conditions-table-header">
+              <div>Condition Type</div>
+              <div>Field</div>
+              <div>Operator</div>
+              <div>Values</div>
+              <div>Active</div>
+              <div></div>
+            </div>
+
+            <!-- Condition Rows -->
+            <div formArrayName="conditions">
+              <div *ngFor="let condition of conditions.controls; let i = index" 
+                   [formGroupName]="i" 
+                   class="condition-row">
+                
+                <!-- Condition Type Row (Top) -->
+                <div style="padding: 1rem 1rem 0.5rem 1rem;">
+                  <div class="row g-2 align-items-center">
+                    <div class="col-md-6">
+                      <label class="form-label mb-1" style="font-size: 0.75rem; color: #6b7280;">Condition Type</label>
+                      <select class="form-select" formControlName="type" (change)="onConditionTypeChange(i)">
+                        <option *ngFor="let type of conditionTypes" [value]="type.value">{{ type.label }}</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6 text-end">
+                      <label class="form-label mb-1" style="font-size: 0.75rem; color: #6b7280;">Active</label>
+                      <div class="d-flex align-items-center justify-content-end gap-3">
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" formControlName="active" [id]="'cond-active-' + i">
+                          <label class="form-check-label" [for]="'cond-active-' + i" style="font-size: 0.875rem;">
+                            {{ condition.get('active')?.value ? 'Active' : 'Inactive' }}
+                          </label>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm" (click)="removeCondition(i)" title="Remove Condition">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="col-md-1">
-                  <label class="form-label small fw-bold">&nbsp;</label>
-                  <button type="button" class="btn btn-danger btn-sm w-100" (click)="removeCondition(i)" title="Remove Condition">
-                    <i class="fas fa-trash"></i>
-                  </button>
+
+                <!-- Values Row (Below) -->
+                <div style="padding: 0 1rem 1rem 1rem;">
+                  <div class="row g-2">
+                    <!-- Field (if needed) -->
+                    <div class="col-md-3" *ngIf="getConditionConfig(condition.get('type')?.value).needsField">
+                      <label class="form-label mb-1" style="font-size: 0.75rem; color: #6b7280;">Field</label>
+                      <select class="form-select form-select-sm" formControlName="field">
+                        <option *ngFor="let field of getConditionConfig(condition.get('type')?.value).fieldOptions" [value]="field">
+                          {{ field }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <!-- Operator -->
+                    <div class="col-md-2">
+                      <label class="form-label mb-1" style="font-size: 0.75rem; color: #6b7280;">Operator</label>
+                      <select class="form-select form-select-sm" formControlName="operator">
+                        <option *ngFor="let op of getConditionConfig(condition.get('type')?.value).operators" [value]="op">
+                          {{ getOperatorLabel(condition.get('type')?.value, op) }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <!-- Value - Simple (single input) -->
+                    <div [class]="getConditionConfig(condition.get('type')?.value).needsField ? 'col-md-7' : 'col-md-10'" 
+                         *ngIf="getConditionConfig(condition.get('type')?.value).valueType !== 'complex'">
+                      <label class="form-label mb-1" style="font-size: 0.75rem; color: #6b7280;">Value</label>
+                      <input 
+                        type="text" 
+                        class="form-control form-control-sm" 
+                        formControlName="value" 
+                        [placeholder]="getConditionConfig(condition.get('type')?.value).valuePlaceholder || 'Enter value'" 
+                      />
+                    </div>
+
+                    <!-- Value - Complex (multiple inputs) -->
+                    <div [class]="getConditionConfig(condition.get('type')?.value).needsField ? 'col-md-7' : 'col-md-10'" 
+                         *ngIf="getConditionConfig(condition.get('type')?.value).valueType === 'complex'">
+                      <label class="form-label mb-1" style="font-size: 0.75rem; color: #6b7280;">Values</label>
+                      <div class="row g-2">
+                        <div class="col" *ngFor="let fieldName of getConditionConfig(condition.get('type')?.value).valueFields; let idx = index">
+                          <!-- Dropdown for transaction type fields -->
+                          <select 
+                            *ngIf="getConditionConfig(condition.get('type')?.value).valueFieldTypes && 
+                                   getConditionConfig(condition.get('type')?.value).valueFieldTypes[idx] === 'dropdown'"
+                            class="form-select form-select-sm"
+                            [formControlName]="'valueField' + (idx + 1)"
+                            (change)="onValueFieldChange(i)">
+                            <option value="">Select...</option>
+                            <option value="DEPOSIT">DEPOSIT</option>
+                            <option value="TRANSFER">TRANSFER</option>
+                            <option value="WITHDRAWAL">WITHDRAWAL</option>
+                            <option value="ANY">ANY</option>
+                            <option value="DEPOSIT,TRANSFER">DEPOSIT,TRANSFER</option>
+                            <option value="DEPOSIT,WITHDRAWAL">DEPOSIT,WITHDRAWAL</option>
+                            <option value="TRANSFER,WITHDRAWAL">TRANSFER,WITHDRAWAL</option>
+                          </select>
+                          
+                          <!-- Regular input for other fields -->
+                          <input 
+                            *ngIf="!getConditionConfig(condition.get('type')?.value).valueFieldTypes || 
+                                   getConditionConfig(condition.get('type')?.value).valueFieldTypes[idx] !== 'dropdown'"
+                            type="text" 
+                            class="form-control form-control-sm" 
+                            [formControlName]="'valueField' + (idx + 1)"
+                            [placeholder]="fieldName"
+                            (input)="onValueFieldChange(i)"
+                          />
+                          <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">{{ fieldName }}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Help Text -->
+                <div *ngIf="getConditionConfig(condition.get('type')?.value).valueType === 'complex'" 
+                     style="padding: 0.75rem 1rem; background: #eff6ff; border-top: 1px solid #bfdbfe;">
+                  <div class="d-flex align-items-start">
+                    <i class="fas fa-info-circle text-primary me-2 mt-1" style="font-size: 0.875rem;"></i>
+                    <div style="font-size: 0.8125rem; color: #1e40af;">
+                      <strong>{{ getConditionConfig(condition.get('type')?.value).description }}</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -199,17 +267,30 @@
           <div class="alert alert-info mt-3" *ngIf="conditions.length > 0">
             <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Value Format Guide</h6>
             <small>
-              <ul class="mb-0 small">
-                <li><strong>AMOUNT:</strong> Numeric value (e.g., <code>15000</code>)</li>
-                <li><strong>COUNTRY_RISK:</strong> Risk score 0-100 (e.g., <code>70</code>)</li>
-                <li><strong>NLP_SCORE:</strong> Score 0-100 (e.g., <code>80</code>)</li>
-                <li><strong>KEYWORD_MATCH:</strong> Keyword text (e.g., <code>suspicious</code>)</li>
-                <li><strong>VELOCITY:</strong> Format: <code>minAmount|minCount|windowHours|txType</code> (e.g., <code>100000|3|24|DEPOSIT</code>)</li>
-                <li><strong>AMOUNT_BALANCE_RATIO:</strong> Decimal ratio (e.g., <code>0.8</code> for 80%)</li>
-                <li><strong>NEW_COUNTERPARTY:</strong> Format: <code>lookbackDays|minAmount|txTypes</code> (e.g., <code>30|50000|TRANSFER</code>)</li>
-                <li><strong>DAILY_TOTAL:</strong> Format: <code>maxAmount|windowHours|txTypes</code> (e.g., <code>500000|24|DEPOSIT,TRANSFER</code>)</li>
-                <li><strong>PAST_TRANSACTIONS:</strong> Format: <code>minCount|windowDays|minAmount|txType</code> (e.g., <code>5|30|10000|TRANSFER</code>)</li>
-              </ul>
+              <div class="row">
+                <div class="col-md-6">
+                  <ul class="mb-0 small">
+                    <li><strong>AMOUNT:</strong> Numeric value (e.g., <code>10000</code>)</li>
+                    <li><strong>COUNTRY_RISK:</strong> Risk score 0-10 (e.g., <code>7</code>)</li>
+                    <li><strong>NLP_SCORE:</strong> Score 0.0-1.0 (e.g., <code>0.8</code>)</li>
+                    <li><strong>KEYWORD_MATCH:</strong> Keyword text (e.g., <code>cash</code>, <code>bitcoin</code>)</li>
+                    <li><strong>PAST_TRANSACTIONS:</strong> <code>lookbackDays|threshold</code> (e.g., <code>30|10</code> or <code>7|50000</code>)</li>
+                    <li><strong>VELOCITY:</strong> <code>minAmount|minCount|windowHours|type</code> (e.g., <code>100000|3|24|DEPOSIT</code>)</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <ul class="mb-0 small">
+                    <li><strong>STRUCTURING:</strong> <code>maxSingle|maxSum|windowHours|types</code> (e.g., <code>50000|300000|24|DEPOSIT</code>)</li>
+                    <li><strong>BEHAVIORAL_DEVIATION:</strong> <code>lookbackDays|percentile</code> (e.g., <code>90|95</code>)</li>
+                    <li><strong>AMOUNT_BALANCE_RATIO:</strong> Decimal ratio (e.g., <code>0.8</code> for 80%)</li>
+                    <li><strong>DAILY_TOTAL:</strong> <code>threshold|windowHours|types</code> (e.g., <code>500000|24|ANY</code>)</li>
+                    <li><strong>NEW_COUNTERPARTY:</strong> <code>lookbackDays|minAmount|types</code> (e.g., <code>30|50000|TRANSFER</code>)</li>
+                    <li><strong>PATTERN_DEPOSIT_WITHDRAW:</strong> <code>requiredPairs|multiplier</code> (e.g., <code>3|1.0</code>)</li>
+                  </ul>
+                </div>
+              </div>
+              <hr class="my-2">
+              <p class="mb-0"><strong>Transaction Types:</strong> Use <code>DEPOSIT</code>, <code>TRANSFER</code>, <code>WITHDRAWAL</code>, <code>ANY</code>, or comma-separated (e.g., <code>DEPOSIT,TRANSFER</code>)</p>
             </small>
           </div>
         </div>
@@ -321,7 +402,12 @@
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge bg-light text-dark border">{{ rule.conditions ? rule.conditions.length : 0 }}</span>
+                <span class="badge bg-light text-dark border" 
+                      [title]="rule.conditions && rule.conditions.length > 0 ? 'Click Edit to view condition details' : 'No conditions'"
+                      style="cursor: help;">
+                  {{ rule.conditions ? rule.conditions.length : 0 }} 
+                  <i class="fas fa-info-circle ms-1" *ngIf="rule.conditions && rule.conditions.length > 0"></i>
+                </span>
               </td>
               <td class="text-center">
                 <div class="form-check form-switch d-inline-block">

@@ -18,6 +18,24 @@ export class RulesComponent implements OnInit {
   loading = false;
   error = '';
   success = '';
+
+  // Condition type configurations
+  conditionTypes = [
+    { value: 'AMOUNT', label: 'Amount Threshold' },
+    { value: 'COUNTRY_RISK', label: 'Country Risk Score' },
+    { value: 'NLP_SCORE', label: 'NLP Risk Score' },
+    { value: 'KEYWORD_MATCH', label: 'Keyword Match' },
+    { value: 'PAST_TRANSACTIONS', label: 'Past Transactions' },
+    { value: 'VELOCITY', label: 'Transaction Velocity' },
+    { value: 'STRUCTURING', label: 'Structuring Detection' },
+    { value: 'BEHAVIORAL_DEVIATION', label: 'Behavioral Deviation' },
+    { value: 'AMOUNT_BALANCE_RATIO', label: 'Amount/Balance Ratio' },
+    { value: 'DAILY_TOTAL', label: 'Daily Total' },
+    { value: 'NEW_COUNTERPARTY', label: 'New Counterparty' },
+    { value: 'PATTERN_DEPOSIT_WITHDRAW', label: 'Deposit-Withdraw Pattern' }
+  ];
+
+  transactionTypes = ['DEPOSIT', 'TRANSFER', 'WITHDRAWAL', 'ANY'];
   
   // Search and pagination
   searchTerm = '';
@@ -197,10 +215,15 @@ export class RulesComponent implements OnInit {
   addCondition(): void {
     const conditionGroup = this.fb.group({
       type: ['AMOUNT', Validators.required],
-      field: ['amount', Validators.required],
+      field: [''],
       operator: ['>', Validators.required],
       value: ['', Validators.required],
-      active: [true]
+      active: [true],
+      // Dynamic fields for complex conditions
+      valueField1: [''],
+      valueField2: [''],
+      valueField3: [''],
+      valueField4: ['']
     });
     this.conditions.push(conditionGroup);
   }
@@ -225,12 +248,20 @@ export class RulesComponent implements OnInit {
     this.conditions.clear();
     if (rule.conditions && rule.conditions.length > 0) {
       rule.conditions.forEach(cond => {
+        const config = this.getConditionConfig(cond.type || 'AMOUNT');
+        const valueParts = cond.value ? cond.value.split('|') : [];
+        
         const conditionGroup = this.fb.group({
           type: [cond.type || 'AMOUNT', Validators.required],
-          field: [cond.field, Validators.required],
+          field: [cond.field || ''],
           operator: [cond.operator, Validators.required],
           value: [cond.value, Validators.required],
-          active: [cond.active !== undefined ? cond.active : true]
+          active: [cond.active !== undefined ? cond.active : true],
+          // Parse complex values into individual fields
+          valueField1: [valueParts[0] || ''],
+          valueField2: [valueParts[1] || ''],
+          valueField3: [valueParts[2] || ''],
+          valueField4: [valueParts[3] || '']
         });
         this.conditions.push(conditionGroup);
       });
@@ -245,6 +276,25 @@ export class RulesComponent implements OnInit {
     this.savingRule = true;
     this.error = '';
     this.success = '';
+
+    // Combine individual value fields into piped format for complex conditions
+    this.conditions.controls.forEach(condition => {
+      const type = condition.get('type')?.value;
+      const config = this.getConditionConfig(type);
+      
+      if (config.valueType === 'complex' && config.valueFields) {
+        const field1 = condition.get('valueField1')?.value || '';
+        const field2 = condition.get('valueField2')?.value || '';
+        const field3 = condition.get('valueField3')?.value || '';
+        const field4 = condition.get('valueField4')?.value || '';
+        
+        // Build piped value based on number of fields
+        const values = [field1, field2, field3, field4].filter((v, i) => i < config.valueFields.length && v);
+        if (values.length > 0) {
+          condition.patchValue({ value: values.join('|') });
+        }
+      }
+    });
 
     const ruleDto: RuleDto = this.ruleForm.value;
 
@@ -324,5 +374,190 @@ export class RulesComponent implements OnInit {
   
   getTotalRulesCount(): number {
     return this.rules.length;
+  }
+
+  // Dynamic condition field helpers
+  getConditionConfig(type: string): any {
+    const configs: any = {
+      'AMOUNT': {
+        needsField: false,
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'number',
+        valuePlaceholder: 'Enter amount (e.g., 10000)',
+        description: 'Compare transaction amount against threshold'
+      },
+      'COUNTRY_RISK': {
+        needsField: false,
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'number',
+        valuePlaceholder: 'Enter risk score (0-10, e.g., 7)',
+        description: 'Evaluate country risk score from database'
+      },
+      'NLP_SCORE': {
+        needsField: false,
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'number',
+        valuePlaceholder: 'Enter score (0.0-1.0, e.g., 0.8)',
+        description: 'Compare NLP sentiment/risk analysis score'
+      },
+      'KEYWORD_MATCH': {
+        needsField: false,
+        operators: ['>', '>=', '==', '<=', '<'],
+        operatorLabels: {
+          '>': 'Contains whole word',
+          '>=': 'Contains substring',
+          '==': 'Exact match',
+          '<=': 'Contains/starts/ends with',
+          '<': 'Does NOT contain'
+        },
+        valueType: 'text',
+        valuePlaceholder: 'Enter keyword (e.g., cash, bitcoin)',
+        description: 'Match keywords in transaction description'
+      },
+      'PAST_TRANSACTIONS': {
+        needsField: true,
+        fieldOptions: ['count', 'sum'],
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'complex',
+        valueFields: ['lookbackDays', 'threshold'],
+        valuePlaceholder: 'lookbackDays|threshold (e.g., 30|10 or 7|50000)',
+        description: 'Analyze historical transaction patterns'
+      },
+      'VELOCITY': {
+        needsField: true,
+        fieldOptions: ['count'],
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'complex',
+        valueFields: ['minAmount', 'minCount', 'windowHours', 'transactionType'],
+        valueFieldTypes: ['number', 'number', 'number', 'dropdown'], // Specify field types
+        valuePlaceholder: 'minAmount|minCount|windowHours|type (e.g., 100000|3|24|DEPOSIT)',
+        description: 'Detect rapid transaction patterns'
+      },
+      'STRUCTURING': {
+        needsField: true,
+        fieldOptions: ['sum'],
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'complex',
+        valueFields: ['maxSingle', 'maxWindowSum', 'windowHours', 'transactionTypes'],
+        valueFieldTypes: ['number', 'number', 'number', 'dropdown'],
+        valuePlaceholder: 'maxSingle|maxSum|windowHours|types (e.g., 50000|300000|24|DEPOSIT)',
+        description: 'Detect structuring/smurfing patterns'
+      },
+      'BEHAVIORAL_DEVIATION': {
+        needsField: true,
+        fieldOptions: ['amount_percentile'],
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'complex',
+        valueFields: ['lookbackDays', 'percentile'],
+        valuePlaceholder: 'lookbackDays|percentile (e.g., 90|95)',
+        description: 'Detect unusual behavior vs historical pattern'
+      },
+      'AMOUNT_BALANCE_RATIO': {
+        needsField: false,
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'number',
+        valuePlaceholder: 'Enter ratio (0.0-1.0, e.g., 0.8 for 80%)',
+        description: 'Compare transaction amount to account balance'
+      },
+      'DAILY_TOTAL': {
+        needsField: true,
+        fieldOptions: ['sum'],
+        operators: ['>', '>=', '<', '<=', '=='],
+        valueType: 'complex',
+        valueFields: ['threshold', 'windowHours', 'transactionTypes'],
+        valueFieldTypes: ['number', 'number', 'dropdown'],
+        valuePlaceholder: 'threshold|windowHours|types (e.g., 500000|24|ANY)',
+        description: 'Monitor total transaction volume'
+      },
+      'NEW_COUNTERPARTY': {
+        needsField: false,
+        operators: ['>='],
+        valueType: 'complex',
+        valueFields: ['lookbackDays', 'minAmount', 'transactionTypes'],
+        valueFieldTypes: ['number', 'number', 'dropdown'],
+        valuePlaceholder: 'lookbackDays|minAmount|types (e.g., 30|50000|TRANSFER)',
+        description: 'Flag transactions to new/unknown recipients'
+      },
+      'PATTERN_DEPOSIT_WITHDRAW': {
+        needsField: false,
+        operators: ['>='],
+        valueType: 'complex',
+        valueFields: ['requiredPairs', 'amountMultiplier'],
+        valuePlaceholder: 'requiredPairs|multiplier (e.g., 3|1.0)',
+        description: 'Detect layering patterns (deposit then withdrawal)'
+      }
+    };
+    return configs[type] || {};
+  }
+
+  onConditionTypeChange(index: number): void {
+    const condition = this.conditions.at(index);
+    const type = condition.get('type')?.value;
+    const config = this.getConditionConfig(type);
+
+    // Set default field if needed
+    if (config.needsField && config.fieldOptions && config.fieldOptions.length > 0) {
+      condition.patchValue({ field: config.fieldOptions[0] });
+    } else {
+      condition.patchValue({ field: '' });
+    }
+
+    // Set default operator
+    if (config.operators && config.operators.length > 0) {
+      condition.patchValue({ operator: config.operators[0] });
+    }
+
+    // Clear all value fields
+    condition.patchValue({ 
+      value: '',
+      valueField1: '',
+      valueField2: '',
+      valueField3: '',
+      valueField4: ''
+    });
+  }
+
+  // Sync individual value fields to main value field (for complex types)
+  onValueFieldChange(index: number): void {
+    const condition = this.conditions.at(index);
+    const type = condition.get('type')?.value;
+    const config = this.getConditionConfig(type);
+    
+    if (config.valueType === 'complex' && config.valueFields) {
+      const field1 = condition.get('valueField1')?.value || '';
+      const field2 = condition.get('valueField2')?.value || '';
+      const field3 = condition.get('valueField3')?.value || '';
+      const field4 = condition.get('valueField4')?.value || '';
+      
+      const values = [field1, field2, field3, field4].filter((v, i) => i < config.valueFields.length && v);
+      condition.patchValue({ value: values.join('|') }, { emitEvent: false });
+    }
+  }
+
+  getOperatorLabel(type: string, operator: string): string {
+    const config = this.getConditionConfig(type);
+    if (config.operatorLabels && config.operatorLabels[operator]) {
+      return config.operatorLabels[operator];
+    }
+    return operator;
+  }
+
+  formatConditionValue(condition: any): string {
+    const type = condition.type;
+    const value = condition.value;
+
+    if (!value) return '';
+
+    const config = this.getConditionConfig(type);
+    if (config.valueType === 'complex' && config.valueFields) {
+      const parts = value.split('|');
+      if (parts.length === config.valueFields.length) {
+        return config.valueFields.map((field: string, i: number) => 
+          `${field}: ${parts[i]}`
+        ).join(', ');
+      }
+    }
+
+    return value;
   }
 }
