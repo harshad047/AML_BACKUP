@@ -7,6 +7,23 @@ import { TransactionService, TransactionDto } from '../../../core/services/trans
 import { AccountService, AccountDto } from '../../../core/services/account.service';
 import { ToastService } from '../../../core/services/toast.service';
 
+// Custom Validators
+class CustomValidators {
+  // Validate positive amount (greater than 0)
+  static positiveAmount(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null; // Don't validate empty values, use Validators.required for that
+      }
+      const numValue = Number(control.value);
+      if (isNaN(numValue) || numValue <= 0) {
+        return { positiveAmount: true };
+      }
+      return null;
+    };
+  }
+}
+
 @Component({
   selector: 'app-customer-new-transaction',
   standalone: true,
@@ -40,7 +57,7 @@ export class CustomerNewTransactionComponent implements OnInit {
     this.form = this.fb.group(
       {
         type: ['DEPOSIT', Validators.required],
-        amount: [0, [Validators.required, Validators.min(0.01)]],
+        amount: [0, [Validators.required, CustomValidators.positiveAmount()]],
         description: [''],
         toAccountNumber: ['', Validators.required],
         fromAccountNumber: ['']
@@ -153,6 +170,41 @@ export class CustomerNewTransactionComponent implements OnInit {
   createAnother(): void {
     this.resetForm();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  getFieldError(fieldName: string): string {
+    const field = this.form.get(fieldName);
+    if (!field || !field.errors || !field.touched) {
+      return '';
+    }
+
+    const errors = field.errors;
+
+    if (fieldName === 'amount') {
+      if (errors['required']) {
+        return 'Amount is required';
+      }
+      if (errors['positiveAmount']) {
+        return 'Amount must be greater than 0';
+      }
+    }
+
+    // Default error handling
+    if (errors['required']) {
+      return `${this.getFieldLabel(fieldName)} is required`;
+    }
+
+    return 'Invalid input';
+  }
+
+  private getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      type: 'Transaction type',
+      amount: 'Amount',
+      toAccountNumber: 'To account',
+      fromAccountNumber: 'From account'
+    };
+    return labels[fieldName] || fieldName;
   }
 
   private differentAccountsValidator(): ValidatorFn {

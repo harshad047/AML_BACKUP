@@ -38,6 +38,9 @@
             <span class="input-group-text">₹</span>
             <input type="number" class="form-control modern-input" formControlName="amount" min="0" step="0.01" placeholder="0.00" />
           </div>
+          <div class="invalid-feedback d-block" *ngIf="form.get('amount')?.invalid && form.get('amount')?.touched">
+            {{ getFieldError('amount') }}
+          </div>
         </div>
         <!-- Currency auto-detected from account by backend -->
         <!-- Account identifiers per type -->
