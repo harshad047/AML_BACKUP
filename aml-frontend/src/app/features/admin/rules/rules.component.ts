@@ -48,6 +48,10 @@ export class RulesComponent implements OnInit {
   sortDirection: 'asc' | 'desc' = 'asc';
   Math = Math;
   
+  // Delete confirmation modal
+  showDeleteModal = false;
+  ruleToDelete: RuleDto | null = null;
+
   showCreateForm = false;
   ruleForm: FormGroup;
   savingRule = false;
@@ -331,17 +335,29 @@ export class RulesComponent implements OnInit {
   }
 
   deleteRule(rule: RuleDto): void {
-    if (!confirm(`Are you sure you want to delete rule "${rule.name}"?`)) return;
+    this.ruleToDelete = rule;
+    this.showDeleteModal = true;
+  }
 
-    this.adminService.deleteRule(rule.id!).subscribe({
+  confirmDelete(): void {
+    if (!this.ruleToDelete) return;
+
+    this.adminService.deleteRule(this.ruleToDelete.id!).subscribe({
       next: () => {
-        this.toastService.success(`Rule "${rule.name}" deleted successfully`, 5000);
+        this.toastService.success(`Rule "${this.ruleToDelete!.name}" deleted successfully`, 5000);
+        this.closeDeleteModal();
         this.loadRules();
       },
       error: (err) => {
         this.toastService.error(err.error?.message || 'Failed to delete rule');
+        this.closeDeleteModal();
       }
     });
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.ruleToDelete = null;
   }
 
   getActionBadgeClass(action: string): string {
