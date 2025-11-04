@@ -93,7 +93,7 @@ export class SarReportComponent implements OnInit {
       const displayName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || user.username || user.email || 'User';
       this.currentUser = displayName;
     }
-    const transactionId = this.route.snapshot.paramMap.get('id');
+    const transactionId = this.route.snapshot.paramMap.get('transactionId');
     if (transactionId) {
       this.loadTransactionAndGenerateReport(+transactionId);
     }
