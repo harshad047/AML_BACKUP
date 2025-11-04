@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -22,20 +21,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tss.aml.dto.account.BankAccountDto;
-import com.tss.aml.dto.compliance.CountryRiskDto;
+import com.tss.aml.dto.admin.AdminCustomerDetailsDto;
 import com.tss.aml.dto.admin.CreateUserDto;
-import com.tss.aml.dto.document.DocumentDTO;
+import com.tss.aml.dto.admin.UserDto;
+import com.tss.aml.dto.compliance.CountryRiskDto;
 import com.tss.aml.dto.compliance.RuleDto;
 import com.tss.aml.dto.compliance.SuspiciousKeywordDto;
+import com.tss.aml.dto.document.DocumentDTO;
 import com.tss.aml.dto.transaction.TransactionDto;
-import com.tss.aml.dto.admin.UserDto;
-import com.tss.aml.dto.admin.AdminCustomerDetailsDto;
 import com.tss.aml.entity.AuditLog;
-import com.tss.aml.entity.Document;
 import com.tss.aml.entity.Enums.DocumentStatus;
-import com.tss.aml.service.AdminService;
-import com.tss.aml.service.AuditLogService;
-import com.tss.aml.service.*;
+import com.tss.aml.service.impl.AdminServiceImpl;
+import com.tss.aml.service.impl.AuditLogServiceImpl;
+import com.tss.aml.service.impl.DocumentServiceImpl;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -44,9 +43,9 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
 public class AdminController {
 
-    private final AdminService adminService;
-    private final AuditLogService auditLogService;
-    private final DocumentService documentService;
+    private final AdminServiceImpl adminService;
+    private final AuditLogServiceImpl auditLogService;
+    private final DocumentServiceImpl documentService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDto>> getAllUsers() {

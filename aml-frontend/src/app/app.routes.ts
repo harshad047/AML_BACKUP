@@ -1,258 +1,29 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './auth/login/login.component';
-import { RegisterComponent } from './auth/register/register.component';
-import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
-import { OtpVerificationComponent } from './auth/otp-verification/otp-verification.component';
-import { CustomerDashboardComponent } from './customer/customer-dashboard/customer-dashboard.component';
-import { AdminDashboardComponent } from './admin/admin-dashboard/admin-dashboard.component';
-import { ComplianceDashboardComponent } from './compliance/compliance-dashboard/compliance-dashboard.component';
-import { AlertsManagementComponent } from './compliance/alerts-management/alerts-management.component';
-import { TransactionReviewComponent } from './compliance/transaction-review/transaction-review.component';
-import { CaseManagementComponent } from './compliance/case-management/case-management.component';
-import { SarReportComponent } from './compliance/sar-report/sar-report.component';
-import { AuthGuard } from './core/guards/auth.guard';
-import { RoleGuard } from './core/guards/role.guard';
-import { CustomerDocumentsComponent } from './customer/customer-documents/customer-documents.component';
-import { CustomerTransactionsComponent } from './customer/customer-transactions/customer-transactions.component';
-import { CustomerOpenAccountComponent } from './customer/open-account/customer-open-account.component';
-import { CustomerNewTransactionComponent } from './customer/new-transaction/customer-new-transaction.component';
-import { CustomerAlertsComponent } from './customer/customer-alerts/customer-alerts.component';
-import { ProfileComponent } from './customer/profile/profile.component';
-import { ChangePasswordComponent } from './customer/change-password/change-password.component';
-import { VerifyOtpComponent } from './customer/change-password/verify-otp.component';
-import { EnterOtpComponent } from './customer/change-password/enter-otp.component';
-import { ResetTokenGuard } from './core/guards/reset-token.guard';
-import { MyTicketsComponent } from './customer/helpdesk/my-tickets.component';
-import { CustomerTicketThreadComponent } from './customer/helpdesk/ticket-thread.component';
-import { OpenTicketsComponent } from './compliance/helpdesk/open-tickets.component';
-import { OfficerTicketThreadComponent } from './compliance/helpdesk/ticket-thread.component';
-import { ComplianceReportsComponent } from './compliance/compliance-reports/compliance-reports.component';
-
-// Admin Components
-import { UsersComponent } from './admin/users/users.component';
-import { RulesComponent } from './admin/rules/rules.component';
-import { KeywordsComponent } from './admin/keywords/keywords.component';
-import { AccountsComponent } from './admin/accounts/accounts.component';
-import { CountryRisksComponent } from './admin/country-risks/country-risks.component';
-import { ComplianceOfficersComponent } from './admin/compliance-officers/compliance-officers.component';
-import { AuditLogsComponent } from './admin/audit-logs/audit-logs.component';
-import { KycVerificationComponent } from './admin/kyc-verification/kyc-verification.component';
-import { AdminUserDetailsComponent } from './admin/user-details/user-details.component';
-import { AdminCustomersComponent } from './admin/customers/customers.component';
-import { AdminTransactionsComponent } from './admin/transactions/transactions.component';
-import { ManageUsersComponent } from './admin/manage-users/manage-users.component';
-import { ReportsAnalyticsComponent } from './admin/reports-analytics/reports-analytics.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'otp-verification', component: OtpVerificationComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { 
+    path: '', 
+    redirectTo: '/auth/login', 
+    pathMatch: 'full' 
+  },
+  {
+    path: 'auth',
+    loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
+  },
   {
     path: 'customer',
-    component: CustomerDashboardComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/helpdesk',
-    component: MyTicketsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/helpdesk/:ticketId',
-    component: CustomerTicketThreadComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/documents',
-    component: CustomerDocumentsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/transactions',
-    component: CustomerTransactionsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/open-account',
-    component: CustomerOpenAccountComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/new-transaction',
-    component: CustomerNewTransactionComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/alerts',
-    component: CustomerAlertsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/profile',
-    component: ProfileComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/change-password',
-    component: ChangePasswordComponent,
-    canActivate: [AuthGuard, RoleGuard, ResetTokenGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/change-password/verify',
-    component: VerifyOtpComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
-  },
-  {
-    path: 'customer/change-password/enter-otp',
-    component: EnterOtpComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['CUSTOMER'] }
+    loadChildren: () => import('./features/customer/customer.routes').then(m => m.CUSTOMER_ROUTES)
   },
   {
     path: 'admin',
-    component: AdminDashboardComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/users',
-    component: UsersComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/manage-users',
-    component: ManageUsersComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/customers',
-    component: AdminCustomersComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/transactions',
-    component: AdminTransactionsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/users/:id/details',
-    component: AdminUserDetailsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/rules',
-    component: RulesComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/keywords',
-    component: KeywordsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/accounts',
-    component: AccountsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/country-risks',
-    component: CountryRisksComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/compliance-officers',
-    component: ComplianceOfficersComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/audit-logs',
-    component: AuditLogsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/reports',
-    component: ReportsAnalyticsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
-  },
-  {
-    path: 'admin/kyc-verification',
-    component: KycVerificationComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'SUPER_ADMIN'] }
+    loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
   },
   {
     path: 'compliance',
-    component: ComplianceDashboardComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
+    loadChildren: () => import('./features/compliance/compliance.routes').then(m => m.COMPLIANCE_ROUTES)
   },
-  {
-    path: 'compliance/helpdesk/open',
-    component: OpenTicketsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  {
-    path: 'compliance/helpdesk/tickets/:ticketId',
-    component: OfficerTicketThreadComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  {
-    path: 'compliance/alerts',
-    component: AlertsManagementComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  {
-    path: 'compliance/transactions',
-    component: TransactionReviewComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  {
-    path: 'compliance/cases',
-    component: CaseManagementComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  {
-    path: 'compliance/sar-report/:id',
-    component: SarReportComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  {
-    path: 'compliance/reports',
-    component: ComplianceReportsComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['OFFICER'] }
-  },
-  { path: '**', redirectTo: '/login' }
+  { 
+    path: '**', 
+    redirectTo: '/auth/login' 
+  }
 ];

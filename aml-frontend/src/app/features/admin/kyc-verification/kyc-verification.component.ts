@@ -1,0 +1,225 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AdminService, DocumentDTO } from '../../../core/services/admin.service';
+import { ToastService } from '../../../core/services/toast.service';
+
+@Component({
+  selector: 'app-kyc-verification',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './kyc-verification.component.html',
+  styleUrls: ['./kyc-verification.component.css']
+})
+export class KycVerificationComponent implements OnInit {
+  pendingDocuments: DocumentDTO[] = [];
+  filteredDocuments: DocumentDTO[] = [];
+  allDocuments: DocumentDTO[] = [];
+  loading = false;
+  statuses: string[] = ['ALL', 'UPLOADED', 'VERIFIED', 'REJECTED'];
+  selectedStatus: string = 'ALL';
+  searchTerm = '';
+  
+  // Modal states
+  showPreviewModal = false;
+  showVerifyModal = false;
+  showRejectModal = false;
+  selectedDocument: DocumentDTO | null = null;
+  rejectionReason = '';
+
+  constructor(
+    private adminService: AdminService,
+    private toastService: ToastService,
+    private sanitizer: DomSanitizer
+  ) {}
+
+  ngOnInit(): void {
+    this.loadDocuments();
+  }
+
+  loadDocuments(): void {
+    this.loading = true;
+    
+    // Load all documents for stats
+    this.adminService.getKycDocuments().subscribe({
+      next: (allDocs) => {
+        this.allDocuments = allDocs;
+        
+        // Load filtered documents
+        this.adminService.getKycDocuments(this.selectedStatus === 'ALL' ? undefined : this.selectedStatus).subscribe({
+          next: (documents) => {
+            this.pendingDocuments = documents;
+            this.filteredDocuments = documents;
+            this.loading = false;
+          },
+          error: (err) => {
+            this.toastService.error(err.error?.message || 'Failed to load KYC documents');
+            this.loading = false;
+          }
+        });
+      },
+      error: (err) => {
+        this.toastService.error(err.error?.message || 'Failed to load statistics');
+        this.loading = false;
+      }
+    });
+  }
+
+  // Modal Methods
+  openVerifyModal(document: DocumentDTO): void {
+    this.selectedDocument = document;
+    this.showVerifyModal = true;
+  }
+
+  closeVerifyModal(): void {
+    this.showVerifyModal = false;
+    this.selectedDocument = null;
+  }
+
+  confirmVerify(): void {
+    if (!this.selectedDocument) return;
+    
+    this.adminService.verifyKycDocument(this.selectedDocument.id).subscribe({
+      next: () => {
+        this.toastService.success(`Document verified successfully`, 5000);
+        this.closeVerifyModal();
+        this.loadDocuments();
+      },
+      error: (err: any) => {
+        this.toastService.error(err.error?.message || 'Failed to verify document');
+      }
+    });
+  }
+
+  openRejectModal(document: DocumentDTO): void {
+    this.selectedDocument = document;
+    this.rejectionReason = '';
+    this.showRejectModal = true;
+  }
+
+  closeRejectModal(): void {
+    this.showRejectModal = false;
+    this.selectedDocument = null;
+    this.rejectionReason = '';
+  }
+
+  confirmReject(): void {
+    if (!this.selectedDocument || !this.rejectionReason.trim()) return;
+    
+    this.adminService.rejectKycDocument(this.selectedDocument.id, this.rejectionReason).subscribe({
+      next: () => {
+        this.toastService.success(`Document rejected successfully`, 5000);
+        this.closeRejectModal();
+        this.loadDocuments();
+      },
+      error: (err: any) => {
+        this.toastService.error(err.error?.message || 'Failed to reject document');
+      }
+    });
+  }
+
+  previewDocument(document: DocumentDTO): void {
+    this.selectedDocument = document;
+    this.showPreviewModal = true;
+  }
+
+  closePreviewModal(): void {
+    this.showPreviewModal = false;
+    this.selectedDocument = null;
+  }
+
+  getSafeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  getDocumentTypeBadgeClass(type: string): string {
+    switch (type?.toUpperCase()) {
+      case 'PASSPORT': return 'bg-primary';
+      case 'DRIVERS_LICENSE': return 'bg-info';
+      case 'NATIONAL_ID': return 'bg-success';
+      case 'UTILITY_BILL': return 'bg-warning';
+      default: return 'bg-secondary';
+    }
+  }
+
+  getFileNameFromUrl(url?: string): string {
+    if (!url) return '';
+    try {
+      const u = new URL(url);
+      const name = u.pathname.split('/').pop();
+      return name || '';
+    } catch {
+      const parts = url.split('?')[0].split('/');
+      return parts.pop() || '';
+    }
+  }
+
+  onStatusChange(status: string) {
+    this.selectedStatus = status;
+    this.searchTerm = '';
+    this.loadDocuments();
+  }
+
+  filterDocuments(): void {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) {
+      this.filteredDocuments = this.pendingDocuments;
+      return;
+    }
+    this.filteredDocuments = this.pendingDocuments.filter(doc =>
+      doc.customerName?.toLowerCase().includes(term) ||
+      doc.customerId.toString().includes(term) ||
+      doc.docType?.toLowerCase().includes(term)
+    );
+  }
+
+  formatDocType(type: string): string {
+    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'VERIFIED': return 'fa-check-circle';
+      case 'REJECTED': return 'fa-times-circle';
+      case 'UPLOADED': return 'fa-clock';
+      default: return 'fa-question-circle';
+    }
+  }
+
+  // Stats Methods
+  getPendingCount(): number {
+    return this.allDocuments.filter(d => d.status === 'UPLOADED').length;
+  }
+
+  getVerifiedCount(): number {
+    return this.allDocuments.filter(d => d.status === 'VERIFIED').length;
+  }
+
+  getRejectedCount(): number {
+    return this.allDocuments.filter(d => d.status === 'REJECTED').length;
+  }
+
+  getTotalCount(): number {
+    return this.allDocuments.length;
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'VERIFIED': return 'bg-success';
+      case 'REJECTED': return 'bg-danger';
+      case 'UPLOADED': return 'bg-warning text-dark';
+      default: return 'bg-secondary';
+    }
+  }
+
+  get emptyText(): string {
+    switch (this.selectedStatus) {
+      case 'UPLOADED': return 'No pending KYC documents';
+      case 'VERIFIED': return 'No verified documents';
+      case 'REJECTED': return 'No rejected documents';
+      case 'ALL':
+      default: return 'No documents to display';
+    }
+  }
+}

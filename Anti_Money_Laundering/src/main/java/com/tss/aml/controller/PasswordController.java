@@ -5,14 +5,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.User;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
-import com.tss.aml.service.EmailService;
-import com.tss.aml.service.OtpService;
+import com.tss.aml.service.impl.EmailService;
+import com.tss.aml.service.impl.OtpService;
 
 import jakarta.validation.constraints.NotBlank;
 

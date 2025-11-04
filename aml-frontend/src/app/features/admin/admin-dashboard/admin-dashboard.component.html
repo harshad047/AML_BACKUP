@@ -1,0 +1,428 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="mb-1"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+      <p class="text-muted">Welcome back, {{ currentUser?.firstName }}! Manage your AML system from here.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading dashboard...</p>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="row mb-4" *ngIf="!loading">
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-primary">
+        <div class="stat-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.totalUsers }}</h3>
+          <p class="stat-label">Total Users</p>
+          <small class="stat-detail">{{ stats.activeUsers }} active</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-warning">
+        <div class="stat-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.pendingKyc }}</h3>
+          <p class="stat-label">Pending KYC</p>
+          <small class="stat-detail">Documents to verify</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-success">
+        <div class="stat-icon">
+          <i class="fas fa-university"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.pendingAccounts }}</h3>
+          <p class="stat-label">Pending Accounts</p>
+          <small class="stat-detail">Awaiting approval</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-3">
+      <div class="stat-card bg-gradient-info">
+        <div class="stat-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-number">{{ stats.activeRules }}</h3>
+          <p class="stat-label">Active Rules</p>
+          <small class="stat-detail">Compliance rules</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-lg-3 col-md-6 mb-2">
+              <a routerLink="/admin/accounts" class="action-btn">
+                <i class="fas fa-university"></i>
+                <span>Approve Accounts</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-2">
+              <a routerLink="/admin/kyc-verification" class="action-btn">
+                <i class="fas fa-id-card"></i>
+                <span>Verify KYC Documents</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-2">
+              <a routerLink="/admin/manage-users" class="action-btn">
+                <i class="fas fa-users-cog"></i>
+                <span>Manage Users</span>
+              </a>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-2">
+              <a routerLink="/admin/reports-analytics" class="action-btn">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports & Analytics</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity & Alerts -->
+  <div class="row">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Pending Approvals</h5>
+          <span class="badge bg-warning">{{ stats.pendingAccounts + stats.pendingKyc }}</span>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            <div class="list-group-item px-0" *ngIf="stats.pendingAccounts > 0">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-university text-success me-2"></i>
+                  <strong>{{ stats.pendingAccounts }}</strong> account(s) pending approval
+                </div>
+                <a routerLink="/admin/accounts" class="btn btn-sm btn-outline-primary">Review</a>
+              </div>
+            </div>
+            <div class="list-group-item px-0" *ngIf="stats.pendingKyc > 0">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <i class="fas fa-id-card text-warning me-2"></i>
+                  <strong>{{ stats.pendingKyc }}</strong> KYC document(s) pending verification
+                </div>
+                <a routerLink="/admin/kyc-verification" class="btn btn-sm btn-outline-primary">Review</a>
+              </div>
+            </div>
+            <div class="list-group-item px-0" *ngIf="stats.pendingAccounts === 0 && stats.pendingKyc === 0">
+              <div class="text-center text-muted py-3">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <p class="mb-0">No pending approvals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>System Overview</h5>
+        </div>
+        <div class="card-body">
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-users text-primary me-2"></i>
+              Total Users
+            </div>
+            <div class="overview-value">{{ stats.totalUsers }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-user-shield text-info me-2"></i>
+              Compliance Officers
+            </div>
+            <div class="overview-value">{{ stats.complianceOfficers }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-shield-alt text-success me-2"></i>
+              Active Rules
+            </div>
+            <div class="overview-value">{{ stats.activeRules }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-key text-warning me-2"></i>
+              Suspicious Keywords
+            </div>
+            <div class="overview-value">{{ stats.totalKeywords }}</div>
+          </div>
+          <div class="overview-item">
+            <div class="overview-label">
+              <i class="fas fa-globe text-danger me-2"></i>
+              Country Risk Profiles
+            </div>
+            <div class="overview-value">{{ stats.countryRisks }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- High-Priority Sections -->
+  <div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="fas fa-bell me-2"></i>Critical Monitoring</h4>
+      <button class="btn btn-sm btn-outline-primary" (click)="refreshAll()">
+        <i class="fas fa-sync-alt me-1"></i>Refresh All
+      </button>
+    </div>
+  </div>
+
+  <!-- Recent High-Risk Transactions & Blocked Customers -->
+  <div class="row mb-4">
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-exchange-alt me-2 text-danger"></i>Recent High-Risk Transactions</h5>
+          <span class="badge bg-danger" *ngIf="recentTransactions.length > 0">{{ recentTransactions.length }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="loadingTransactions" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <p class="text-muted small mt-2 mb-0">Loading transactions...</p>
+          </div>
+          <div *ngIf="!loadingTransactions && recentTransactions.length === 0" class="text-center py-4 text-muted">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <p class="mb-0">No high-risk transactions</p>
+          </div>
+          <div *ngIf="!loadingTransactions && recentTransactions.length > 0" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Amount</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Risk Score</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let txn of recentTransactions">
+                  <td><small class="text-muted">#{{ txn.id }}</small></td>
+                  <td><strong>₹{{ txn.amount | number:'1.2-2' }}</strong></td>
+                  <td><span class="badge bg-info">{{ txn.transactionType }}</span></td>
+                  <td><span class="badge" [ngClass]="getStatusBadgeClass(txn.status)">{{ txn.status }}</span></td>
+                  <td><span [ngClass]="getRiskScoreClass(txn.combinedRiskScore)">{{ txn.combinedRiskScore || 'N/A' }}</span></td>
+                  <td><small class="text-muted">{{ formatTimestamp(txn.createdAt) }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-user-slash me-2 text-danger"></i>Blocked Customers</h5>
+          <span class="badge bg-danger" *ngIf="blockedCustomers.length > 0">{{ blockedCustomers.length }}</span>
+        </div>
+        <div class="card-body">
+          <div *ngIf="loadingBlockedCustomers" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+          </div>
+          <div *ngIf="!loadingBlockedCustomers && blockedCustomers.length === 0" class="text-center py-3 text-muted">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <p class="mb-0">No blocked customers</p>
+          </div>
+          <div *ngIf="!loadingBlockedCustomers && blockedCustomers.length > 0" class="blocked-customers-list">
+            <div class="blocked-customer-item" *ngFor="let customer of blockedCustomers">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <strong class="d-block">{{ customer.username }}</strong>
+                  <small class="text-danger">
+                    <i class="fas fa-ban me-1"></i>{{ customer.blockReason || 'No reason provided' }}
+                  </small>
+                </div>
+                <button class="btn btn-sm btn-outline-success" (click)="unblockCustomer(customer.id)" title="Unblock">
+                  <i class="fas fa-unlock"></i>
+                </button>
+              </div>
+              <hr class="my-2">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Audit Logs -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-history me-2 text-info"></i>Recent Activity Logs</h5>
+          <span class="badge bg-info" *ngIf="recentAuditLogs.length > 0">{{ recentAuditLogs.length }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="loadingAuditLogs" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <p class="text-muted small mt-2 mb-0">Loading activity logs...</p>
+          </div>
+          <div *ngIf="!loadingAuditLogs && recentAuditLogs.length === 0" class="text-center py-4 text-muted">
+            <i class="fas fa-inbox fa-2x mb-2"></i>
+            <p class="mb-0">No recent activity</p>
+          </div>
+          <div *ngIf="!loadingAuditLogs && recentAuditLogs.length > 0" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                  <th>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let log of recentAuditLogs">
+                  <td><i class="fas fa-user-circle me-1 text-primary"></i><strong>{{ log.username }}</strong></td>
+                  <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                  <td><small class="text-muted">{{ log.details }}</small></td>
+                  <td><small class="text-muted">{{ formatTimestamp(log.timestamp) }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Enhanced Monitoring -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Risk Monitoring & Compliance</h4>
+    </div>
+  </div>
+
+  <!-- High-Risk Keywords & Countries -->
+  <div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-key me-2 text-warning"></i>High-Risk Keywords</h5>
+          <span class="badge bg-warning" *ngIf="highRiskKeywords.length > 0">{{ highRiskKeywords.length }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="loadingKeywords" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <p class="text-muted small mt-2 mb-0">Loading keywords...</p>
+          </div>
+          <div *ngIf="!loadingKeywords && highRiskKeywords.length === 0" class="text-center py-4 text-muted">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <p class="mb-0">No high-risk keywords configured</p>
+          </div>
+          <div *ngIf="!loadingKeywords && highRiskKeywords.length > 0" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Keyword</th>
+                  <th>Risk Level</th>
+                  <th>Score</th>
+                  <th>Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let keyword of highRiskKeywords">
+                  <td><strong>{{ keyword.keyword }}</strong></td>
+                  <td><span class="badge" [ngClass]="getRiskLevelClass(keyword.riskLevel)">{{ keyword.riskLevel }}</span></td>
+                  <td><span class="fw-bold">{{ keyword.riskScore }}/100</span></td>
+                  <td><small class="text-muted">{{ keyword.category || 'N/A' }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white text-end" *ngIf="!loadingKeywords">
+          <a routerLink="/admin/keywords" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-cog me-1"></i>Manage Keywords
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-globe me-2 text-danger"></i>High-Risk Countries</h5>
+          <span class="badge bg-danger" *ngIf="highRiskCountries.length > 0">{{ highRiskCountries.length }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="loadingCountries" class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <p class="text-muted small mt-2 mb-0">Loading countries...</p>
+          </div>
+          <div *ngIf="!loadingCountries && highRiskCountries.length === 0" class="text-center py-4 text-muted">
+            <i class="fas fa-check-circle fa-2x mb-2"></i>
+            <p class="mb-0">No high-risk countries configured</p>
+          </div>
+          <div *ngIf="!loadingCountries && highRiskCountries.length > 0" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Country</th>
+                  <th>Code</th>
+                  <th>Risk Score</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let country of highRiskCountries">
+                  <td><strong>{{ country.countryName }}</strong></td>
+                  <td><span class="badge bg-secondary">{{ country.countryCode }}</span></td>
+                  <td><span [ngClass]="getCountryRiskClass(country.riskScore)">{{ country.riskScore }}/100</span></td>
+                  <td><small class="text-muted">{{ country.notes || 'N/A' }}</small></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white text-end" *ngIf="!loadingCountries">
+          <a routerLink="/admin/country-risks" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-cog me-1"></i>Manage Countries
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KYC Document Status Breakdown -->
+
+</div>

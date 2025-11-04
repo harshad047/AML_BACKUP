@@ -18,8 +18,8 @@ import com.tss.aml.dto.compliance.CaseDto;
 import com.tss.aml.dto.compliance.NoteDto;
 import com.tss.aml.dto.transaction.BaseTransactionDto;
 import com.tss.aml.dto.transaction.TransactionDto;
-import com.tss.aml.service.ComplianceService;
-import com.tss.aml.service.TransactionService;
+import com.tss.aml.service.impl.ComplianceServiceImpl;
+import com.tss.aml.service.impl.TransactionServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,8 +29,8 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyAuthority('OFFICER', 'ROLE_OFFICER', 'ADMIN', 'SUPER_ADMIN', 'ROLE_SUPER_ADMIN')")
 public class ComplianceController {
 
-    private final ComplianceService complianceService;
-    private final TransactionService transactionService;
+    private final ComplianceServiceImpl complianceService;
+    private final TransactionServiceImpl transactionService;
 
     @GetMapping("/alerts")
     public ResponseEntity<List<AlertDto>> getAllOpenAlerts() {
