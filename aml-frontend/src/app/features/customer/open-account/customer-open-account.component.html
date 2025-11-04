@@ -116,7 +116,10 @@
           <label class="form-label fw-semibold">
             <i class="fas fa-rupee-sign me-2"></i>Initial Balance
           </label>
-          <input type="number" class="form-control modern-input" formControlName="initialBalance" min="0" step="0.01" placeholder="0.00" />
+          <input type="number" class="form-control modern-input" formControlName="initialBalance" min="10000" step="0.01" placeholder="10000.00" />
+          <div class="invalid-feedback d-block" *ngIf="form.get('initialBalance')?.invalid && form.get('initialBalance')?.touched">
+            {{ getFieldError('initialBalance') }}
+          </div>
         </div>
         <div class="col-md-4">
           <label class="form-label fw-semibold">

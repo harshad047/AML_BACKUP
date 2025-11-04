@@ -29,7 +29,7 @@ export class CustomerOpenAccountComponent implements OnInit {
   constructor(private fb: FormBuilder, private accounts: AccountService) {
     this.form = this.fb.group({
       accountType: ['SAVINGS', Validators.required],
-      initialBalance: [0, [Validators.required, Validators.min(0)]],
+      initialBalance: [10000, [Validators.required, Validators.min(10000)]],
       currency: ['INR']
     });
   }
@@ -193,12 +193,46 @@ export class CustomerOpenAccountComponent implements OnInit {
   resetForm(): void {
     this.form.reset({
       accountType: 'SAVINGS',
-      initialBalance: 0,
+      initialBalance: 10000,
       currency: 'INR'
     });
     this.error = '';
     this.success = false;
     this.created = null;
+  }
+
+  getFieldError(fieldName: string): string {
+    const field = this.form.get(fieldName);
+    if (!field || !field.errors || !field.touched) {
+      return '';
+    }
+
+    const errors = field.errors;
+
+    if (fieldName === 'initialBalance') {
+      if (errors['required']) {
+        return 'Initial balance is required';
+      }
+      if (errors['min']) {
+        return `Initial balance must be at least ₹10,000`;
+      }
+    }
+
+    // Default error handling for other fields
+    if (errors['required']) {
+      return `${this.getFieldLabel(fieldName)} is required`;
+    }
+
+    return 'Invalid input';
+  }
+
+  private getFieldLabel(fieldName: string): string {
+    const labels: { [key: string]: string } = {
+      accountType: 'Account type',
+      initialBalance: 'Initial balance',
+      currency: 'Currency'
+    };
+    return labels[fieldName] || fieldName;
   }
 
   // Toggle accounts section
