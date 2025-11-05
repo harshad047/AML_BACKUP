@@ -25,6 +25,9 @@ public interface CountryRiskRepository extends JpaRepository<CountryRisk, Long> 
     // Find by country name
     List<CountryRisk> findByCountryNameContainingIgnoreCase(String countryName);
     
+    // Find by exact country name match (case insensitive)
+    Optional<CountryRisk> findByCountryNameIgnoreCase(String countryName);
+    
     // Check if country code exists
     boolean existsByCountryCode(String countryCode);
     

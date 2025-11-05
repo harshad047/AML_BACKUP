@@ -61,3 +61,8 @@ export interface ForgotPasswordRequest {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface CountryDto {
+  code: string;
+  name: string;
+}

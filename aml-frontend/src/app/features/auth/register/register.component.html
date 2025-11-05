@@ -293,7 +293,7 @@
                 formControlName="country"
               >
                 <option value="">Select Country</option>
-                <option *ngFor="let country of countries" [value]="country.code">
+                <option *ngFor="let country of countries" [value]="country.name">
                   {{ country.name }}
                 </option>
               </select>

@@ -2,12 +2,15 @@ package com.tss.aml.service.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.tss.aml.dto.compliance.EvaluationResultDto;
 import com.tss.aml.dto.transaction.BalanceDto;
 import com.tss.aml.dto.transaction.CurrencyConversionDto;
@@ -20,6 +23,7 @@ import com.tss.aml.dto.transaction.WithdrawalDto;
 import com.tss.aml.entity.Alert;
 import com.tss.aml.entity.BankAccount;
 import com.tss.aml.entity.Case;
+import com.tss.aml.entity.CountryRisk;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Transaction;
 import com.tss.aml.entity.User;
@@ -30,6 +34,7 @@ import com.tss.aml.exception.ResourceNotFoundException;
 import com.tss.aml.repository.AlertRepository;
 import com.tss.aml.repository.BankAccountRepository;
 import com.tss.aml.repository.CaseRepository;
+import com.tss.aml.repository.CountryRiskRepository;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.TransactionRepository;
 import com.tss.aml.repository.UserRepository;
@@ -46,6 +51,7 @@ public class TransactionServiceImpl {
     private final BankAccountRepository bankAccountRepo;
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final CountryRiskRepository countryRiskRepo;
     private final NLPService nlpService;
     private final RuleEngineServiceImpl ruleEngine;
     private final ModelMapper modelMapper;
@@ -519,64 +525,37 @@ public class TransactionServiceImpl {
     }
     
     /**
-     * Convert common country names to ISO country codes
+     * Convert common country names to ISO country codes using database lookup
      */
     private String convertCountryNameToCode(String countryName) {
         if (countryName == null || countryName.trim().isEmpty()) {
             return null;
         }
-        
+
         String country = countryName.toLowerCase().trim();
-        
-        // Common country name to code mappings
-        return switch (country) {
-            case "united states", "usa", "america" -> "US";
-            case "united kingdom", "uk", "britain" -> "GB";
-            case "canada" -> "CA";
-            case "australia" -> "AU";
-            case "germany" -> "DE";
-            case "france" -> "FR";
-            case "japan" -> "JP";
-            case "china" -> "CN";
-            case "india" -> "IN";
-            case "brazil" -> "BR";
-            case "russia" -> "RU";
-            case "south africa" -> "ZA";
-            case "mexico" -> "MX";
-            case "italy" -> "IT";
-            case "spain" -> "ES";
-            case "netherlands" -> "NL";
-            case "switzerland" -> "CH";
-            case "austria" -> "AT";
-            case "belgium" -> "BE";
-            case "sweden" -> "SE";
-            case "norway" -> "NO";
-            case "denmark" -> "DK";
-            case "finland" -> "FI";
-            case "poland" -> "PL";
-            case "portugal" -> "PT";
-            case "greece" -> "GR";
-            case "turkey" -> "TR";
-            case "egypt" -> "EG";
-            case "nigeria" -> "NG";
-            case "kenya" -> "KE";
-            case "south korea" -> "KR";
-            case "thailand" -> "TH";
-            case "vietnam" -> "VN";
-            case "singapore" -> "SG";
-            case "malaysia" -> "MY";
-            case "indonesia" -> "ID";
-            case "philippines" -> "PH";
-            case "argentina" -> "AR";
-            case "chile" -> "CL";
-            case "colombia" -> "CO";
-            case "peru" -> "PE";
-            case "venezuela" -> "VE";
-            case "afghanistan" -> "AF";
-            case "albania" -> "AL";
-            case "angola" -> "AO";
-            default -> null; // Return null if country name not recognized
-        };
+
+        try {
+            // First try exact match with country name
+            Optional<CountryRisk> countryRisk = countryRiskRepo.findByCountryNameIgnoreCase(countryName.trim());
+
+            if (countryRisk.isPresent()) {
+                return countryRisk.get().getCountryCode();
+            }
+
+            // For any other country, try to find by partial name match
+            List<CountryRisk> matches = countryRiskRepo.findByCountryNameContainingIgnoreCase(countryName);
+            if (!matches.isEmpty()) {
+                // Return the first match (most likely the correct one)
+                return matches.get(0).getCountryCode();
+            }
+
+            System.out.println("Country name '" + countryName + "' not found in database");
+            return null; // Return null if country name not recognized in database
+
+        } catch (Exception e) {
+            System.out.println("Error looking up country code for '" + countryName + "': " + e.getMessage());
+            return null; // Return null on database error
+        }
     }
     
     // Old calculateBasicNlpScore method removed - now using database-driven SuspiciousKeywordService

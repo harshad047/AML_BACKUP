@@ -1,5 +1,6 @@
 package com.tss.aml.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tss.aml.dto.Auth.RegistrationRequest;
+import com.tss.aml.dto.CountryDto;
+import com.tss.aml.entity.CountryRisk;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
+import com.tss.aml.repository.CountryRiskRepository;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.service.impl.CloudinaryService;
 import com.tss.aml.service.impl.EmailService;
@@ -37,6 +42,7 @@ public class RegistrationController {
     @Autowired private EmailService emailService;
     @Autowired private CloudinaryService cloudinaryService;
     @Autowired private CustomerRepository customerRepository;
+    @Autowired private CountryRiskRepository countryRiskRepository;
 
     // 1. send OTP
     @PostMapping("/send-otp")
@@ -69,6 +75,19 @@ public class RegistrationController {
     }
 
   
+
+    // Get active countries for registration dropdown
+    @GetMapping("/countries")
+    public ResponseEntity<List<CountryDto>> getActiveCountries() {
+        List<CountryRisk> countries = countryRiskRepository.findAllByOrderByRiskScoreDesc();
+        
+        // Filter only active countries and map to response format
+        List<CountryDto> activeCountries = countries.stream()
+            .map(country -> new CountryDto(country.getCountryCode(), country.getCountryName()))
+            .collect(java.util.stream.Collectors.toList());
+        
+        return ResponseEntity.ok(activeCountries);
+    }
 
     // 2. verify OTP and complete registration
     @PostMapping("/verify-otp")

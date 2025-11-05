@@ -54,7 +54,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/register/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                // admin and compliance
                 .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/compliance/**").hasAnyRole("ADMIN", "OFFICER", "SUPER_ADMIN")
                 // helpdesk endpoints

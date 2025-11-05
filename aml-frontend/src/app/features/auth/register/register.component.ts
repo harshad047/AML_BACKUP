@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { CountryDto } from '../../../shared/models/auth.models';
 
 // Custom Validators
 class CustomValidators {
@@ -131,64 +133,35 @@ export class RegisterComponent implements OnInit {
   showConfirmPassword = false;
   showTermsModal = false;
 
-  // Country dropdown options
-  countries = [
-    { name: 'United States', code: 'US' },
-    { name: 'United Kingdom', code: 'GB' },
-    { name: 'Canada', code: 'CA' },
-    { name: 'Australia', code: 'AU' },
-    { name: 'Germany', code: 'DE' },
-    { name: 'France', code: 'FR' },
-    { name: 'Japan', code: 'JP' },
-    { name: 'China', code: 'CN' },
-    { name: 'India', code: 'IN' },
-    { name: 'Brazil', code: 'BR' },
-    { name: 'Russia', code: 'RU' },
-    { name: 'South Africa', code: 'ZA' },
-    { name: 'Mexico', code: 'MX' },
-    { name: 'Italy', code: 'IT' },
-    { name: 'Spain', code: 'ES' },
-    { name: 'Netherlands', code: 'NL' },
-    { name: 'Switzerland', code: 'CH' },
-    { name: 'Austria', code: 'AT' },
-    { name: 'Belgium', code: 'BE' },
-    { name: 'Sweden', code: 'SE' },
-    { name: 'Norway', code: 'NO' },
-    { name: 'Denmark', code: 'DK' },
-    { name: 'Finland', code: 'FI' },
-    { name: 'Poland', code: 'PL' },
-    { name: 'Portugal', code: 'PT' },
-    { name: 'Greece', code: 'GR' },
-    { name: 'Turkey', code: 'TR' },
-    { name: 'Egypt', code: 'EG' },
-    { name: 'Nigeria', code: 'NG' },
-    { name: 'Kenya', code: 'KE' },
-    { name: 'South Korea', code: 'KR' },
-    { name: 'Thailand', code: 'TH' },
-    { name: 'Vietnam', code: 'VN' },
-    { name: 'Singapore', code: 'SG' },
-    { name: 'Malaysia', code: 'MY' },
-    { name: 'Indonesia', code: 'ID' },
-    { name: 'Philippines', code: 'PH' },
-    { name: 'Argentina', code: 'AR' },
-    { name: 'Chile', code: 'CL' },
-    { name: 'Colombia', code: 'CO' },
-    { name: 'Peru', code: 'PE' },
-    { name: 'Venezuela', code: 'VE' },
-    { name: 'Afghanistan', code: 'AF' },
-    { name: 'Albania', code: 'AL' },
-    { name: 'Angola', code: 'AO' }
-  ];
+  // Country dropdown options - loaded from API
+  countries: CountryDto[] = [];
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.loadCountries();
+  }
+
+  private loadCountries(): void {
+    this.http.get<CountryDto[]>('http://localhost:8080/api/register/countries').subscribe({
+      next: (countries) => {
+        this.countries = countries;
+        console.log('Loaded countries from API:', countries.length);
+      },
+      error: (error) => {
+        console.error('Failed to load countries:', error);
+        this.toastService.error('Failed to load countries. Please refresh the page.');
+        // Fallback to empty array - form will still work but no countries will be shown
+        this.countries = [];
+      }
+    });
   }
 
   private initForm(): void {
