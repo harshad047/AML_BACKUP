@@ -151,6 +151,12 @@ public class AdminServiceImpl implements IAdminService{
                 .collect(Collectors.toList());
     }
     
+    public RuleDto getRuleById(Long id) {
+        Rule rule = ruleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
+        return mapRuleToDto(rule);
+    }
+    
     private RuleDto mapRuleToDto(Rule rule) {
         RuleDto dto = new RuleDto();
         dto.setId(rule.getId());
