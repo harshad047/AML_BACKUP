@@ -199,8 +199,7 @@ public class TransactionServiceImpl {
 
     // Overloaded method for transfers with receiver country code
     private TransactionDto processTransaction(BankAccount from, BankAccount to, BigDecimal amount, String currency, String desc, String receiverCountryCode, Transaction.TransactionType type) {
-        // Use database-driven suspicious keyword analysis instead of NLP
-        int nlp = suspiciousKeywordService.calculateRiskScore(desc);
+      int nlp = suspiciousKeywordService.calculateRiskScore(desc);
         System.out.println("Database-driven keyword risk score: " + nlp);
 
         // Find customer based on the account involved in the transaction

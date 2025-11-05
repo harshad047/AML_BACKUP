@@ -564,10 +564,11 @@ public class AdminServiceImpl implements IAdminService{
         // Log compliance officer addition
         auditLogService.logComplianceOfficerAdded("ADMIN", user.getUsername());
         
-        // Send email notification
+        // Send email notification (Note: Cannot send password for existing users as it's already encrypted)
         try {
             String officerName = user.getFirstName() + " " + user.getLastName();
-            emailService.sendComplianceOfficerAddedEmail(user.getEmail(), officerName);
+            // For promoted users, we don't have access to plain password
+            emailService.sendComplianceOfficerAddedEmail(user.getEmail(), officerName, user.getUsername(), "[Use your existing password]");
         } catch (Exception e) {
             System.err.println("Failed to send compliance officer added email: " + e.getMessage());
         }
@@ -677,6 +678,9 @@ public class AdminServiceImpl implements IAdminService{
         // Force role to be OFFICER for compliance officer
         createUserDto.setRole(Role.OFFICER);
         
+        // Store plain password before encoding for email
+        String plainPassword = createUserDto.getPassword();
+        
         User user = modelMapper.map(createUserDto, User.class);
         user.setPassword(passwordEncoder.encode(createUserDto.getPassword()));
         User newOfficer = userRepository.save(user);
@@ -685,10 +689,10 @@ public class AdminServiceImpl implements IAdminService{
         auditLogService.logUserCreation("ADMIN", newOfficer.getUsername(), "COMPLIANCE_OFFICER");
         auditLogService.logComplianceOfficerAdded("ADMIN", newOfficer.getUsername());
         
-        // Send welcome email to new compliance officer
+        // Send welcome email to new compliance officer with credentials
         try {
             String officerName = newOfficer.getFirstName() + " " + newOfficer.getLastName();
-            emailService.sendComplianceOfficerAddedEmail(newOfficer.getEmail(), officerName);
+            emailService.sendComplianceOfficerAddedEmail(newOfficer.getEmail(), officerName, newOfficer.getUsername(), plainPassword);
         } catch (Exception e) {
             System.err.println("Failed to send compliance officer welcome email: " + e.getMessage());
         }

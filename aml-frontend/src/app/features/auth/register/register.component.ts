@@ -439,10 +439,11 @@ export class RegisterComponent implements OnInit {
           console.log('Registration response:', response);
           
           // Navigate to OTP verification page
-          this.router.navigate(['/otp-verification'], {
+          this.router.navigate(['/auth/otp-verification'], {
             queryParams: { 
               email: registrationData.email,
-              name: `${registrationData.firstName} ${registrationData.lastName}`
+              name: `${registrationData.firstName} ${registrationData.lastName}`,
+              type: 'registration'
             }
           });
         },
