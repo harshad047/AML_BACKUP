@@ -160,6 +160,10 @@ export class AdminService {
   getAllRules(): Observable<RuleDto[]> {
     return this.http.get<RuleDto[]>(`${this.apiUrl}/rules`);
   }
+  
+  getRuleById(id: number): Observable<RuleDto> {
+    return this.http.get<RuleDto>(`${this.apiUrl}/rules/${id}`);
+  }
 
   createRule(ruleDto: RuleDto): Observable<RuleDto> {
     return this.http.post<RuleDto>(`${this.apiUrl}/rules`, ruleDto);

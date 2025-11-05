@@ -402,11 +402,13 @@
                 </span>
               </td>
               <td class="text-center">
-                <span class="badge bg-light text-dark border" 
-                      [title]="rule.conditions && rule.conditions.length > 0 ? 'Click Edit to view condition details' : 'No conditions'"
-                      style="cursor: help;">
+                <span class="badge bg-primary text-white" 
+                      [class.bg-secondary]="!rule.conditions || rule.conditions.length === 0"
+                      [title]="rule.conditions && rule.conditions.length > 0 ? 'Click to view conditions' : 'No conditions'"
+                      [style.cursor]="rule.conditions && rule.conditions.length > 0 ? 'pointer' : 'default'"
+                      (click)="rule.conditions && rule.conditions.length > 0 && viewConditions(rule)">
                   {{ rule.conditions ? rule.conditions.length : 0 }} 
-                  <i class="fas fa-info-circle ms-1" *ngIf="rule.conditions && rule.conditions.length > 0"></i>
+                  <i class="fas fa-eye ms-1" *ngIf="rule.conditions && rule.conditions.length > 0"></i>
                 </span>
               </td>
               <td class="text-center">
@@ -523,3 +525,133 @@
 
 <!-- Modal Backdrop -->
 <div class="modal-backdrop fade" [class.show]="showDeleteModal" *ngIf="showDeleteModal"></div>
+
+<!-- View Conditions Modal -->
+<div class="modal" [class.show]="showConditionsModal" [style.display]="showConditionsModal ? 'block' : 'none'" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-gradient-primary text-white border-0">
+        <h5 class="modal-title">
+          <i class="fas fa-list-check me-2"></i>
+          Rule Conditions
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeConditionsModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Loading State -->
+        <div *ngIf="loadingConditions" class="text-center py-5">
+          <div class="spinner-border text-primary mb-3"></div>
+          <p class="text-muted">Loading conditions...</p>
+        </div>
+
+        <!-- Rule Details -->
+        <div *ngIf="!loadingConditions && selectedRuleForConditions">
+          <!-- Rule Info Card -->
+          <div class="card mb-4 border-0 bg-light">
+            <div class="card-body">
+              <h5 class="card-title mb-3">
+                <i class="fas fa-gavel text-primary me-2"></i>
+                {{ selectedRuleForConditions.name }}
+              </h5>
+              <p class="card-text text-muted mb-3">{{ selectedRuleForConditions.description }}</p>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <small class="text-muted d-block">Priority</small>
+                  <span class="badge priority-badge fs-6">{{ selectedRuleForConditions.priority }}</span>
+                </div>
+                <div class="col-md-3">
+                  <small class="text-muted d-block">Action</small>
+                  <span class="badge action-badge fs-6" [ngClass]="getActionBadgeClass(selectedRuleForConditions.action)">
+                    {{ selectedRuleForConditions.action }}
+                  </span>
+                </div>
+                <div class="col-md-3">
+                  <small class="text-muted d-block">Risk Weight</small>
+                  <span class="badge risk-badge fs-6" [ngClass]="getRiskBadgeClass(selectedRuleForConditions.riskWeight)">
+                    {{ selectedRuleForConditions.riskWeight }}
+                  </span>
+                </div>
+                <div class="col-md-3">
+                  <small class="text-muted d-block">Status</small>
+                  <span class="badge fs-6" [class.bg-success]="selectedRuleForConditions.active" [class.bg-secondary]="!selectedRuleForConditions.active">
+                    {{ selectedRuleForConditions.active ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conditions List -->
+          <div class="mb-3">
+            <h6 class="mb-3">
+              <i class="fas fa-filter me-2 text-primary"></i>
+              Conditions ({{ selectedRuleForConditions.conditions.length || 0 }})
+            </h6>
+
+            <div *ngIf="!selectedRuleForConditions.conditions || selectedRuleForConditions.conditions.length === 0" 
+                 class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              No conditions defined for this rule.
+            </div>
+
+            <div *ngIf="selectedRuleForConditions.conditions && selectedRuleForConditions.conditions.length > 0">
+              <div *ngFor="let condition of selectedRuleForConditions.conditions; let i = index" 
+                   class="card mb-3 border"
+                   [class.border-success]="condition.active"
+                   [class.border-secondary]="!condition.active">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">
+                      <span class="badge bg-info me-2">{{ i + 1 }}</span>
+                      {{ getConditionTypeLabel(condition.type) }}
+                    </h6>
+                    <span class="badge" 
+                          [class.bg-success]="condition.active" 
+                          [class.bg-secondary]="!condition.active">
+                      {{ condition.active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+
+                  <div class="row g-2 mt-2">
+                    <div class="col-md-4" *ngIf="condition.field">
+                      <small class="text-muted d-block">Field</small>
+                      <code class="d-block">{{ condition.field }}</code>
+                    </div>
+                    <div class="col-md-4">
+                      <small class="text-muted d-block">Operator</small>
+                      <code class="d-block">{{ getOperatorLabel(condition.type, condition.operator) }}</code>
+                    </div>
+                    <div [class]="condition.field ? 'col-md-4' : 'col-md-8'">
+                      <small class="text-muted d-block">Value</small>
+                      <code class="d-block">{{ formatConditionValue(condition) }}</code>
+                    </div>
+                  </div>
+
+                  <!-- Condition Description -->
+                  <div class="mt-3 p-2 bg-light rounded" *ngIf="getConditionConfig(condition.type).description">
+                    <small class="text-muted">
+                      <i class="fas fa-info-circle me-1"></i>
+                      {{ getConditionConfig(condition.type).description }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" (click)="closeConditionsModal()">
+          <i class="fas fa-times me-2"></i>Close
+        </button>
+        <button type="button" class="btn btn-primary" (click)="editRule(selectedRuleForConditions!); closeConditionsModal()" 
+                *ngIf="selectedRuleForConditions">
+          <i class="fas fa-edit me-2"></i>Edit Rule
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Conditions Modal Backdrop -->
+<div class="modal-backdrop fade" [class.show]="showConditionsModal" *ngIf="showConditionsModal"></div>

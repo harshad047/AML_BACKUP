@@ -22,6 +22,7 @@ public interface IAdminService {
 
     // Rule Management
     List<RuleDto> getAllRules();
+    RuleDto getRuleById(Long id);
     RuleDto createRule(RuleDto ruleDto);
     RuleDto updateRule(Long id, RuleDto ruleDto);
     RuleDto toggleRuleStatus(Long id, boolean isActive);

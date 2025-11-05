@@ -51,6 +51,11 @@ export class RulesComponent implements OnInit {
   // Delete confirmation modal
   showDeleteModal = false;
   ruleToDelete: RuleDto | null = null;
+  
+  // Condition view modal
+  showConditionsModal = false;
+  selectedRuleForConditions: RuleDto | null = null;
+  loadingConditions = false;
 
   showCreateForm = false;
   ruleForm: FormGroup;
@@ -575,5 +580,34 @@ export class RulesComponent implements OnInit {
     }
 
     return value;
+  }
+  
+  // View conditions modal methods
+  viewConditions(rule: RuleDto): void {
+    this.loadingConditions = true;
+    this.showConditionsModal = true;
+    
+    // Fetch rule details with conditions from backend
+    this.adminService.getRuleById(rule.id!).subscribe({
+      next: (ruleDetails) => {
+        this.selectedRuleForConditions = ruleDetails;
+        this.loadingConditions = false;
+      },
+      error: (err) => {
+        this.toastService.error(err.error?.message || 'Failed to load rule conditions');
+        this.loadingConditions = false;
+        this.closeConditionsModal();
+      }
+    });
+  }
+  
+  closeConditionsModal(): void {
+    this.showConditionsModal = false;
+    this.selectedRuleForConditions = null;
+  }
+  
+  getConditionTypeLabel(type: string): string {
+    const condType = this.conditionTypes.find(ct => ct.value === type);
+    return condType ? condType.label : type;
   }
 }

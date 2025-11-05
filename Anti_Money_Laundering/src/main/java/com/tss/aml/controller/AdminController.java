@@ -61,6 +61,11 @@ public class AdminController {
     public ResponseEntity<List<RuleDto>> getAllRules() {
         return ResponseEntity.ok(adminService.getAllRules());
     }
+    
+    @GetMapping("/rules/{id}")
+    public ResponseEntity<RuleDto> getRuleById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getRuleById(id));
+    }
 
     @PostMapping("/rules")
     public ResponseEntity<RuleDto> createRule(@RequestBody RuleDto ruleDto) {
