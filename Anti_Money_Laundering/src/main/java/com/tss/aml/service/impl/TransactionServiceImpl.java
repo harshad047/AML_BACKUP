@@ -4,12 +4,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.tss.aml.dto.compliance.EvaluationResultDto;
 import com.tss.aml.dto.transaction.BalanceDto;
 import com.tss.aml.dto.transaction.CurrencyConversionDto;
@@ -199,8 +197,7 @@ public class TransactionServiceImpl {
 
     // Overloaded method for transfers with receiver country code
     private TransactionDto processTransaction(BankAccount from, BankAccount to, BigDecimal amount, String currency, String desc, String receiverCountryCode, Transaction.TransactionType type) {
-        // Use database-driven suspicious keyword analysis instead of NLP
-        int nlp = suspiciousKeywordService.calculateRiskScore(desc);
+      int nlp = suspiciousKeywordService.calculateRiskScore(desc);
         System.out.println("Database-driven keyword risk score: " + nlp);
 
         // Find customer based on the account involved in the transaction

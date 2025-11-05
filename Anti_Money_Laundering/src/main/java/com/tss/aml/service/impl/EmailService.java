@@ -363,10 +363,12 @@ public class EmailService {
         }
     }
 
-    public void sendComplianceOfficerAddedEmail(String toEmail, String officerName) {
+    public void sendComplianceOfficerAddedEmail(String toEmail, String officerName, String username, String password) {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+            String assignedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
             String htmlContent = """
                 <html>
@@ -377,27 +379,38 @@ public class EmailService {
                             h2 { color: #007bff; }
                             p { color: #555555; line-height: 1.5; }
                             .role-info { background-color: #e7f3ff; border-left: 4px solid #007bff; margin: 20px 0; padding: 15px; }
+                            .credentials { background-color: #fff3cd; border-left: 4px solid #ffc107; margin: 20px 0; padding: 15px; }
+                            .credential-item { margin: 8px 0; font-family: 'Courier New', monospace; }
+                            .security-note { background-color: #f8d7da; border-left: 4px solid #dc3545; margin: 20px 0; padding: 15px; font-size: 14px; }
                             .cta-button { display: inline-block; background-color: #007bff; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
                         </style>
                     </head>
                     <body>
                         <div class="container">
                             <h2>Welcome to the Compliance Team!</h2>
-                            <p>Dear """ + officerName + """
+                            <p>Dear %s,</p>
                             <p>You have been assigned the role of Compliance Officer in our AML system.</p>
                             <div class="role-info">
-                                <strong>Role:</strong> Compliance Officer
-                                <br>
-                                <strong>Assigned Date:</strong> """ + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + """
-                                <br>
+                                <strong>Role:</strong> Compliance Officer<br>
+                                <strong>Assigned Date:</strong> %s<br>
                                 <strong>Responsibilities:</strong> Monitor transactions, review alerts, investigate suspicious activities
+                            </div>
+                            <div class="credentials">
+                                <strong>🔐 Your Login Credentials:</strong>
+                                <div class="credential-item"><strong>Email:</strong> %s</div>
+                                <div class="credential-item"><strong>Username:</strong> %s</div>
+                                <div class="credential-item"><strong>Temporary Password:</strong> %s</div>
+                            </div>
+                            <div class="security-note">
+                                <strong>⚠️ Important Security Notice:</strong><br>
+                                Please change your password immediately after your first login. Do not share these credentials with anyone.
                             </div>
                             <p>You now have access to compliance tools and can review flagged transactions and customer activities.</p>
                             <a href="http://127.0.0.1:5500/login.html" class="cta-button">Access Compliance Dashboard</a>
                         </div>
                     </body>
                 </html>
-            """;
+                """.formatted(officerName, assignedDate, toEmail, username, password);
 
             helper.setTo(toEmail);
             helper.setSubject("Welcome to the Compliance Team - Role Assignment");
@@ -406,10 +419,12 @@ public class EmailService {
             mailSender.send(mimeMessage);
             auditLogService.logEmailSent(toEmail, "COMPLIANCE_OFFICER_ADDED");
             log.info("Compliance officer added email sent to {}", toEmail);
+
         } catch (MessagingException | MailException e) {
             log.error("Failed to send compliance officer added email to {}", toEmail, e);
         }
     }
+
 
     public void sendComplianceOfficerRemovedEmail(String toEmail, String officerName) {
         MimeMessage mimeMessage = mailSender.createMimeMessage();

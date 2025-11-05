@@ -159,7 +159,7 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
 
     if (!this.email) {
       // If no email provided, redirect back to appropriate page
-      this.router.navigate(this.isRegistration ? ['/register'] : ['/login']);
+      this.router.navigate(this.isRegistration ? ['/auth/register'] : ['/auth/login']);
       return;
     }
 
@@ -267,7 +267,7 @@ export class OtpVerificationComponent implements OnInit, OnDestroy {
   }
 
   goBackToLogin(): void {
-    this.router.navigate(this.isRegistration ? ['/register'] : ['/login']);
+    this.router.navigate(this.isRegistration ? ['/auth/register'] : ['/auth/login']);
   }
 
   private startCountdown(): void {
