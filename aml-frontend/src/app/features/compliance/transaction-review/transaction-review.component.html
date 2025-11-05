@@ -96,6 +96,19 @@
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">{{ getTabTitle() }} ({{ filteredTransactions.length }})</h5>
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0 me-2">Show:</label>
+            <select class="form-select form-select-sm" style="width: auto;" 
+                    [(ngModel)]="getCurrentPagination().itemsPerPage" (change)="changeItemsPerPage()">
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+            <span class="text-muted small">
+              Showing {{ getStartItem() }}-{{ getEndItem() }} of {{ filteredTransactions.length }} transactions
+            </span>
+          </div>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -112,12 +125,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngIf="filteredTransactions.length === 0">
+                <tr *ngIf="getCurrentPagination().paginatedTransactions.length === 0">
                   <td colspan="7" class="text-center py-4 text-muted">
                     No transactions found matching your criteria
                   </td>
                 </tr>
-                <tr *ngFor="let transaction of filteredTransactions" [class]="getTransactionRowClass(transaction)">
+                <tr *ngFor="let transaction of getCurrentPagination().paginatedTransactions" [class]="getTransactionRowClass(transaction)">
                   <td>
                     <strong>#{{ transaction.id }}</strong>
                     <br>
@@ -150,6 +163,39 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="row" *ngIf="!loading && filteredTransactions.length > getCurrentItemsPerPage()">
+    <div class="col-12">
+      <nav aria-label="Transactions pagination">
+        <ul class="pagination justify-content-center">
+          <!-- Previous Button -->
+          <li class="page-item" [class.disabled]="getCurrentPagination().currentPage === 1">
+            <a class="page-link" href="#" (click)="previousPage(); $event.preventDefault()" 
+               aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+
+          <!-- Page Numbers -->
+          <li class="page-item" *ngFor="let page of getCurrentPagination().pages" 
+              [class.active]="page === getCurrentPagination().currentPage">
+            <a class="page-link" href="#" (click)="goToPage(page); $event.preventDefault()">
+              {{ page }}
+            </a>
+          </li>
+
+          <!-- Next Button -->
+          <li class="page-item" [class.disabled]="getCurrentPagination().currentPage === getCurrentPagination().totalPages">
+            <a class="page-link" href="#" (click)="nextPage(); $event.preventDefault()" 
+               aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </div>
 

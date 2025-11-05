@@ -27,6 +27,13 @@ export class AlertsManagementComponent implements OnInit {
   riskFilter = '';
   searchTerm = '';
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 1;
+  paginatedAlerts: AlertDto[] = [];
+  pages: number[] = [];
+
   constructor(
     private complianceService: ComplianceService,
     private toastService: ToastService
@@ -87,6 +94,10 @@ export class AlertsManagementComponent implements OnInit {
 
       return true;
     });
+
+    // Reset to first page when filters change
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   getRiskScoreClass(riskScore: number): string {
@@ -193,5 +204,61 @@ export class AlertsManagementComponent implements OnInit {
   cancelEscalate(): void {
     this.showEscalateModal = false;
     this.alertToEscalate = null;
+  }
+
+  // Pagination methods
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredAlerts.length / this.itemsPerPage);
+    this.updatePageNumbers();
+    this.paginateAlerts();
+  }
+
+  updatePageNumbers(): void {
+    this.pages = [];
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      this.pages.push(i);
+    }
+  }
+
+  paginateAlerts(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedAlerts = this.filteredAlerts.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePageNumbers();
+      this.paginateAlerts();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  changeItemsPerPage(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getStartItem(): number {
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  getEndItem(): number {
+    return Math.min(this.currentPage * this.itemsPerPage, this.filteredAlerts.length);
   }
 }

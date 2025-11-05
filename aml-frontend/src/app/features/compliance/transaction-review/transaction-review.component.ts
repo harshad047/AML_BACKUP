@@ -40,6 +40,12 @@ export class TransactionReviewComponent implements OnInit {
   rejectionReason = '';
   transactionToReject: TransactionDto | null = null;
 
+  // Pagination for each tab
+  reviewPagination = { currentPage: 1, itemsPerPage: 10, totalPages: 1, paginatedTransactions: [] as TransactionDto[], pages: [] as number[] };
+  flaggedPagination = { currentPage: 1, itemsPerPage: 10, totalPages: 1, paginatedTransactions: [] as TransactionDto[], pages: [] as number[] };
+  blockedPagination = { currentPage: 1, itemsPerPage: 10, totalPages: 1, paginatedTransactions: [] as TransactionDto[], pages: [] as number[] };
+  allPagination = { currentPage: 1, itemsPerPage: 10, totalPages: 1, paginatedTransactions: [] as TransactionDto[], pages: [] as number[] };
+
   constructor(
     private complianceService: ComplianceService,
     private router: Router,
@@ -131,6 +137,10 @@ export class TransactionReviewComponent implements OnInit {
 
       return true;
     });
+
+    // Reset pagination when filters change and update pagination
+    this.getCurrentPagination().currentPage = 1;
+    this.updatePagination();
   }
 
   getTabTitle(): string {
@@ -353,5 +363,82 @@ export class TransactionReviewComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Pagination methods
+  getCurrentPagination(): any {
+    switch (this.activeTab) {
+      case 'review': return this.reviewPagination;
+      case 'flagged': return this.flaggedPagination;
+      case 'blocked': return this.blockedPagination;
+      case 'all': return this.allPagination;
+      default: return this.reviewPagination;
+    }
+  }
+
+  updatePagination(): void {
+    const pagination = this.getCurrentPagination();
+    pagination.totalPages = Math.ceil(this.filteredTransactions.length / pagination.itemsPerPage);
+    this.updatePageNumbers(pagination);
+    this.paginateTransactions(pagination);
+  }
+
+  updatePageNumbers(pagination: any): void {
+    pagination.pages = [];
+    const startPage = Math.max(1, pagination.currentPage - 2);
+    const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pagination.pages.push(i);
+    }
+  }
+
+  paginateTransactions(pagination: any): void {
+    const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+    const endIndex = startIndex + pagination.itemsPerPage;
+    pagination.paginatedTransactions = this.filteredTransactions.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    const pagination = this.getCurrentPagination();
+    if (page >= 1 && page <= pagination.totalPages) {
+      pagination.currentPage = page;
+      this.updatePageNumbers(pagination);
+      this.paginateTransactions(pagination);
+    }
+  }
+
+  nextPage(): void {
+    const pagination = this.getCurrentPagination();
+    if (pagination.currentPage < pagination.totalPages) {
+      this.goToPage(pagination.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    const pagination = this.getCurrentPagination();
+    if (pagination.currentPage > 1) {
+      this.goToPage(pagination.currentPage - 1);
+    }
+  }
+
+  changeItemsPerPage(): void {
+    const pagination = this.getCurrentPagination();
+    pagination.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getStartItem(): number {
+    const pagination = this.getCurrentPagination();
+    return (pagination.currentPage - 1) * pagination.itemsPerPage + 1;
+  }
+
+  getEndItem(): number {
+    const pagination = this.getCurrentPagination();
+    return Math.min(pagination.currentPage * pagination.itemsPerPage, this.filteredTransactions.length);
+  }
+
+  getCurrentItemsPerPage(): number {
+    return this.getCurrentPagination().itemsPerPage;
   }
 }
