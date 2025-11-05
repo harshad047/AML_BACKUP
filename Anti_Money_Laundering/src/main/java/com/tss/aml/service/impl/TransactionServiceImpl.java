@@ -545,8 +545,7 @@ public class TransactionServiceImpl {
             // For any other country, try to find by partial name match
             List<CountryRisk> matches = countryRiskRepo.findByCountryNameContainingIgnoreCase(countryName);
             if (!matches.isEmpty()) {
-                // Return the first match (most likely the correct one)
-                return matches.get(0).getCountryCode();
+                 return matches.get(0).getCountryCode();
             }
 
             System.out.println("Country name '" + countryName + "' not found in database");
