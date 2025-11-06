@@ -1,0 +1,24 @@
+<div class="toast-container">
+  <div *ngFor="let toast of toasts" 
+       class="toast-item"
+       [class.toast-success]="toast.type === 'success'"
+       [class.toast-error]="toast.type === 'error'"
+       [class.toast-info]="toast.type === 'info'"
+       [class.toast-warning]="toast.type === 'warning'"
+       [class.toast-removing]="removingToasts.has(toast.id)">
+    <div class="toast-content">
+      <div class="toast-icon-wrapper">
+        <i class="fas toast-icon" 
+           [class.fa-check-circle]="toast.type === 'success'"
+           [class.fa-exclamation-circle]="toast.type === 'error'"
+           [class.fa-info-circle]="toast.type === 'info'"
+           [class.fa-exclamation-triangle]="toast.type === 'warning'"></i>
+      </div>
+      <span class="toast-message">{{ toast.message }}</span>
+    </div>
+    <button class="toast-close" (click)="removeToast(toast.id)" aria-label="Close" title="Close">
+      <i class="fas fa-times"></i>
+    </button>
+    <div class="toast-progress" *ngIf="toast.duration && toast.duration > 0"></div>
+  </div>
+</div>
