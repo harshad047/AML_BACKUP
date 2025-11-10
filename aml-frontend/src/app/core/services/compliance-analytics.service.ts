@@ -203,10 +203,17 @@ export class ComplianceAnalyticsService {
 
   // Alert Analytics Methods
   private calculateAlertTrends(alerts: any[]): any[] {
-    const last7Days = this.getLast7Days();
+    // Get unique dates from alerts and sort them
+    const dateSet = new Set<string>();
+    alerts.forEach(a => {
+      const date = this.safeFormatDate(a.createdAt);
+      if (date) dateSet.add(date);
+    });
+    
+    const dates = Array.from(dateSet).sort();
     const trendMap = new Map();
     
-    last7Days.forEach(date => {
+    dates.forEach(date => {
       trendMap.set(date, { open: 0, escalated: 0, resolved: 0 });
     });
     
@@ -437,10 +444,17 @@ export class ComplianceAnalyticsService {
   }
 
   private calculateAlertResponseTimes(alerts: any[]): any[] {
-    const last7Days = this.getLast7Days();
+    // Get unique dates from alerts and sort them
+    const dateSet = new Set<string>();
+    alerts.forEach(a => {
+      const date = this.safeFormatDate(a.createdAt);
+      if (date) dateSet.add(date);
+    });
+    
+    const dates = Array.from(dateSet).sort();
     const timeMap = new Map();
     
-    last7Days.forEach(date => {
+    dates.forEach(date => {
       timeMap.set(date, { total: 0, count: 0 });
     });
     
@@ -517,10 +531,17 @@ export class ComplianceAnalyticsService {
   }
 
   private calculateRiskTrends(transactions: any[]): any[] {
-    const last7Days = this.getLast7Days();
+    // Get unique dates from transactions and sort them
+    const dateSet = new Set<string>();
+    transactions.forEach(t => {
+      const date = this.safeFormatDate(t.createdAt);
+      if (date) dateSet.add(date);
+    });
+    
+    const dates = Array.from(dateSet).sort();
     const trendMap = new Map();
     
-    last7Days.forEach(date => {
+    dates.forEach(date => {
       trendMap.set(date, { high: 0, medium: 0, low: 0 });
     });
     

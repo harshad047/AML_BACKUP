@@ -158,7 +158,7 @@
       <div class="col-md-8 mb-3">
         <div class="chart-card">
           <div class="chart-header">
-            <h5><i class="fas fa-chart-line me-2"></i>Alert Trends (Last 7 Days)</h5>
+            <h5><i class="fas fa-chart-line me-2"></i>Alert Trends</h5>
           </div>
           <div class="chart-body">
             <canvas baseChart
@@ -280,7 +280,7 @@
       <h3><i class="fas fa-folder me-2"></i>Case Management</h3>
     </div>
     <div class="row mb-4">
-      <div class="col-md-4 mb-3">
+      <div class="col-md-6 mb-3">
         <div class="chart-card">
           <div class="chart-header">
             <h5><i class="fas fa-chart-pie me-2"></i>Case Status Distribution</h5>
@@ -290,30 +290,12 @@
                     [data]="caseStatusChart!"
                     [options]="doughnutChartOptions"
                     [type]="'doughnut'"
-                    style="height: 250px;">
+                    style="height: 300px;">
             </canvas>
           </div>
         </div>
       </div>
-      <div class="col-md-8 mb-3">
-        <div class="chart-card">
-          <div class="chart-header">
-            <h5><i class="fas fa-users me-2"></i>Cases by Officer</h5>
-          </div>
-          <div class="chart-body">
-            <canvas baseChart
-                    [data]="casesByOfficerChart!"
-                    [options]="barChartOptions"
-                    [type]="'bar'"
-                    style="height: 250px;">
-            </canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row mb-4">
-      <div class="col-12">
+      <div class="col-md-6 mb-3">
         <div class="chart-card">
           <div class="chart-header">
             <h5><i class="fas fa-hourglass-half me-2"></i>Case Resolution Time (Last 7 Days)</h5>
