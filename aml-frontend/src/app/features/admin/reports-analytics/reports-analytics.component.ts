@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { Chart, ChartConfiguration, ChartData, ChartType, registerables } from 'chart.js';
 import { AnalyticsService, AnalyticsData } from '../../../core/services/analytics.service';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
+
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -395,188 +396,132 @@ export class ReportsAnalyticsComponent implements OnInit {
     window.print();
   }
 
-  exportToExcel(): void {
-    if (!this.analyticsData) {
-      alert('No data available to export');
-      return;
+exportToExcel(): void {
+  if (!this.analyticsData) {
+    alert('No data available to export');
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // Common styles
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "4472C4" } }, // Blue header
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left: { style: "thin", color: { rgb: "000000" } },
+      right: { style: "thin", color: { rgb: "000000" } }
+    }
+  };
+
+  const cellStyle = {
+    alignment: { horizontal: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left: { style: "thin", color: { rgb: "000000" } },
+      right: { style: "thin", color: { rgb: "000000" } }
+    }
+  };
+
+  const createStyledSheet = (title: string, headers: string[], rows: any[][]) => {
+    const data = [[title], headers, ...rows];
+    const sheet = XLSX.utils.aoa_to_sheet(data);
+
+    // Apply styles
+    const range = XLSX.utils.decode_range(sheet['!ref']!);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!sheet[cellRef]) continue;
+
+        if (R === 1) sheet[cellRef].s = headerStyle; // header row
+        else if (R > 1) sheet[cellRef].s = cellStyle; // data rows
+      }
     }
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
+    // Auto column width
+    const colWidths = headers.map(() => ({ wch: 20 }));
+    sheet['!cols'] = colWidths;
 
-    // Executive Summary Sheet
-    const summaryData = [
-      ['Executive Summary'],
-      ['Metric', 'Value'],
-      ['Total Transactions', this.analyticsData.totalTransactions],
-      ['Average Risk Score', this.analyticsData.averageRiskScore],
-      ['Active Alerts', this.analyticsData.activeAlerts],
-      ['Compliance Rate', this.analyticsData.complianceRate + '%']
-    ];
-    const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, summarySheet, 'Executive Summary');
+    XLSX.utils.book_append_sheet(wb, sheet, title);
+  };
 
-    // Transaction Trends Sheet
-    const transactionTrendsData = [
-      ['Transaction Volume Trends (Last 7 Days)'],
-      ['Date', 'Total', 'Approved', 'Flagged', 'Blocked'],
-      ...this.analyticsData.transactionTrends.map(t => [
-        t.date, t.total, t.approved, t.flagged, t.blocked
-      ])
-    ];
-    const trendsSheet = XLSX.utils.aoa_to_sheet(transactionTrendsData);
-    XLSX.utils.book_append_sheet(wb, trendsSheet, 'Transaction Trends');
+  // Now use createStyledSheet for each section:
 
-    // Transactions by Type Sheet
-    const typeData = [
-      ['Transactions by Type'],
-      ['Type', 'Count', 'Amount'],
-      ...this.analyticsData.transactionsByType.map(t => [
-        t.type, t.count, t.amount
-      ])
-    ];
-    const typeSheet = XLSX.utils.aoa_to_sheet(typeData);
-    XLSX.utils.book_append_sheet(wb, typeSheet, 'By Type');
+  createStyledSheet('Executive Summary', ['Metric', 'Value'], [
+    ['Total Transactions', this.analyticsData.totalTransactions],
+    ['Average Risk Score', this.analyticsData.averageRiskScore],
+    ['Active Alerts', this.analyticsData.activeAlerts],
+    ['Compliance Rate', `${this.analyticsData.complianceRate}%`]
+  ]);
 
-    // Transactions by Status Sheet
-    const statusData = [
-      ['Transactions by Status'],
-      ['Status', 'Count'],
-      ...this.analyticsData.transactionsByStatus.map(t => [
-        t.status, t.count
-      ])
-    ];
-    const statusSheet = XLSX.utils.aoa_to_sheet(statusData);
-    XLSX.utils.book_append_sheet(wb, statusSheet, 'By Status');
+  createStyledSheet('Transaction Trends', ['Date', 'Total', 'Approved', 'Flagged', 'Blocked'],
+    this.analyticsData.transactionTrends.map(t => [t.date, t.total, t.approved, t.flagged, t.blocked])
+  );
 
-    // Risk Distribution Sheet
-    const riskData = [
-      ['Risk Distribution'],
-      ['Risk Level', 'Count'],
-      ...this.analyticsData.riskDistribution.map(r => [
-        r.level, r.count
-      ])
-    ];
-    const riskSheet = XLSX.utils.aoa_to_sheet(riskData);
-    XLSX.utils.book_append_sheet(wb, riskSheet, 'Risk Distribution');
+  createStyledSheet('Transactions by Type', ['Type', 'Count', 'Amount'],
+    this.analyticsData.transactionsByType.map(t => [t.type, t.count, t.amount])
+  );
 
-    // Top High-Value Transactions Sheet
-    const highValueData = [
-      ['Top High-Value Transactions'],
-      ['Transaction ID', 'Amount', 'Currency', 'Risk Score'],
-      ...this.analyticsData.topHighValueTransactions.map(t => [
-        t.id, t.amount, t.currency, t.riskScore
-      ])
-    ];
-    const highValueSheet = XLSX.utils.aoa_to_sheet(highValueData);
-    XLSX.utils.book_append_sheet(wb, highValueSheet, 'High Value Txns');
+  createStyledSheet('Transactions by Status', ['Status', 'Count'],
+    this.analyticsData.transactionsByStatus.map(t => [t.status, t.count])
+  );
 
-    // Top Triggered Rules Sheet
-    const rulesData = [
-      ['Top Triggered Rules'],
-      ['Rule Name', 'Count', 'Action'],
-      ...this.analyticsData.topTriggeredRules.map(r => [
-        r.ruleName, r.count, r.action
-      ])
-    ];
-    const rulesSheet = XLSX.utils.aoa_to_sheet(rulesData);
-    XLSX.utils.book_append_sheet(wb, rulesSheet, 'Top Rules');
+  createStyledSheet('Risk Distribution', ['Risk Level', 'Count'],
+    this.analyticsData.riskDistribution.map(r => [r.level, r.count])
+  );
 
-    // User Growth Sheet
-    const userGrowthData = [
-      ['User Growth (Last 12 Months)'],
-      ['Month', 'New Users', 'Total Users'],
-      ...this.analyticsData.userGrowth.map(u => [
-        u.month, u.newUsers, u.totalUsers
-      ])
-    ];
-    const userGrowthSheet = XLSX.utils.aoa_to_sheet(userGrowthData);
-    XLSX.utils.book_append_sheet(wb, userGrowthSheet, 'User Growth');
+  createStyledSheet('High Value Txns', ['Transaction ID', 'Amount', 'Currency', 'Risk Score'],
+    this.analyticsData.topHighValueTransactions.map(t => [t.id, t.amount, t.currency, t.riskScore])
+  );
 
-    // User Status Sheet
-    const userStatusData = [
-      ['User Status Distribution'],
-      ['Status', 'Count'],
-      ...this.analyticsData.userStatusDistribution.map(u => [
-        u.status, u.count
-      ])
-    ];
-    const userStatusSheet = XLSX.utils.aoa_to_sheet(userStatusData);
-    XLSX.utils.book_append_sheet(wb, userStatusSheet, 'User Status');
+  createStyledSheet('Top Rules', ['Rule Name', 'Count', 'Action'],
+    this.analyticsData.topTriggeredRules.map(r => [r.ruleName, r.count, r.action])
+  );
 
-    // KYC Status Sheet
-    const kycData = [
-      ['KYC Verification Status'],
-      ['Status', 'Count'],
-      ...this.analyticsData.kycStatus.map(k => [
-        k.status, k.count
-      ])
-    ];
-    const kycSheet = XLSX.utils.aoa_to_sheet(kycData);
-    XLSX.utils.book_append_sheet(wb, kycSheet, 'KYC Status');
+  createStyledSheet('User Growth', ['Month', 'New Users', 'Total Users'],
+    this.analyticsData.userGrowth.map(u => [u.month, u.newUsers, u.totalUsers])
+  );
 
-    // Top Customers Sheet
-    const customersData = [
-      ['Top Customers by Transaction Volume'],
-      ['Customer Name', 'Transactions', 'Total Amount'],
-      ...this.analyticsData.topCustomersByVolume.map(c => [
-        c.name, c.transactions, c.amount
-      ])
-    ];
-    const customersSheet = XLSX.utils.aoa_to_sheet(customersData);
-    XLSX.utils.book_append_sheet(wb, customersSheet, 'Top Customers');
+  createStyledSheet('User Status', ['Status', 'Count'],
+    this.analyticsData.userStatusDistribution.map(u => [u.status, u.count])
+  );
 
-    // Cases by Officer Sheet
-    const casesData = [
-      ['Cases by Compliance Officer'],
-      ['Officer', 'Resolved', 'Pending'],
-      ...this.analyticsData.casesByOfficer.map(c => [
-        c.officer, c.resolved, c.pending
-      ])
-    ];
-    const casesSheet = XLSX.utils.aoa_to_sheet(casesData);
-    XLSX.utils.book_append_sheet(wb, casesSheet, 'Cases by Officer');
+  createStyledSheet('KYC Status', ['Status', 'Count'],
+    this.analyticsData.kycStatus.map(k => [k.status, k.count])
+  );
 
-    // Accounts by Type Sheet
-    const accountTypeData = [
-      ['Accounts by Type'],
-      ['Type', 'Count'],
-      ...this.analyticsData.accountsByType.map(a => [
-        a.type, a.count
-      ])
-    ];
-    const accountTypeSheet = XLSX.utils.aoa_to_sheet(accountTypeData);
-    XLSX.utils.book_append_sheet(wb, accountTypeSheet, 'Accounts by Type');
+  createStyledSheet('Top Customers', ['Customer Name', 'Transactions', 'Total Amount'],
+    this.analyticsData.topCustomersByVolume.map(c => [c.name, c.transactions, c.amount])
+  );
 
-    // Accounts by Currency Sheet
-    const accountCurrencyData = [
-      ['Accounts by Currency'],
-      ['Currency', 'Count'],
-      ...this.analyticsData.accountsByCurrency.map(a => [
-        a.currency, a.count
-      ])
-    ];
-    const accountCurrencySheet = XLSX.utils.aoa_to_sheet(accountCurrencyData);
-    XLSX.utils.book_append_sheet(wb, accountCurrencySheet, 'Accounts by Currency');
+  createStyledSheet('Cases by Officer', ['Officer', 'Resolved', 'Pending'],
+    this.analyticsData.casesByOfficer.map(c => [c.officer, c.resolved, c.pending])
+  );
 
-    // Activity by Action Sheet
-    const activityData = [
-      ['System Activity by Action'],
-      ['Action', 'Count'],
-      ...this.analyticsData.activityByAction.map(a => [
-        a.action, a.count
-      ])
-    ];
-    const activitySheet = XLSX.utils.aoa_to_sheet(activityData);
-    XLSX.utils.book_append_sheet(wb, activitySheet, 'System Activity');
+  createStyledSheet('Accounts by Type', ['Type', 'Count'],
+    this.analyticsData.accountsByType.map(a => [a.type, a.count])
+  );
 
-    // Generate filename with current date
-    const date = new Date();
-    const filename = `AML_Analytics_Report_${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}.xlsx`;
+  createStyledSheet('Accounts by Currency', ['Currency', 'Count'],
+    this.analyticsData.accountsByCurrency.map(a => [a.currency, a.count])
+  );
 
-    // Save file
-    XLSX.writeFile(wb, filename);
-  }
+  createStyledSheet('System Activity', ['Action', 'Count'],
+    this.analyticsData.activityByAction.map(a => [a.action, a.count])
+  );
+
+  // Filename with date
+  const date = new Date();
+  const filename = `AML_Analytics_Report_${date.getFullYear()}-${(date.getMonth() + 1)
+    .toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}.xlsx`;
+
+  XLSX.writeFile(wb, filename);
+}
 
   refreshData(): void {
     this.loadAnalytics();
