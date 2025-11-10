@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -18,7 +18,7 @@ interface ForgotPasswordResetRequest {
   templateUrl: './forgot-password.component.html',
   styleUrls: ['./forgot-password.component.css']
 })
-export class ForgotPasswordComponent {
+export class ForgotPasswordComponent implements OnDestroy {
   private readonly API_URL = 'http://localhost:8080/api/auth';
   
   // Flow state
@@ -42,6 +42,10 @@ export class ForgotPasswordComponent {
   verifiedEmail = '';
   verifiedOtp = '';
   resetToken = '';
+  
+  // Resend OTP timer
+  resendTimer = 0;
+  resendInterval: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -127,6 +131,7 @@ export class ForgotPasswordComponent {
           this.success = response.message || 'OTP sent successfully. Please check your inbox.';
           this.verifiedEmail = email;
           this.currentStep = 'otp';
+          this.startResendTimer();
         } else {
           this.error = response.message || 'No account found with this email address.';
         }
@@ -212,9 +217,51 @@ export class ForgotPasswordComponent {
   }
 
   resendOtp(): void {
+    if (this.resendTimer > 0) {
+      return; // Don't allow resend if timer is still running
+    }
+    
     this.otpForm.reset();
     this.error = '';
     this.success = '';
-    this.sendOtp(); // Re-use the existing sendOtp logic
+    
+    // Use a separate loading flag or directly call API without affecting verify button
+    const email = this.verifiedEmail;
+    
+    this.http.post(`${this.API_URL}/forgot-password/send-otp`, null, { params: { email } }).subscribe({
+      next: (response: any) => {
+        if (response.sent === true) {
+          this.success = 'OTP resent successfully. Please check your inbox.';
+          this.startResendTimer();
+        } else {
+          this.error = response.message || 'Failed to resend OTP.';
+        }
+      },
+      error: (err) => {
+        this.error = err.error?.error || 'Failed to resend OTP. Please try again.';
+      }
+    });
+  }
+  
+  startResendTimer(): void {
+    this.resendTimer = 60; // 1 minute = 60 seconds
+    
+    if (this.resendInterval) {
+      clearInterval(this.resendInterval);
+    }
+    
+    this.resendInterval = setInterval(() => {
+      this.resendTimer--;
+      if (this.resendTimer <= 0) {
+        clearInterval(this.resendInterval);
+        this.resendInterval = null;
+      }
+    }, 1000);
+  }
+  
+  ngOnDestroy(): void {
+    if (this.resendInterval) {
+      clearInterval(this.resendInterval);
+    }
   }
 }
