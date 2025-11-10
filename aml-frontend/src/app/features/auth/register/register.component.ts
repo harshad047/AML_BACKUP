@@ -21,6 +21,20 @@ class CustomValidators {
     };
   }
 
+  // Validate no future date
+  static noFutureDate(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+      const selectedDate = new Date(control.value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to compare only dates
+      
+      return selectedDate > today ? { futureDate: true } : null;
+    };
+  }
+
   // Validate minimum age (18 years)
   static minimumAge(minAge: number): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -132,6 +146,7 @@ export class RegisterComponent implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
   showTermsModal = false;
+  maxDate: string; // Maximum date for date of birth (today's date)
 
   // Country dropdown options - loaded from API
   countries: CountryDto[] = [];
@@ -142,7 +157,11 @@ export class RegisterComponent implements OnInit {
     private router: Router,
     private toastService: ToastService,
     private http: HttpClient
-  ) {}
+  ) {
+    // Set max date to today (prevent future dates)
+    const today = new Date();
+    this.maxDate = today.toISOString().split('T')[0];
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -189,6 +208,7 @@ export class RegisterComponent implements OnInit {
       ]],
       dob: ['', [
         Validators.required,
+        CustomValidators.noFutureDate(),
         CustomValidators.minimumAge(18)
       ]],
       password: ['', [
@@ -244,6 +264,9 @@ export class RegisterComponent implements OnInit {
     }
     
     // Date of birth errors
+    if (errors['futureDate']) {
+      return 'Date of birth cannot be in the future';
+    }
     if (errors['minimumAge']) {
       return `You must be at least ${errors['minimumAge'].requiredAge} years old`;
     }

@@ -325,3 +325,98 @@ canvas {
 .kpi-card {
   animation: fadeIn 0.5s ease-out;
 }
+
+/* Simple Filter Bar */
+.filter-bar {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.3s ease;
+}
+
+.filter-bar:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.filter-bar .form-label {
+  color: #212529;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.filter-bar .form-select,
+.filter-bar .form-control {
+  border-radius: 0.5rem;
+  border: 2px solid #dee2e6;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.filter-bar .form-select:hover,
+.filter-bar .form-control:hover {
+  border-color: #0d6efd;
+  background-color: #f8f9fa;
+}
+
+.filter-bar .form-select:focus,
+.filter-bar .form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+  background-color: white;
+}
+
+/* Date Input Styling */
+.filter-bar input[type="date"] {
+  cursor: pointer;
+  position: relative;
+}
+
+.filter-bar input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.filter-bar input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Validation Alert */
+.filter-bar .alert {
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.filter-bar .badge {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* Responsive Filter Bar */
+@media (max-width: 768px) {
+  .filter-bar {
+    padding: 1rem;
+  }
+
+  .filter-bar .col-md-9 {
+    margin-top: 1rem;
+    text-align: center !important;
+  }
+
+  .filter-bar .badge {
+    font-size: 0.85rem !important;
+    padding: 0.5rem 1rem !important;
+  }
+}
+
+/* Print - Hide Filter */
+@media print {
+  .filter-bar {
+    display: none !important;
+  }
+}

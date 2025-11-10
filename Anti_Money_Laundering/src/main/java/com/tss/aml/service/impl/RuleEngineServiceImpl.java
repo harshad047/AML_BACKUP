@@ -39,7 +39,7 @@ public class RuleEngineServiceImpl {
         List<RuleMatchDto> flaggedRules = new ArrayList<>();
         List<RuleMatchDto> blockedRules = new ArrayList<>();
 
-        // --- Probability-based aggregation (Noisy-OR model) ---
+        // --- Probability-based aggregation ---
         double productComplement = 1.0; // Start with full complement (for independence)
 
         for (Rule rule : rules) {

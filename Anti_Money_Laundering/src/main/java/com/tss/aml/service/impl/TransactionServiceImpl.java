@@ -696,6 +696,37 @@ public class TransactionServiceImpl {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Both accounts have the same currency. Use regular transfer instead.");
         }
 
+        // MINIMUM TRANSACTION AMOUNT VALIDATION FOR INTERCURRENCY TRANSFERS
+        // Convert amount to INR for validation if not already in INR
+        BigDecimal amountInINR;
+        if ("INR".equalsIgnoreCase(fromAccount.getCurrency())) {
+            amountInINR = transferDto.getAmount();
+        } else {
+            // Convert to INR for minimum amount validation
+            try {
+                CurrencyExchangeService.CurrencyConversionResult inrConversion = 
+                        currencyExchangeService.calculateConversion(
+                            fromAccount.getCurrency(), 
+                            "INR", 
+                            transferDto.getAmount()
+                        );
+                amountInINR = inrConversion.getConvertedAmount();
+            } catch (Exception e) {
+                throw new AmlApiException(HttpStatus.BAD_REQUEST, 
+                    "Unable to validate minimum transaction amount. Please try again later.");
+            }
+        }
+        
+        // Check minimum amount of 10,000 INR
+        BigDecimal minimumAmount = new BigDecimal("10000");
+        if (amountInINR.compareTo(minimumAmount) < 0) {
+            throw new AmlApiException(HttpStatus.BAD_REQUEST, 
+                String.format("Intercurrency transfers require a minimum amount of 10,000 INR. " +
+                             "Your transaction amount is approximately %.2f INR.", amountInINR));
+        }
+        
+        System.out.println("Intercurrency transfer validation passed: Amount in INR = " + amountInINR);
+
         // Calculate conversion details
         CurrencyExchangeService.CurrencyConversionResult conversionResult = 
                 currencyExchangeService.calculateConversion(

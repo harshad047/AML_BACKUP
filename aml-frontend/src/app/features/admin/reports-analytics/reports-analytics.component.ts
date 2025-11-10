@@ -22,6 +22,13 @@ export class ReportsAnalyticsComponent implements OnInit {
   error: string | null = null;
   analyticsData: AnalyticsData | null = null;
   dateRange = '30'; // 7, 30, 90 days
+  selectedDateRange = '30'; // Default to last 30 days
+  
+  // Custom date range   
+  startDate: string = '';
+  endDate: string = '';
+  maxDate: string = ''; // Today's date - no future dates allowed
+  dateRangeError: string = '';
   
   // Chart configurations
   transactionVolumeChart: ChartConfiguration<'line'>['data'] | null = null;
@@ -86,13 +93,33 @@ export class ReportsAnalyticsComponent implements OnInit {
   constructor(private analyticsService: AnalyticsService) {}
 
   ngOnInit(): void {
+    // Set max date to today (no future dates allowed)
+    const today = new Date();
+    this.maxDate = today.toISOString().split('T')[0];
+    
+    // Initialize default date range (last 30 days)
+    this.initializeDefaultDates();
+    
     this.loadAnalytics();
+  }
+
+  initializeDefaultDates(): void {
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    
+    this.endDate = today.toISOString().split('T')[0];
+    this.startDate = thirtyDaysAgo.toISOString().split('T')[0];
   }
 
   loadAnalytics(): void {
     this.loading = true;
     this.error = null;
-    this.analyticsService.getAnalyticsData().subscribe({
+    
+    // Pass date range to the analytics service
+    console.log('Loading analytics with date range:', this.startDate, 'to', this.endDate);
+    
+    this.analyticsService.getAnalyticsData(this.startDate, this.endDate).subscribe({
       next: (data) => {
         console.log('Analytics data loaded:', data);
         this.analyticsData = data;
@@ -553,5 +580,111 @@ export class ReportsAnalyticsComponent implements OnInit {
 
   refreshData(): void {
     this.loadAnalytics();
+  }
+
+  // Date filter methods
+  onDateRangeChange(): void {
+    console.log('Date range changed to:', this.selectedDateRange);
+    this.dateRange = this.selectedDateRange;
+    this.dateRangeError = '';
+    
+    if (this.selectedDateRange !== 'custom') {
+      // For predefined ranges, calculate start and end dates
+      const today = new Date();
+      const daysAgo = new Date();
+      daysAgo.setDate(today.getDate() - parseInt(this.selectedDateRange));
+      
+      this.endDate = today.toISOString().split('T')[0];
+      this.startDate = daysAgo.toISOString().split('T')[0];
+      
+      // Reload analytics data
+      this.loadAnalytics();
+    }
+    // For custom range, wait for user to select dates
+  }
+
+  onCustomDateChange(): void {
+    this.dateRangeError = '';
+    
+    // Validate that both dates are selected
+    if (!this.startDate || !this.endDate) {
+      this.dateRangeError = 'Please select both start and end dates.';
+      return;
+    }
+    
+    // Validate that start date is not after end date
+    const start = new Date(this.startDate);
+    const end = new Date(this.endDate);
+    
+    if (start > end) {
+      this.dateRangeError = 'Start date cannot be after end date.';
+      return;
+    }
+    
+    // Validate that dates are not in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (start > today || end > today) {
+      this.dateRangeError = 'Future dates are not allowed.';
+      return;
+    }
+    
+    // Calculate date range in days
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 365) {
+      this.dateRangeError = 'Date range cannot exceed 365 days.';
+      return;
+    }
+    
+    // All validations passed - reload analytics
+    console.log('Custom date range:', this.startDate, 'to', this.endDate);
+    this.loadAnalytics();
+  }
+
+  getDateRangeText(): string {
+    if (this.selectedDateRange === 'custom') {
+      if (this.startDate && this.endDate) {
+        const start = new Date(this.startDate);
+        const end = new Date(this.endDate);
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return `Custom Range: ${this.formatDate(this.startDate)} to ${this.formatDate(this.endDate)} (${diffDays} days)`;
+      }
+      return 'Custom Range: Please select dates';
+    }
+    
+    switch(this.selectedDateRange) {
+      case '7': return 'Showing data for: Last 7 Days';
+      case '30': return 'Showing data for: Last 30 Days';
+      case '90': return 'Showing data for: Last 90 Days';
+      case '180': return 'Showing data for: Last 6 Months';
+      case '365': return 'Showing data for: Last Year';
+      default: return 'Showing data for: Last 30 Days';
+    }
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  getSelectedRangeLabel(): string {
+    switch(this.selectedDateRange) {
+      case '7': return 'Last 7 Days';
+      case '30': return 'Last 30 Days';
+      case '90': return 'Last 90 Days';
+      case '180': return 'Last 6 Months';
+      case '365': return 'Last Year';
+      case 'custom': return 'Custom Range';
+      default: return 'Last 30 Days';
+    }
   }
 }

@@ -23,6 +23,68 @@
     </div>
   </div>
 
+  <!-- Simple Date Filter -->
+  <div class="filter-bar mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-3">
+        <label class="form-label mb-2">
+          <i class="fas fa-calendar-alt me-2"></i><strong>Filter by Date Range</strong>
+        </label>
+        <select class="form-select" [(ngModel)]="selectedDateRange" (change)="onDateRangeChange()">
+          <option value="7">Last 7 Days</option>
+          <option value="30">Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+          <option value="180">Last 6 Months</option>
+          <option value="365">Last Year</option>
+          <option value="custom">Custom Date Range</option>
+        </select>
+      </div>
+
+      <!-- Custom Date Range Inputs (shown when custom is selected) -->
+      <div class="col-md-3" *ngIf="selectedDateRange === 'custom'">
+        <label class="form-label mb-2">
+          <i class="fas fa-calendar-day me-2"></i><strong>From Date</strong>
+        </label>
+        <input 
+          type="date" 
+          class="form-control" 
+          [(ngModel)]="startDate" 
+          [max]="maxDate"
+          (change)="onCustomDateChange()"
+          placeholder="Select start date">
+      </div>
+
+      <div class="col-md-3" *ngIf="selectedDateRange === 'custom'">
+        <label class="form-label mb-2">
+          <i class="fas fa-calendar-check me-2"></i><strong>To Date</strong>
+        </label>
+        <input 
+          type="date" 
+          class="form-control" 
+          [(ngModel)]="endDate" 
+          [min]="startDate"
+          [max]="maxDate"
+          (change)="onCustomDateChange()"
+          placeholder="Select end date">
+      </div>
+
+      <div [ngClass]="selectedDateRange === 'custom' ? 'col-md-3' : 'col-md-9'" class="text-end">
+        <span class="badge bg-info fs-6 px-3 py-2">
+          <i class="fas fa-info-circle me-2"></i>{{ getDateRangeText() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Validation Messages -->
+    <div class="row mt-2" *ngIf="selectedDateRange === 'custom' && dateRangeError">
+      <div class="col-12">
+        <div class="alert alert-warning py-2 mb-0">
+          <i class="fas fa-exclamation-triangle me-2"></i>{{ dateRangeError }}
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="loading" class="text-center py-5">
     <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
@@ -52,7 +114,7 @@
           <div class="kpi-content">
             <div class="kpi-label">Total Transactions</div>
             <div class="kpi-value">{{ analyticsData.totalTransactions | number }}</div>
-            <div class="kpi-trend"><i class="fas fa-arrow-up"></i> Last 30 days</div>
+            <div class="kpi-trend"><i class="fas fa-arrow-up"></i> {{ getSelectedRangeLabel() }}</div>
           </div>
         </div>
       </div>
@@ -93,7 +155,7 @@
       <div class="col-12">
         <div class="chart-card">
           <div class="chart-header">
-            <h5><i class="fas fa-chart-line me-2"></i>Transaction Volume Trend (Last 7 Days)</h5>
+            <h5><i class="fas fa-chart-line me-2"></i>Transaction Volume Trend ({{ getSelectedRangeLabel() }})</h5>
           </div>
           <div class="chart-body">
             <canvas baseChart
@@ -206,7 +268,7 @@
       <div class="col-md-8 mb-3">
         <div class="chart-card">
           <div class="chart-header">
-            <h5><i class="fas fa-chart-area me-2"></i>Risk Score Trends (Last 7 Days)</h5>
+            <h5><i class="fas fa-chart-area me-2"></i>Risk Score Trends ({{ getSelectedRangeLabel() }})</h5>
           </div>
           <div class="chart-body">
             <canvas baseChart
@@ -224,7 +286,7 @@
       <div class="col-md-6 mb-3">
         <div class="chart-card">
           <div class="chart-header">
-            <h5><i class="fas fa-bell me-2"></i>Alert Trends (Last 7 Days)</h5>
+            <h5><i class="fas fa-bell me-2"></i>Alert Trends ({{ getSelectedRangeLabel() }})</h5>
           </div>
           <div class="chart-body">
             <canvas baseChart
@@ -258,22 +320,7 @@
       <h3><i class="fas fa-users me-2"></i>User & Customer Analytics</h3>
     </div>
     <div class="row mb-4">
-      <div class="col-md-8 mb-3">
-        <div class="chart-card">
-          <div class="chart-header">
-            <h5><i class="fas fa-chart-line me-2"></i>User Growth (Last 12 Months)</h5>
-          </div>
-          <div class="chart-body">
-            <canvas baseChart
-                    [data]="userGrowthChart!"
-                    [options]="lineChartOptions"
-                    [type]="'line'"
-                    style="height: 300px;">
-            </canvas>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4 mb-3">
+      <div class="col-md-6 mb-3">
         <div class="chart-card">
           <div class="chart-header">
             <h5><i class="fas fa-chart-pie me-2"></i>User Status</h5>
@@ -283,24 +330,6 @@
                     [data]="userStatusChart!"
                     [options]="doughnutChartOptions"
                     [type]="'doughnut'"
-                    style="height: 300px;">
-            </canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row mb-4">
-      <div class="col-md-6 mb-3">
-        <div class="chart-card">
-          <div class="chart-header">
-            <h5><i class="fas fa-id-card me-2"></i>KYC Verification Status</h5>
-          </div>
-          <div class="chart-body">
-            <canvas baseChart
-                    [data]="kycStatusChart!"
-                    [options]="barChartOptions"
-                    [type]="'bar'"
                     style="height: 300px;">
             </canvas>
           </div>

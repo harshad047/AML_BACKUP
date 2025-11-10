@@ -52,9 +52,16 @@ export class ComplianceAnalyticsService {
 
   constructor(private http: HttpClient) {}
 
-  getComplianceAnalytics(): Observable<ComplianceAnalyticsData> {
+  getComplianceAnalytics(startDate?: string, endDate?: string): Observable<ComplianceAnalyticsData> {
+    // Build query parameters for date filtering
+    let params: any = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
+    console.log('Fetching compliance analytics with date range:', startDate, 'to', endDate);
+    
     return forkJoin({
-      alerts: this.http.get<any[]>(`${this.apiUrl}/compliance/alerts/all`).pipe(catchError((err) => {
+      alerts: this.http.get<any[]>(`${this.apiUrl}/compliance/alerts/all`, { params }).pipe(catchError((err) => {
         console.error('Error fetching alerts:', err);
         return of([]);
       })),
@@ -81,19 +88,67 @@ export class ComplianceAnalyticsService {
     }).pipe(
       map(data => {
         console.log('Raw compliance data received:', data);
-        return this.processComplianceData(data);
+        return this.processComplianceData(data, startDate, endDate);
       })
     );
   }
 
-  private processComplianceData(data: any): ComplianceAnalyticsData {
-    const alerts = data.alerts || [];
-    const casesActive = data.casesActive || [];
-    const casesResolved = data.casesResolved || [];
+  private processComplianceData(data: any, startDate?: string, endDate?: string): ComplianceAnalyticsData {
+    let alerts = data.alerts || [];
+    let casesActive = data.casesActive || [];
+    let casesResolved = data.casesResolved || [];
+    let flaggedTxns = data.flaggedTxns || [];
+    let blockedTxns = data.blockedTxns || [];
+    let reviewTxns = data.reviewTxns || [];
+    
+    // Client-side date filtering if dates are provided
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include the entire end date
+      
+      console.log('Applying client-side date filter for compliance data:', start, 'to', end);
+      
+      alerts = alerts.filter((a: any) => {
+        if (!a.createdAt) return false;
+        const date = new Date(a.createdAt);
+        return date >= start && date <= end;
+      });
+      
+      casesActive = casesActive.filter((c: any) => {
+        if (!c.createdAt) return false;
+        const date = new Date(c.createdAt);
+        return date >= start && date <= end;
+      });
+      
+      casesResolved = casesResolved.filter((c: any) => {
+        if (!c.createdAt) return false;
+        const date = new Date(c.createdAt);
+        return date >= start && date <= end;
+      });
+      
+      flaggedTxns = flaggedTxns.filter((t: any) => {
+        if (!t.createdAt) return false;
+        const date = new Date(t.createdAt);
+        return date >= start && date <= end;
+      });
+      
+      blockedTxns = blockedTxns.filter((t: any) => {
+        if (!t.createdAt) return false;
+        const date = new Date(t.createdAt);
+        return date >= start && date <= end;
+      });
+      
+      reviewTxns = reviewTxns.filter((t: any) => {
+        if (!t.createdAt) return false;
+        const date = new Date(t.createdAt);
+        return date >= start && date <= end;
+      });
+      
+      console.log(`Filtered compliance data: ${alerts.length} alerts, ${casesActive.length} active cases, ${casesResolved.length} resolved cases`);
+    }
+    
     const allCases = [...casesActive, ...casesResolved];
-    const flaggedTxns = data.flaggedTxns || [];
-    const blockedTxns = data.blockedTxns || [];
-    const reviewTxns = data.reviewTxns || [];
     const allTransactions = [...flaggedTxns, ...blockedTxns, ...reviewTxns];
 
     console.log('Processing compliance data:');
