@@ -32,7 +32,28 @@ export class CustomerTicketThreadComponent {
     private toastService: ToastService
   ) {
     this.ticketId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadTicketDetails();
     this.loadMessages();
+  }
+
+  loadTicketDetails(): void {
+    // Load ticket from my tickets list and find the matching one
+    this.api.getMyTickets(0, 100).subscribe({
+      next: (response) => {
+        this.ticket = response.content.find(t => t.id === this.ticketId);
+        if (!this.ticket) {
+          this.error = 'Ticket not found';
+        }
+      },
+      error: (err) => {
+        // If we can't load ticket details, continue anyway
+        console.error('Failed to load ticket details:', err);
+      }
+    });
+  }
+
+  isTicketResolved(): boolean {
+    return this.ticket?.status === 'RESOLVED';
   }
 
   loadMessages(): void {
