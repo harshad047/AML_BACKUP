@@ -55,9 +55,16 @@ export class AnalyticsService {
 
   constructor(private http: HttpClient) {}
 
-  getAnalyticsData(): Observable<AnalyticsData> {
+  getAnalyticsData(startDate?: string, endDate?: string): Observable<AnalyticsData> {
+    // Build query parameters for date filtering
+    let params: any = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    
+    console.log('Fetching analytics data with date range:', startDate, 'to', endDate);
+    
     return forkJoin({
-      transactions: this.http.get<any[]>(`${this.apiUrl}/admin/transactions`).pipe(catchError((err) => {
+      transactions: this.http.get<any[]>(`${this.apiUrl}/admin/transactions`, { params }).pipe(catchError((err) => {
         console.error('Error fetching transactions:', err);
         return of([]);
       })),
@@ -92,18 +99,47 @@ export class AnalyticsService {
     }).pipe(
       map(data => {
         console.log('Raw API data received:', data);
-        return this.processAnalyticsData(data);
+        return this.processAnalyticsData(data, startDate, endDate);
       })
     );
   }
 
-  private processAnalyticsData(data: any): AnalyticsData {
-    const transactions = data.transactions || [];
-    const alerts = data.alerts || [];
-    const cases = [...(data.cases || []), ...(data.resolvedCases || [])];
+  private processAnalyticsData(data: any, startDate?: string, endDate?: string): AnalyticsData {
+    let transactions = data.transactions || [];
+    let alerts = data.alerts || [];
+    let cases = [...(data.cases || []), ...(data.resolvedCases || [])];
     const users = data.users || [];
     const accounts = data.accounts || [];
     const auditLogs = data.auditLogs || [];
+    
+    // Client-side date filtering if dates are provided
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include the entire end date
+      
+      console.log('Applying client-side date filter:', start, 'to', end);
+      
+      transactions = transactions.filter((t: any) => {
+        if (!t.createdAt) return false;
+        const txDate = new Date(t.createdAt);
+        return txDate >= start && txDate <= end;
+      });
+      
+      alerts = alerts.filter((a: any) => {
+        if (!a.createdAt) return false;
+        const alertDate = new Date(a.createdAt);
+        return alertDate >= start && alertDate <= end;
+      });
+      
+      cases = cases.filter((c: any) => {
+        if (!c.createdAt) return false;
+        const caseDate = new Date(c.createdAt);
+        return caseDate >= start && caseDate <= end;
+      });
+      
+      console.log(`Filtered data: ${transactions.length} transactions, ${alerts.length} alerts, ${cases.length} cases`);
+    }
 
     return {
       // Executive Summary
@@ -189,13 +225,22 @@ export class AnalyticsService {
   }
 
   private calculateTransactionTrends(transactions: any[]): any[] {
-    const last7Days = this.getLast7Days();
+    // Get unique dates from transactions and sort them
+    const dateSet = new Set<string>();
+    transactions.forEach(t => {
+      const date = this.safeFormatDate(t.createdAt);
+      if (date) dateSet.add(date);
+    });
+    
+    const dates = Array.from(dateSet).sort();
     const trendMap = new Map();
     
-    last7Days.forEach(date => {
+    // Initialize all dates with zero counts
+    dates.forEach(date => {
       trendMap.set(date, { total: 0, approved: 0, flagged: 0, blocked: 0 });
     });
     
+    // Count transactions by date
     transactions.forEach(t => {
       const date = this.safeFormatDate(t.createdAt);
       if (date && trendMap.has(date)) {
@@ -257,10 +302,17 @@ export class AnalyticsService {
   }
 
   private calculateRiskTrends(transactions: any[]): any[] {
-    const last7Days = this.getLast7Days();
+    // Get unique dates from transactions and sort them
+    const dateSet = new Set<string>();
+    transactions.forEach(t => {
+      const date = this.safeFormatDate(t.createdAt);
+      if (date) dateSet.add(date);
+    });
+    
+    const dates = Array.from(dateSet).sort();
     const trendMap = new Map();
     
-    last7Days.forEach(date => {
+    dates.forEach(date => {
       trendMap.set(date, { high: 0, medium: 0, low: 0 });
     });
     
@@ -279,10 +331,17 @@ export class AnalyticsService {
   }
 
   private calculateAlertTrends(alerts: any[]): any[] {
-    const last7Days = this.getLast7Days();
+    // Get unique dates from alerts and sort them
+    const dateSet = new Set<string>();
+    alerts.forEach(a => {
+      const date = this.safeFormatDate(a.createdAt);
+      if (date) dateSet.add(date);
+    });
+    
+    const dates = Array.from(dateSet).sort();
     const trendMap = new Map();
     
-    last7Days.forEach(date => {
+    dates.forEach(date => {
       trendMap.set(date, { open: 0, escalated: 0, resolved: 0 });
     });
     

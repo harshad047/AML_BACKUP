@@ -118,6 +118,7 @@
                 class="form-control"
                 id="dob"
                 formControlName="dob"
+                [max]="maxDate"
                 [class.is-invalid]="isFieldInvalid('dob')"
               >
               <div class="invalid-feedback" *ngIf="isFieldInvalid('dob')">
