@@ -796,3 +796,130 @@
     margin: 0.5rem;
   }
 }
+/* ====== Rules Table Styling (Clean White Background) ====== */
+
+/* Wrapper */
+.table-responsive {
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Header */
+table.modern-table thead {
+  background: linear-gradient(to right, #007bff, #0056b3);
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+table.modern-table thead th {
+  padding: 12px;
+  font-size: 13px;
+  border: none;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+table.modern-table thead th.sortable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+table.modern-table thead th.sortable:hover {
+  color: #cce0ff;
+}
+
+/* Table Body */
+table.modern-table tbody {
+  background-color: #ffffff;
+}
+
+table.modern-table tbody tr {
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+
+table.modern-table tbody tr:hover {
+  background-color: #f5f8ff;
+}
+
+/* Table Text */
+table.modern-table td {
+  color: #212529;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+/* ====== Badges ====== */
+.priority-badge {
+  background-color: #6f42c1 !important;
+  color: #ffffff;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.action-badge {
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  text-transform: capitalize;
+}
+
+.action-badge.approve { background-color: #28a745; }
+.action-badge.reject { background-color: #dc3545; }
+.action-badge.flag { background-color: #ffc107; color: #000; }
+
+.risk-badge {
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: 500;
+}
+
+.risk-badge.low { background-color: #17a2b8; }
+.risk-badge.medium { background-color: #ffc107; color: #000; }
+.risk-badge.high { background-color: #dc3545; }
+
+/* ====== Status Switch ====== */
+.status-switch + label {
+  color: #212529;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+/* ====== Action Buttons ====== */
+.action-buttons .btn {
+  border-radius: 6px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+}
+
+.action-buttons .btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.action-buttons .btn-outline-primary:hover {
+  background-color: #007bff;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.action-buttons .btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.action-buttons .btn-outline-danger:hover {
+  background-color: #dc3545;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* ====== Table Hover Glow ====== */
+table.modern-table tbody tr:hover td {
+  color: #000000;
+}
