@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../../core/services/auth.service';
 import { ComplianceService } from '../../../core/services/compliance.service';
-import { AlertDto, CaseDto, ComplianceDashboardStats } from '../../../shared/models/compliance.models';
+import { AlertDto, CaseDto, ComplianceDashboardStats } from '../../../core/models/compliance.models';
 
 @Component({
   selector: 'app-compliance-dashboard',

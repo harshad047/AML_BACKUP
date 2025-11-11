@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray, FormsModule } from '@angular/forms';
-import { AdminService, RuleDto, RuleConditionDto } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { RuleDto, RuleConditionDto } from '../../../core/models/admin.models';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
@@ -256,7 +257,7 @@ export class RulesComponent implements OnInit {
 
     this.conditions.clear();
     if (rule.conditions && rule.conditions.length > 0) {
-      rule.conditions.forEach(cond => {
+      rule.conditions.forEach((cond: RuleConditionDto) => {
         const config = this.getConditionConfig(cond.type || 'AMOUNT');
         const valueParts = cond.value ? cond.value.split('|') : [];
         

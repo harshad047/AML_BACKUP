@@ -1,12 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-
-export interface Toast {
-  id: number;
-  message: string;
-  type: 'success' | 'error' | 'info' | 'warning';
-  duration?: number;
-}
+import { Toast } from '../models/toast.models';
 
 @Injectable({
   providedIn: 'root'

@@ -2,11 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { User } from '../../../shared/models/auth.models';
-import { TransactionService, TransactionDto } from '../../../core/services/transaction.service';
-import { DocumentService, DocumentDto } from '../../../core/services/document.service';
-import { AccountService, AccountDto } from '../../../core/services/account.service';
+import { User } from '../../../core/models/auth.models';
+import { TransactionService } from '../../../core/services/transaction.service';
+import { DocumentService } from '../../../core/services/document.service';
+import { AccountService } from '../../../core/services/account.service';
 import { CustomerService } from '../../../core/services/customer.service';
+import { TransactionDto } from '../../../core/models/transaction.models';
+import { DocumentDto } from '../../../core/models/document.models';
+import { AccountDto } from '../../../core/models/account.models';
 
 interface Transaction {
   type: string;

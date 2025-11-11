@@ -2,32 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
-
-export interface CreateAccountRequest {
-  accountType: 'SAVINGS' | 'CURRENT';
-  initialBalance?: number;
-  currency: string;
-}
-
-export interface AccountDto {
-  id: number;
-  accountNumber: string;
-  accountType: string;
-  balance: number;
-  currency: string;
-  status: string;
-  approvalStatus: string;
-  createdAt?: string;
-  approvedAt?: string | null;
-  rejectedAt?: string | null;
-  suspendedAt?: string | null;
-  activatedAt?: string | null;
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
+import { CreateAccountRequest, AccountDto } from '../models/account.models';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {

@@ -2,14 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService, ApiResponse } from './auth.service';
-
-export interface DocumentDto {
-  id: number;
-  documentType: string;
-  fileName: string;
-  uploadedAt: string;
-  status?: string;
-}
+import { DocumentDto } from '../models/document.models';
 
 @Injectable({ providedIn: 'root' })
 export class DocumentService {

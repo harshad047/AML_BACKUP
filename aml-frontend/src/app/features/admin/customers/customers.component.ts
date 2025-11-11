@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AdminService, UserDto, AdminCustomerDetailsDto } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { UserDto, AdminCustomerDetailsDto } from '../../../core/models/admin.models';
 import { ToastService } from '../../../core/services/toast.service';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-admin-customers',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './customers.component.html',
   styleUrls: ['./customers.component.css']
 })

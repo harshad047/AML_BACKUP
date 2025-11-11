@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
-import { AdminService, CountryRiskDto } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { CountryRiskDto } from '../../../core/models/admin.models';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({

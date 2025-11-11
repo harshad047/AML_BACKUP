@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
-import { AdminService, UserDto, CreateUserDto } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { UserDto, CreateUserDto } from '../../../core/models/admin.models';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({

@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService, User } from '../../../core/services/auth.service';
-import { AdminService, TransactionDto, AuditLog, UserDto, SuspiciousKeywordDto, CountryRiskDto, DocumentDTO } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { TransactionDto, AuditLog, UserDto, SuspiciousKeywordDto, CountryRiskDto, DocumentDTO } from '../../../core/models/admin.models';
 import { forkJoin } from 'rxjs';
 
 interface DashboardStats {

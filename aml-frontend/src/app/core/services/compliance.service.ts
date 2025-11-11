@@ -11,7 +11,7 @@ import {
   AddNoteRequest,
   TransactionActionRequest,
   ComplianceDashboardStats
-} from '../../shared/models/compliance.models';
+} from '../models/compliance.models';
 
 @Injectable({ providedIn: 'root' })
 export class ComplianceService {

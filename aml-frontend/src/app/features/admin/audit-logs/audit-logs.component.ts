@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AdminService, AuditLog } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { AuditLog } from '../../../core/models/admin.models';
 
 @Component({
   selector: 'app-audit-logs',

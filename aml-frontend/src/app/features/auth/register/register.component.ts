@@ -6,7 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { CountryDto } from '../../../shared/models/auth.models';
+import { CountryDto } from '../../../core/models/auth.models';
 
 // Custom Validators
 class CustomValidators {

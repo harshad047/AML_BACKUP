@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DocumentService, DocumentDto } from '../../../core/services/document.service';
+import { DocumentService } from '../../../core/services/document.service';
+import { DocumentDto } from '../../../core/models/document.models';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { UploadRestrictionModalComponent } from './upload-restriction-modal.component';
 import { DocumentPreviewModalComponent } from './document-preview-modal.component';

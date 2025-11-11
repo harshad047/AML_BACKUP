@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HelpdeskApiService } from '../../../core/services/helpdesk.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../../../shared/models/helpdesk.models';
+import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../../../core/models/helpdesk.models';
 import { RouterModule } from '@angular/router';
 
 @Component({

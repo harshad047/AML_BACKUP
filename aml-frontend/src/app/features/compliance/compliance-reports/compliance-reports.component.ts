@@ -4,7 +4,8 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { NgChartsModule } from 'ng2-charts';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
-import { ComplianceAnalyticsService, ComplianceAnalyticsData } from '../../../core/services/compliance-analytics.service';
+import { ComplianceAnalyticsService } from '../../../core/services/compliance-analytics.service';
+import { ComplianceAnalyticsData } from '../../../core/models/compliance-analytics.models';
 import * as XLSX from 'xlsx';
 
 // Register Chart.js components
@@ -141,11 +142,11 @@ export class ComplianceReportsComponent implements OnInit {
   initializeCharts(data: ComplianceAnalyticsData): void {
     // Alert Trends Chart
     this.alertTrendsChart = {
-      labels: data.alertTrends.map(t => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      labels: data.alertTrends.map((t: { date: string }) => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
       datasets: [
         {
           label: 'Open',
-          data: data.alertTrends.map(t => t.open),
+          data: data.alertTrends.map((t: { open: number }) => t.open),
           borderColor: '#ffc107',
           backgroundColor: 'rgba(255, 193, 7, 0.1)',
           fill: true,
@@ -153,7 +154,7 @@ export class ComplianceReportsComponent implements OnInit {
         },
         {
           label: 'Escalated',
-          data: data.alertTrends.map(t => t.escalated),
+          data: data.alertTrends.map((t: { escalated: number }) => t.escalated),
           borderColor: '#dc3545',
           backgroundColor: 'rgba(220, 53, 69, 0.1)',
           fill: true,
@@ -161,7 +162,7 @@ export class ComplianceReportsComponent implements OnInit {
         },
         {
           label: 'Resolved',
-          data: data.alertTrends.map(t => t.resolved),
+          data: data.alertTrends.map((t: { resolved: number }) => t.resolved),
           borderColor: '#28a745',
           backgroundColor: 'rgba(40, 167, 69, 0.1)',
           fill: true,
@@ -172,9 +173,9 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Alerts by Risk Chart
     this.alertsByRiskChart = {
-      labels: data.alertsByRisk.map(r => r.level),
+      labels: data.alertsByRisk.map((r: { level: string }) => r.level),
       datasets: [{
-        data: data.alertsByRisk.map(r => r.count),
+        data: data.alertsByRisk.map((r: { count: number }) => r.count),
         backgroundColor: ['#dc3545', '#ff9800', '#28a745'],
         borderWidth: 2,
         borderColor: '#fff'
@@ -183,10 +184,10 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Alerts by Type Chart
     this.alertsByTypeChart = {
-      labels: data.alertsByType.map(t => t.type),
+      labels: data.alertsByType.map((t: { type: string }) => t.type),
       datasets: [{
         label: 'Count',
-        data: data.alertsByType.map(t => t.count),
+        data: data.alertsByType.map((t: { count: number }) => t.count),
         backgroundColor: '#17a2b8',
         borderWidth: 0
       }]
@@ -194,9 +195,9 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Case Status Chart
     this.caseStatusChart = {
-      labels: data.caseStatusDistribution.map(c => c.status),
+      labels: data.caseStatusDistribution.map((c: { status: string }) => c.status),
       datasets: [{
-        data: data.caseStatusDistribution.map(c => c.count),
+        data: data.caseStatusDistribution.map((c: { count: number }) => c.count),
         backgroundColor: ['#ffc107', '#17a2b8', '#28a745', '#dc3545'],
         borderWidth: 2,
         borderColor: '#fff'
@@ -205,17 +206,17 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Cases by Officer Chart
     this.casesByOfficerChart = {
-      labels: data.casesByOfficer.map(c => c.officer),
+      labels: data.casesByOfficer.map((c: { officer: string }) => c.officer),
       datasets: [
         {
           label: 'Active',
-          data: data.casesByOfficer.map(c => c.active),
+          data: data.casesByOfficer.map((c: { active: number }) => c.active),
           backgroundColor: '#ffc107',
           borderWidth: 0
         },
         {
           label: 'Resolved',
-          data: data.casesByOfficer.map(c => c.resolved),
+          data: data.casesByOfficer.map((c: { resolved: number }) => c.resolved),
           backgroundColor: '#28a745',
           borderWidth: 0
         }
@@ -224,10 +225,10 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Case Resolution Time Chart
     this.caseResolutionChart = {
-      labels: data.caseResolutionTime.map(c => new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      labels: data.caseResolutionTime.map((c: { date: string }) => new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
       datasets: [{
         label: 'Avg Hours to Resolve',
-        data: data.caseResolutionTime.map(c => c.avgHours),
+        data: data.caseResolutionTime.map((c: { avgHours: number }) => c.avgHours),
         borderColor: '#0d6efd',
         backgroundColor: 'rgba(13, 110, 253, 0.1)',
         fill: true,
@@ -237,9 +238,9 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Transaction Outcomes Chart
     this.transactionOutcomesChart = {
-      labels: data.transactionReviewOutcomes.map(t => t.outcome),
+      labels: data.transactionReviewOutcomes.map((t: { outcome: string }) => t.outcome),
       datasets: [{
-        data: data.transactionReviewOutcomes.map(t => t.count),
+        data: data.transactionReviewOutcomes.map((t: { count: number }) => t.count),
         backgroundColor: ['#28a745', '#dc3545', '#6c757d', '#ffc107'],
         borderWidth: 2,
         borderColor: '#fff'
@@ -248,9 +249,9 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Risk Distribution Chart
     this.riskDistributionChart = {
-      labels: data.riskDistribution.map(r => r.level),
+      labels: data.riskDistribution.map((r: { level: string }) => r.level),
       datasets: [{
-        data: data.riskDistribution.map(r => r.count),
+        data: data.riskDistribution.map((r: { count: number }) => r.count),
         backgroundColor: ['#dc3545', '#ff9800', '#28a745'],
         borderWidth: 2,
         borderColor: '#fff'
@@ -259,11 +260,11 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Risk Trends Chart
     this.riskTrendsChart = {
-      labels: data.riskTrends.map(t => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      labels: data.riskTrends.map((t: { date: string }) => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
       datasets: [
         {
           label: 'High Risk',
-          data: data.riskTrends.map(t => t.high),
+          data: data.riskTrends.map((t: { high: number }) => t.high),
           borderColor: '#dc3545',
           backgroundColor: 'rgba(220, 53, 69, 0.1)',
           fill: true,
@@ -271,7 +272,7 @@ export class ComplianceReportsComponent implements OnInit {
         },
         {
           label: 'Medium Risk',
-          data: data.riskTrends.map(t => t.medium),
+          data: data.riskTrends.map((t: { medium: number }) => t.medium),
           borderColor: '#ff9800',
           backgroundColor: 'rgba(255, 152, 0, 0.1)',
           fill: true,
@@ -279,7 +280,7 @@ export class ComplianceReportsComponent implements OnInit {
         },
         {
           label: 'Low Risk',
-          data: data.riskTrends.map(t => t.low),
+          data: data.riskTrends.map((t: { low: number }) => t.low),
           borderColor: '#28a745',
           backgroundColor: 'rgba(40, 167, 69, 0.1)',
           fill: true,
@@ -290,10 +291,10 @@ export class ComplianceReportsComponent implements OnInit {
 
     // Response Time Chart
     this.responseTimeChart = {
-      labels: data.alertResponseTimes.map(t => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+      labels: data.alertResponseTimes.map((t: { date: string }) => new Date(t.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
       datasets: [{
         label: 'Avg Response Time (Hours)',
-        data: data.alertResponseTimes.map(t => t.avgHours),
+        data: data.alertResponseTimes.map((t: { avgHours: number }) => t.avgHours),
         borderColor: '#6f42c1',
         backgroundColor: 'rgba(111, 66, 193, 0.1)',
         fill: true,
@@ -334,7 +335,7 @@ export class ComplianceReportsComponent implements OnInit {
     const alertTrendsData = [
       ['Alert Trends (Last 7 Days)'],
       ['Date', 'Open', 'Escalated', 'Resolved'],
-      ...this.analyticsData.alertTrends.map(t => [t.date, t.open, t.escalated, t.resolved])
+      ...this.analyticsData.alertTrends.map((t: { date: string; open: number; escalated: number; resolved: number }) => [t.date, t.open, t.escalated, t.resolved])
     ];
     const alertTrendsSheet = XLSX.utils.aoa_to_sheet(alertTrendsData);
     XLSX.utils.book_append_sheet(wb, alertTrendsSheet, 'Alert Trends');
@@ -343,7 +344,7 @@ export class ComplianceReportsComponent implements OnInit {
     const recentAlertsData = [
       ['Recent Alerts'],
       ['ID', 'Transaction ID', 'Reason', 'Risk Score', 'Status', 'Created At'],
-      ...this.analyticsData.recentAlerts.map(a => [a.id, a.transactionId, a.reason, a.riskScore, a.status, a.createdAt])
+      ...this.analyticsData.recentAlerts.map((a: { id: number; transactionId: number; reason: string; riskScore: number; status: string; createdAt: string }) => [a.id, a.transactionId, a.reason, a.riskScore, a.status, a.createdAt])
     ];
     const recentAlertsSheet = XLSX.utils.aoa_to_sheet(recentAlertsData);
     XLSX.utils.book_append_sheet(wb, recentAlertsSheet, 'Recent Alerts');
@@ -352,7 +353,7 @@ export class ComplianceReportsComponent implements OnInit {
     const casesByOfficerData = [
       ['Cases by Officer'],
       ['Officer', 'Active', 'Resolved'],
-      ...this.analyticsData.casesByOfficer.map(c => [c.officer, c.active, c.resolved])
+      ...this.analyticsData.casesByOfficer.map((c: { officer: string; active: number; resolved: number }) => [c.officer, c.active, c.resolved])
     ];
     const casesByOfficerSheet = XLSX.utils.aoa_to_sheet(casesByOfficerData);
     XLSX.utils.book_append_sheet(wb, casesByOfficerSheet, 'Cases by Officer');
@@ -361,7 +362,7 @@ export class ComplianceReportsComponent implements OnInit {
     const highRiskData = [
       ['High Risk Transactions'],
       ['ID', 'Amount', 'Currency', 'Risk Score', 'Status'],
-      ...this.analyticsData.highRiskTransactions.map(t => [t.id, t.amount, t.currency, t.riskScore, t.status])
+      ...this.analyticsData.highRiskTransactions.map((t: { id: number; amount: number; currency: string; riskScore: number; status: string }) => [t.id, t.amount, t.currency, t.riskScore, t.status])
     ];
     const highRiskSheet = XLSX.utils.aoa_to_sheet(highRiskData);
     XLSX.utils.book_append_sheet(wb, highRiskSheet, 'High Risk Txns');

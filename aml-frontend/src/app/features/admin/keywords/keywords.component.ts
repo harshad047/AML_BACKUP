@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
-import { AdminService, SuspiciousKeywordDto } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { SuspiciousKeywordDto } from '../../../core/models/admin.models';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-keywords',

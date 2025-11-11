@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { AdminService, DocumentDTO } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { DocumentDTO } from '../../../core/models/admin.models';
 import { ToastService } from '../../../core/services/toast.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-kyc-verification',

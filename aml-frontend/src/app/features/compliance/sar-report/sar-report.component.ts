@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ComplianceService } from '../../../core/services/compliance.service';
-import { TransactionDto } from '../../../shared/models/compliance.models';
+import { TransactionDto } from '../../../core/models/compliance.models';
 import { AuthService } from '../../../core/services/auth.service';
 
 interface SARReport {

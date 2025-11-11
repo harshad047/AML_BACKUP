@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../../core/services/compliance.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { AlertDto, CaseDto } from '../../../shared/models/compliance.models';
+import { AlertDto, CaseDto } from '../../../core/models/compliance.models';
 
 @Component({
   selector: 'app-alerts-management',

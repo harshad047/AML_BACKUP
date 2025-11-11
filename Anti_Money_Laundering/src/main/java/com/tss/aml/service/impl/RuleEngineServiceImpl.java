@@ -80,9 +80,9 @@ public class RuleEngineServiceImpl {
                 double ruleProb = Math.min(1.0, Math.max(0.0, rule.getRiskWeight() / 100.0));
 
                 // BLOCK rules can immediately push probability to 1.0
-                if ("BLOCK".equalsIgnoreCase(rule.getAction())) {
-                    ruleProb = 1.0;
-                }
+//                if ("BLOCK".equalsIgnoreCase(rule.getAction())) {
+//                    ruleProb = 1.0;
+//                }
 
                 // Apply noisy-OR aggregation: P_total = 1 - Π(1 - p_i)
                 productComplement *= (1.0 - ruleProb);

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AdminService, UserDto, AdminCustomerDetailsDto } from '../../../core/services/admin.service';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { AdminService } from '../../../core/services/admin.service';
+import { UserDto, AdminCustomerDetailsDto } from '../../../core/models/admin.models';
 import { ToastService } from '../../../core/services/toast.service';
 import { forkJoin } from 'rxjs';
 

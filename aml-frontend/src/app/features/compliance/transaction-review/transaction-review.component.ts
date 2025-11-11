@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../../core/services/compliance.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { TransactionDto } from '../../../shared/models/compliance.models';
+import { TransactionDto } from '../../../core/models/compliance.models';
 
 @Component({
   selector: 'app-transaction-review',

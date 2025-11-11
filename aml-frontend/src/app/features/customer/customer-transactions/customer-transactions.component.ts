@@ -3,10 +3,12 @@ import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/cor
 import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { TransactionService, TransactionDto } from '../../../core/services/transaction.service';
-import { AccountService, AccountDto } from '../../../core/services/account.service';
+import { TransactionService } from '../../../core/services/transaction.service';
+import { AccountService } from '../../../core/services/account.service';
 import { HelpdeskApiService } from '../../../core/services/helpdesk.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TransactionDto } from '../../../core/models/transaction.models';
+import { AccountDto } from '../../../core/models/account.models';
 
 // Import jsPDF and the autoTable plugin
 import jsPDF from 'jspdf';

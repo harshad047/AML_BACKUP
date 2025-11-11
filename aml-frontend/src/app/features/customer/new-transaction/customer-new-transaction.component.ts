@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { TransactionService, TransactionDto } from '../../../core/services/transaction.service';
-import { AccountService, AccountDto } from '../../../core/services/account.service';
+import { TransactionService } from '../../../core/services/transaction.service';
+import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { TransactionDto } from '../../../core/models/transaction.models';
+import { AccountDto } from '../../../core/models/account.models';
 
 // Custom Validators
 class CustomValidators {

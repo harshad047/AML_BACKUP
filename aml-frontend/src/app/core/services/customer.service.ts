@@ -2,16 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService, ApiResponse } from './auth.service';
-
-export interface CustomerProfileDto {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-  phone?: string;
-  kycStatus?: string;
-}
+import { CustomerProfileDto } from '../models/customer.models';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {

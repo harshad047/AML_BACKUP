@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ComplianceService } from '../../../core/services/compliance.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { CaseDto, NoteDto, AddNoteRequest } from '../../../shared/models/compliance.models';
+import { CaseDto, NoteDto, AddNoteRequest } from '../../../core/models/compliance.models';
 
 @Component({
   selector: 'app-case-management',

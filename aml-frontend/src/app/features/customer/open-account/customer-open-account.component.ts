@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-import { AccountService, CreateAccountRequest, AccountDto } from '../../../core/services/account.service';
+import { AccountService } from '../../../core/services/account.service';
+import { CreateAccountRequest, AccountDto } from '../../../core/models/account.models';
 
 @Component({
   selector: 'app-customer-open-account',

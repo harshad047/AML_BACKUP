@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AdminService, AdminCustomerDetailsDto } from '../../../core/services/admin.service';
+import { AdminService } from '../../../core/services/admin.service';
+import { AdminCustomerDetailsDto } from '../../../core/models/admin.models';
 
 @Component({
   selector: 'app-admin-user-details',

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map, timeout } from 'rxjs';
 import { Router } from '@angular/router';
-import { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest } from '../../shared/models/auth.models';
+import { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest } from '../models/auth.models';
 
 // Re-export types for easier importing
 export type { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest };
