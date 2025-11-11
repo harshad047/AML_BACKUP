@@ -46,6 +46,35 @@ export class CustomerNewTransactionComponent implements OnInit {
     );
   }
 
+  // Get currency code based on selected account for current transaction type
+  getSelectedCurrency(): string {
+    const type = this.form.value.type;
+    let accountNumber = '';
+
+    if (type === 'DEPOSIT') {
+      accountNumber = this.form.value.toAccountNumber;
+    } else if (type === 'WITHDRAWAL' || type === 'TRANSFER') {
+      accountNumber = this.form.value.fromAccountNumber;
+    }
+
+    if (!accountNumber) return 'INR'; // Default fallback
+
+    const account = this.accounts.find(acc => acc.accountNumber === accountNumber);
+    return account ? account.currency : 'INR';
+  }
+
+  // Get currency symbol based on selected account
+  getSelectedCurrencySymbol(): string {
+    const currency = this.getSelectedCurrency();
+    switch (currency) {
+      case 'USD': return '$';
+      case 'EUR': return '€';
+      case 'GBP': return '£';
+      case 'JPY': return '¥';
+      case 'INR': default: return '₹';
+    }
+  }
+
   constructor(
     private fb: FormBuilder, 
     private tx: TransactionService, 
@@ -98,6 +127,17 @@ export class CustomerNewTransactionComponent implements OnInit {
 
       this.form.get('toAccountNumber')?.updateValueAndValidity();
       this.form.get('fromAccountNumber')?.updateValueAndValidity();
+      this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
+    });
+
+    // Subscribe to account changes to update currency display
+    this.form.get('toAccountNumber')?.valueChanges.subscribe(() => {
+      // Trigger change detection for currency symbol update
+      this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
+    });
+
+    this.form.get('fromAccountNumber')?.valueChanges.subscribe(() => {
+      // Trigger change detection for currency symbol update
       this.form.updateValueAndValidity({ onlySelf: false, emitEvent: false });
     });
   }

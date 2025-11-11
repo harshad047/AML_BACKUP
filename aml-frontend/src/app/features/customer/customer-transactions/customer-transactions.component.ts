@@ -269,6 +269,17 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     return 'bg-secondary';
   }
 
+  getCurrencyForAccount(accountNumber: string): string {
+    if (!accountNumber) return 'INR'; // Default fallback
+    const account = this.accounts.find(acc => acc.accountNumber === accountNumber);
+    return account ? account.currency : 'INR'; // Fallback to INR if account not found
+  }
+
+  getCurrencyCodeForTransaction(transaction: TransactionDto): string {
+    // Use fromAccountNumber to determine currency, fallback to transaction.currency or INR
+    return this.getCurrencyForAccount(transaction.fromAccountNumber || '') || transaction.currency || 'INR';
+  }
+
   // Modal methods
   viewTransactionDetails(transaction: TransactionDto): void {
     this.selectedTransaction = transaction;
@@ -479,7 +490,7 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
       this.getTransactionType(t),
       t.description || '-',
       this.getStatusText(t),
-      this.currencyPipe.transform(t.amount, 'INR', '', '1.2-2') || '-'
+      this.currencyPipe.transform(t.amount, this.getCurrencyCodeForTransaction(t), 'symbol', '1.2-2') || '-'
     ]);
 
     // 4. Generate the table using autoTable with enhanced styling
@@ -580,7 +591,7 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
       doc.text(`Blocked: ${blockedCount}`, 120, finalY + 21);
       
       doc.setFont('helvetica', 'bold');
-      doc.text(`Total Amount: ${this.currencyPipe.transform(totalAmount, 'INR', 'symbol', '1.2-2')}`, 14, finalY + 27);
+      doc.text(`Total Amount: ${this.currencyPipe.transform(totalAmount, this.getCurrencyCodeForTransaction(data[0]), 'symbol', '1.2-2')}`, 14, finalY + 27);
     }
 
     // 6. Save the PDF with professional filename

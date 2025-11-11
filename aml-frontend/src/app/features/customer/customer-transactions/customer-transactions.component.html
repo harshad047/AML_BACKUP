@@ -137,7 +137,7 @@
               </td>
               <td>
                 <span class="amount-text" [ngClass]="getAmountClass(t)">
-                  {{ t.amount | currency:'INR':'symbol':'1.2-2' }}
+                  {{ t.amount | currency:getCurrencyCodeForTransaction(t):'symbol':'1.2-2' }}
                 </span>
               </td>
               <td>
@@ -246,7 +246,7 @@
                 <div class="detail-item">
                   <label>Amount</label>
                   <div class="detail-value amount-large">
-                    {{ selectedTransaction.amount | currency:'INR':'symbol':'1.2-2' }}
+                    {{ selectedTransaction.amount | currency:getCurrencyCodeForTransaction(selectedTransaction):'symbol':'1.2-2' }}
                   </div>
                 </div>
               </div>
