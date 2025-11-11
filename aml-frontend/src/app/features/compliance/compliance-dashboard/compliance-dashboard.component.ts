@@ -98,7 +98,7 @@ export class ComplianceDashboardComponent implements OnInit {
           }
           return false;
         });
-        this.activeInvestigations = myCases.slice(0, 5);
+        this.activeInvestigations = myCases.slice(0, 3);
       },
       error: (error) => {
         console.error('Error loading cases:', error);
