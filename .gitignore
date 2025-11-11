@@ -8,3 +8,9 @@ AML Data/
 
 # Backup folders
 aml-frontend/src/app_backup_*
+
+# Data folder
+/AML Data/
+
+# Environment files
+aml-frontend/src/environments/environment.ts
