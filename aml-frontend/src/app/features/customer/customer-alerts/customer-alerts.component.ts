@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CustomerService } from '../../../core/services/customer.service';
 import { AuthService, User } from '../../../core/services/auth.service';
@@ -28,15 +29,22 @@ export interface AlertDto {
 @Component({
   selector: 'app-customer-alerts',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe],
+  imports: [CommonModule, FormsModule, RouterModule, DatePipe],
   templateUrl: './customer-alerts.component.html',
   styleUrls: ['./customer-alerts.component.css']
 })
 export class CustomerAlertsComponent implements OnInit {
   currentUser: User | null = null;
   alerts: AlertDto[] = [];
+  paginatedAlerts: AlertDto[] = [];
   isLoading = false;
   selectedAlert: AlertDto | null = null;
+  
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 1;
+  pages: number[] = [];
 
   constructor(private customerService: CustomerService, private authService: AuthService) {}
 
@@ -77,6 +85,7 @@ export class CustomerAlertsComponent implements OnInit {
         } as AlertDto)) : [];
 
         console.log('Mapped alerts:', this.alerts); // Debug log
+        this.updatePagination();
         this.isLoading = false;
       },
       error: (error) => {
@@ -175,5 +184,61 @@ export class CustomerAlertsComponent implements OnInit {
       case 'SYSTEM': return 'bg-warning';
       default: return 'bg-secondary';
     }
+  }
+
+  // Pagination methods
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.alerts.length / this.itemsPerPage);
+    this.updatePageNumbers();
+    this.paginateAlerts();
+  }
+
+  updatePageNumbers(): void {
+    this.pages = [];
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      this.pages.push(i);
+    }
+  }
+
+  paginateAlerts(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedAlerts = this.alerts.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePageNumbers();
+      this.paginateAlerts();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  changeItemsPerPage(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getStartItem(): number {
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  getEndItem(): number {
+    return Math.min(this.currentPage * this.itemsPerPage, this.alerts.length);
   }
 }
