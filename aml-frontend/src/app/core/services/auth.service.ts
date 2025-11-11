@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, map, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { tap, catchError, map, timeout } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 import { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest } from '../models/auth.models';
 
 // Re-export types for easier importing
@@ -11,7 +13,7 @@ export type { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:8080/api';
+  private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'aml_token';
   private readonly USER_KEY = 'aml_user';
 

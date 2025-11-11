@@ -68,7 +68,19 @@
           <i class="fas fa-list me-2"></i>Documents List
           <span class="badge bg-white text-primary ms-2">{{ pendingDocuments.length }}</span>
         </h5>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <!-- Items per page -->
+          <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-white fw-semibold">Show:</label>
+            <select class="form-select form-select-sm pagination-select" 
+                    [(ngModel)]="itemsPerPage" 
+                    (ngModelChange)="changeItemsPerPage()">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
+            </select>
+          </div>
           <!-- Search Box -->
           <div class="search-box-mini">
             <i class="fas fa-search"></i>
@@ -109,8 +121,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let doc of filteredDocuments; index as i" class="table-row-hover">
-              <td class="text-center fw-bold text-muted">{{ i + 1 }}</td>
+            <tr *ngFor="let doc of paginatedDocuments; let i = index" class="table-row-hover">
+              <td class="text-center fw-bold text-muted">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
               <td>
                 <div class="d-flex align-items-center">
                   <div class="avatar-sm me-2">
@@ -161,6 +173,42 @@
         <i class="fas fa-folder-open fa-4x mb-3 opacity-50"></i>
         <h5 class="text-muted">{{ emptyText }}</h5>
         <p class="text-muted">{{ searchTerm ? 'Try adjusting your search' : 'Documents will appear here when uploaded' }}</p>
+      </div>
+    </div>
+    
+    <!-- Pagination Controls -->
+    <div class="card-footer bg-light border-top" *ngIf="!loading && filteredDocuments.length > itemsPerPage">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="text-muted small">
+          Showing {{ getStartItem() }}-{{ getEndItem() }} of {{ filteredDocuments.length }} documents
+        </div>
+        <nav aria-label="Documents pagination">
+          <ul class="pagination pagination-sm mb-0">
+            <!-- Previous Button -->
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" href="#" (click)="previousPage(); $event.preventDefault()" 
+                 aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            <!-- Page Numbers -->
+            <li class="page-item" *ngFor="let page of pages" 
+                [class.active]="page === currentPage">
+              <a class="page-link" href="#" (click)="goToPage(page); $event.preventDefault()">
+                {{ page }}
+              </a>
+            </li>
+
+            <!-- Next Button -->
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" href="#" (click)="nextPage(); $event.preventDefault()" 
+                 aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   </div>

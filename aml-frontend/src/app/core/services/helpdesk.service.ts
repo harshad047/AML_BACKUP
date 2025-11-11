@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HelpdeskMessageDto, HelpdeskTicketDto, PageResponse } from '../models/helpdesk.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class HelpdeskApiService {
-  private base = 'http://localhost:8080/api/helpdesk';
+  private base = environment.apiUrl + '/helpdesk';
   constructor(private http: HttpClient) {}
 
   createTicket(transactionId: number, body: { subject: string; message: string }): Observable<HelpdeskTicketDto> {
