@@ -31,15 +31,33 @@
         </div>
       </div>
 
-      <!-- Filters -->
+      <!-- Filters and View Toggle -->
       <div class="row mb-4">
-        <div class="col-md-6">
+        <div class="col-md-5">
           <input type="text" class="form-control" placeholder="Search cases..." 
                  [(ngModel)]="searchTerm" (input)="applyFilters()">
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <input type="date" class="form-control" placeholder="Filter by date" 
                  [(ngModel)]="dateFilter" (change)="applyFilters()">
+        </div>
+        <div class="col-md-2">
+          <div class="btn-group w-100" role="group">
+            <button type="button" class="btn" 
+                    [class.btn-primary]="viewMode === 'grid'"
+                    [class.btn-outline-primary]="viewMode !== 'grid'"
+                    (click)="toggleViewMode('grid')"
+                    title="Grid View">
+              <i class="fas fa-th"></i>
+            </button>
+            <button type="button" class="btn" 
+                    [class.btn-primary]="viewMode === 'table'"
+                    [class.btn-outline-primary]="viewMode !== 'table'"
+                    (click)="toggleViewMode('table')"
+                    title="Table View">
+              <i class="fas fa-table"></i>
+            </button>
+          </div>
         </div>
         <div class="col-md-2">
           <button class="btn btn-primary w-100" (click)="loadCases()">
@@ -69,8 +87,8 @@
         </div>
       </div>
 
-      <!-- Cases Grid -->
-      <div class="row" *ngIf="!loading">
+      <!-- Cases Grid View -->
+      <div class="row" *ngIf="!loading && viewMode === 'grid'">
         <div class="col-12" *ngIf="filteredCases.length === 0">
           <div class="text-center py-5">
             <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
@@ -82,16 +100,14 @@
         <div class="col-lg-6 col-xl-4 mb-4" *ngFor="let case of filteredCases">
           <div class="card h-100" [class]="getCaseCardClass(case.status)">
             <div class="card-header d-flex justify-content-between align-items-center">
-              <h6 class="mb-0">Case #{{ case.id }}</h6>
+              <h6 class="mb-0">Case {{ case.id }}</h6>
               <span class="badge" [ngClass]="getStatusClass(case.status)">
                 {{ case.status }}
               </span>
             </div>
             <div class="card-body">
               <div class="mb-3">
-                <strong>Alert:</strong> #{{ case.alert.id }}
-                <br>
-                <small class="text-muted">{{ case.alert.reason }}</small>
+                <strong>Alert:</strong> {{ case.alert.reason }}
               </div>
               
               <div class="mb-3">
@@ -147,6 +163,131 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cases Table View -->
+      <div class="row" *ngIf="!loading && viewMode === 'table'">
+        <div class="col-12">
+          <div *ngIf="filteredCases.length === 0" class="text-center py-5">
+            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No cases found</h5>
+            <p class="text-muted">No cases match your current filter criteria.</p>
+          </div>
+          
+          <div *ngIf="filteredCases.length > 0">
+            <!-- Pagination Info and Controls -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <label class="form-label mb-0 me-2">Show:</label>
+                <select class="form-select form-select-sm" style="width: auto;" 
+                        [(ngModel)]="itemsPerPage" 
+                        (ngModelChange)="changeItemsPerPage()">
+                  <option [ngValue]="5">5</option>
+                  <option [ngValue]="10">10</option>
+                  <option [ngValue]="25">25</option>
+                  <option [ngValue]="50">50</option>
+                </select>
+                <span class="text-muted small">
+                  Showing {{ getStartItem() }}-{{ getEndItem() }} of {{ filteredCases.length }} cases
+                </span>
+              </div>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Case</th>
+                    <th>Alert</th>
+                    <th>Risk Score</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let case of paginatedCases">
+                  <td><strong>{{ case.id }}</strong></td>
+                  <td>
+                    <small class="text-muted">{{ case.alert.reason | slice:0:50 }}<span *ngIf="case.alert.reason.length > 50">...</span></small>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getRiskScoreClass(case.alert.riskScore)">
+                      {{ case.alert.riskScore }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getStatusClass(case.status)">
+                      {{ case.status }}
+                    </span>
+                  </td>
+                  <td>{{ case.assignedTo }}</td>
+                  <td>
+                    <small>{{ case.createdAt | date:'short' }}</small>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button class="btn btn-outline-primary" (click)="viewCaseDetails(case)" title="View Details">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button class="btn btn-outline-secondary" 
+                              *ngIf="case.status === 'UNDER_INVESTIGATION'"
+                              (click)="generateSAR(case)" 
+                              title="Generate SAR">
+                        <i class="fas fa-file-alt"></i>
+                      </button>
+                      <button class="btn btn-outline-success" 
+                              *ngIf="case.status === 'UNDER_INVESTIGATION'"
+                              (click)="approveCaseFromCard(case)" 
+                              title="Approve">
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" 
+                              *ngIf="case.status === 'UNDER_INVESTIGATION'"
+                              (click)="rejectCaseFromCard(case)" 
+                              title="Reject">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+            
+            <!-- Pagination Controls -->
+            <div *ngIf="filteredCases.length > itemsPerPage" class="mt-3">
+              <nav aria-label="Cases pagination">
+                <ul class="pagination justify-content-center">
+                  <!-- Previous Button -->
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" href="#" (click)="previousPage(); $event.preventDefault()" 
+                       aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                    </a>
+                  </li>
+
+                  <!-- Page Numbers -->
+                  <li class="page-item" *ngFor="let page of pages" 
+                      [class.active]="page === currentPage">
+                    <a class="page-link" href="#" (click)="goToPage(page); $event.preventDefault()">
+                      {{ page }}
+                    </a>
+                  </li>
+
+                  <!-- Next Button -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" href="#" (click)="nextPage(); $event.preventDefault()" 
+                       aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
