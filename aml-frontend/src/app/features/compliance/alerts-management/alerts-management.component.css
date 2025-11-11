@@ -203,3 +203,43 @@
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
 }
+
+/* Pagination Select Dropdown in Header */
+.pagination-select {
+  min-width: 70px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #212529;
+  font-weight: 500;
+  padding: 0.375rem 2rem 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-select:hover {
+  background-color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-select:focus {
+  background-color: #fff;
+  border-color: var(--primary-bank-blue);
+  box-shadow: 0 0 0 0.2rem rgba(46, 163, 242, 0.25);
+  outline: none;
+}
+
+.pagination-select option {
+  background-color: #fff;
+  color: #212529;
+  padding: 0.5rem;
+}
+
+/* Card Header Styling */
+.card-header {
+  background: linear-gradient(135deg, var(--primary-bank-blue), var(--primary-bank-blue-dark)) !important;
+  color: #fff !important;
+  border-bottom: none !important;
+}

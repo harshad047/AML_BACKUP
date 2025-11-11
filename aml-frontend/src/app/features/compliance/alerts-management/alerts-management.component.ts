@@ -95,6 +95,11 @@ export class AlertsManagementComponent implements OnInit {
       return true;
     });
 
+    // Sort by latest first (newest to oldest)
+    this.filteredAlerts.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
     // Reset to first page when filters change
     this.currentPage = 1;
     this.updatePagination();

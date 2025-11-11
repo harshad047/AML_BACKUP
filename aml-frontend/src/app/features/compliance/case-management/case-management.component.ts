@@ -16,10 +16,12 @@ import { CaseDto, NoteDto, AddNoteRequest } from '../../../core/models/complianc
 })
 export class CaseManagementComponent implements OnInit {
   activeTab = 'active';
+  viewMode: 'grid' | 'table' = 'grid'; // New: view mode toggle
   
   activeCases: CaseDto[] = [];
   resolvedCases: CaseDto[] = [];
   filteredCases: CaseDto[] = [];
+  paginatedCases: CaseDto[] = []; // For table view pagination
   
   selectedCase: CaseDto | null = null;
   
@@ -29,6 +31,12 @@ export class CaseManagementComponent implements OnInit {
   // Filters
   searchTerm = '';
   dateFilter = '';
+  
+  // Pagination for table view
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 1;
+  pages: number[] = [];
   
   // Add Note
   showAddNoteForm = false;
@@ -127,6 +135,81 @@ export class CaseManagementComponent implements OnInit {
 
       return true;
     });
+    
+    // Sort by latest first (newest to oldest)
+    this.filteredCases.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+    
+    // Update pagination if in table view
+    if (this.viewMode === 'table') {
+      this.currentPage = 1;
+      this.updatePagination();
+    }
+  }
+
+  // Toggle view mode between grid and table
+  toggleViewMode(mode: 'grid' | 'table'): void {
+    this.viewMode = mode;
+    if (mode === 'table') {
+      this.updatePagination();
+    }
+  }
+
+  // Pagination methods for table view
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredCases.length / this.itemsPerPage);
+    this.updatePageNumbers();
+    this.paginateCases();
+  }
+
+  updatePageNumbers(): void {
+    this.pages = [];
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      this.pages.push(i);
+    }
+  }
+
+  paginateCases(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedCases = this.filteredCases.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePageNumbers();
+      this.paginateCases();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  changeItemsPerPage(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getStartItem(): number {
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  getEndItem(): number {
+    return Math.min(this.currentPage * this.itemsPerPage, this.filteredCases.length);
   }
 
   getCaseCardClass(status: string): string {

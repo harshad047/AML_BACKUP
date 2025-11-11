@@ -77,6 +77,7 @@ public class RuleEngineServiceImpl {
                 log.info("  Rule MATCHED: {}", rule.getName());
 
                 // Convert risk weight (0–100) → probability (0–1)
+                // Use the rule's configured risk weight regardless of action type
                 double ruleProb = Math.min(1.0, Math.max(0.0, rule.getRiskWeight() / 100.0));
 
                 // BLOCK rules can immediately push probability to 1.0
