@@ -31,10 +31,17 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   @Input() accounts: AccountDto[] = [];
   selectedAccountNumber: string = '';
   transactions: TransactionDto[] = [];
+  paginatedTransactions: TransactionDto[] = [];
   allTransactions: TransactionDto[] = [];
   loading = false;
   error = '';
   filterStatus: 'all' | 'approved' | 'flagged' | 'blocked' | 'pending' = 'all';
+  
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalPages = 1;
+  pages: number[] = [];
   selectedTransaction: TransactionDto | null = null;
   ticketTransaction: TransactionDto | null = null;
   ticketForm: FormGroup;
@@ -57,7 +64,6 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     private fb: FormBuilder,
     private helpdeskService: HelpdeskApiService,
     private toastService: ToastService,
-    // --- START: New Injections for PDF ---
     private datePipe: DatePipe,
     private currencyPipe: CurrencyPipe
     // --- END: New Injections for PDF ---
@@ -151,6 +157,8 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     } else if (this.filterStatus === 'pending') {
       this.transactions = this.allTransactions.filter(t => t.status?.toLowerCase() === 'pending');
     }
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   statusClass(status: string): string {
@@ -631,4 +639,61 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     this.generatePDFStatement();
   }
   // --- END: Statement Modal Methods ---
+
+  // --- START: Pagination Methods ---
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.transactions.length / this.itemsPerPage);
+    this.updatePageNumbers();
+    this.paginateTransactions();
+  }
+
+  updatePageNumbers(): void {
+    this.pages = [];
+    const startPage = Math.max(1, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+      this.pages.push(i);
+    }
+  }
+
+  paginateTransactions(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedTransactions = this.transactions.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePageNumbers();
+      this.paginateTransactions();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  changeItemsPerPage(): void {
+    this.currentPage = 1;
+    this.updatePagination();
+  }
+
+  getStartItem(): number {
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+
+  getEndItem(): number {
+    return Math.min(this.currentPage * this.itemsPerPage, this.transactions.length);
+  }
+  // --- END: Pagination Methods ---
 }

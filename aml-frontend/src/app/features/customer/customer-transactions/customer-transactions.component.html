@@ -88,6 +88,21 @@
           </option>
         </select>
       </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <label class="filter-label">
+          <i class="fas fa-list me-2"></i>Show:
+        </label>
+        <select class="form-select filter-select" style="width: auto;"
+                [(ngModel)]="itemsPerPage" 
+                (ngModelChange)="changeItemsPerPage()">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="25">25</option>
+          <option [ngValue]="50">50</option>
+        </select>
+      </div>
+
       <button class="btn btn-outline-primary ms-auto" 
               (click)="openStatementModal()"
               [disabled]="transactions.length === 0" 
@@ -125,8 +140,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let t of transactions; index as i" class="transaction-row">
-              <td><span class="row-number">{{ i + 1 }}</span></td>
+            <tr *ngFor="let t of paginatedTransactions; let i = index" class="transaction-row">
+              <td><span class="row-number">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</span></td>
               <td>
                 <div class="transaction-type">
                   <div class="type-icon" [ngClass]="getTypeIconClass(t)">
@@ -167,6 +182,42 @@
         </div>
         <h5>No transactions found</h5>
         <p class="text-muted">Start by creating a new transaction</p>
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="card-footer bg-light border-top" *ngIf="!loading && transactions.length > itemsPerPage">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="text-muted small">
+          Showing {{ getStartItem() }}-{{ getEndItem() }} of {{ transactions.length }} transactions
+        </div>
+        <nav aria-label="Transactions pagination">
+          <ul class="pagination pagination-sm mb-0">
+            <!-- Previous Button -->
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" href="#" (click)="previousPage(); $event.preventDefault()" 
+                 aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            <!-- Page Numbers -->
+            <li class="page-item" *ngFor="let page of pages" 
+                [class.active]="page === currentPage">
+              <a class="page-link" href="#" (click)="goToPage(page); $event.preventDefault()">
+                {{ page }}
+              </a>
+            </li>
+
+            <!-- Next Button -->
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" href="#" (click)="nextPage(); $event.preventDefault()" 
+                 aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   </div>
