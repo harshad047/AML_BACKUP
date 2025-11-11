@@ -169,7 +169,7 @@
 }
 
 .modern-table thead {
-  background: #f8f9fa;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
 }
 
 .modern-table thead th {
@@ -179,7 +179,7 @@
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #495057;
+  color: #ffffff !important;
 }
 
 .modern-table tbody tr {
