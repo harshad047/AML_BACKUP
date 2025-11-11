@@ -2,6 +2,9 @@
 
 aml-frontend/node_modules
 aml-frontend/.angular
+aml-frontend/src/environments/environment.ts
+AML Data/
+
 
 # Backup folders
 aml-frontend/src/app_backup_*
