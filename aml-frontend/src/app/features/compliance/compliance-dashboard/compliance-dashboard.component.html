@@ -82,7 +82,7 @@
       </div>
 
       <!-- Alerts and Cases -->
-      <div class="row">
+      <div class="row equal-height-row">
         <div class="col-md-8">
           <div class="card">
             <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
@@ -99,7 +99,7 @@
               </div>
             </div>
             <div class="card-body">
-              <div class="text-center text-muted py-4" *ngIf="recentAlerts.length === 0 && !loading">
+              <div class="text-center text-muted h-100 d-flex flex-column align-items-center justify-content-center" *ngIf="recentAlerts.length === 0 && !loading">
                 <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
                 <p>No alerts at this time</p>
               </div>

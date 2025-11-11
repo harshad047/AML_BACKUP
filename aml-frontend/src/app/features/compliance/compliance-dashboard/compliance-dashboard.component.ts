@@ -69,10 +69,16 @@ export class ComplianceDashboardComponent implements OnInit {
       }
     });
 
-    // Load recent alerts (limit to 5 most recent)
+    // Load recent alerts (today's alerts only, limit to 3 most recent)
     this.complianceService.getAllOpenAlerts().subscribe({
       next: (alerts) => {
-        this.recentAlerts = alerts.slice(0, 5);
+        // Filter alerts to show only today's alerts
+        const today = new Date().toDateString();
+        const todaysAlerts = alerts.filter(alert => {
+          const alertDate = new Date(alert.createdAt).toDateString();
+          return alertDate === today;
+        });
+        this.recentAlerts = todaysAlerts.slice(0, 3);
         this.loading = false;
       },
       error: (error) => {
@@ -98,7 +104,7 @@ export class ComplianceDashboardComponent implements OnInit {
           }
           return false;
         });
-        this.activeInvestigations = myCases.slice(0, 5);
+        this.activeInvestigations = myCases.slice(0, 3);
       },
       error: (error) => {
         console.error('Error loading cases:', error);
