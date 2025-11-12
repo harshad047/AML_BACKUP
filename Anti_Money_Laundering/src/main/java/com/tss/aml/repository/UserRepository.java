@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.tss.aml.entity.Role;
 import com.tss.aml.entity.User;
+import com.tss.aml.entity.Enums.Role;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
