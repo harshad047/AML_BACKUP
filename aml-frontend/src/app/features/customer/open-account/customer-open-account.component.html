@@ -126,10 +126,11 @@
             <i class="fas fa-money-bill-wave me-2"></i>Currency
           </label>
           <select class="form-select modern-select" formControlName="currency">
-            <option value="INR">🇮🇳 Indian Rupee (INR)</option>
-            <option value="USD">🇺🇸 US Dollar (USD)</option>
-            <option value="EUR">🇪🇺 Euro (EUR)</option>
+            <option *ngFor="let currency of supportedCurrencies" [value]="currency.code">
+              {{ currency.flag }} {{ currency.name }} ({{ currency.code }})
+            </option>
           </select>
+          <small class="text-muted">Select account currency</small>
         </div>
       </div>
 
@@ -184,13 +185,15 @@
         <div class="col-md-3">
           <div class="detail-item">
             <label>Initial Balance</label>
-            <div class="detail-value amount">₹{{ created.balance | number:'1.2-2' }}</div>
+            <div class="detail-value amount">{{ created.balance | currency:created.currency:'symbol':'1.2-2' }}</div>
           </div>
         </div>
         <div class="col-md-3">
           <div class="detail-item">
             <label>Currency</label>
-            <div class="detail-value">{{ created.currency }}</div>
+            <div class="detail-value">
+              {{ getCurrencySymbol(created.currency) }} {{ created.currency }}
+            </div>
           </div>
         </div>
       </div>

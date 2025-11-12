@@ -7,7 +7,7 @@ import { TransactionService } from '../../../core/services/transaction.service';
 import { AccountService } from '../../../core/services/account.service';
 import { HelpdeskApiService } from '../../../core/services/helpdesk.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { TransactionDto } from '../../../core/models/transaction.models';
+import { TransactionDto, CurrencyConversionDto } from '../../../core/models/transaction.models';
 import { AccountDto } from '../../../core/models/account.models';
 
 // Import jsPDF and the autoTable plugin
@@ -57,6 +57,14 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
   tempDateFrom: string | null = null;
   tempDateTo: string | null = null;
   // --- END: Statement Modal State ---
+  
+  // --- START: Currency Calculator Properties ---
+  calculatorForm: FormGroup;
+  calculatorResult: CurrencyConversionDto | null = null;
+  calculatorLoading = false;
+  calculatorError = '';
+  supportedCurrencies = ['EUR', 'USD', 'INR', 'GBP', 'CAD', 'AUD', 'JPY'];
+  // --- END: Currency Calculator Properties ---
 
   constructor(
     private tx: TransactionService,
@@ -72,6 +80,34 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     this.ticketForm = this.fb.group({
       subject: ['', [Validators.required, Validators.maxLength(200)]],
       message: ['', [Validators.required, Validators.maxLength(1000)]]
+    });
+    
+    // Initialize currency calculator form
+    this.calculatorForm = this.fb.group({
+      fromCurrency: ['INR', Validators.required],
+      toCurrency: ['USD', Validators.required],
+      amount: [1000, [Validators.required, Validators.min(0.01)]]
+    });
+
+    // Add validation to prevent same currency selection
+    this.calculatorForm.get('fromCurrency')?.valueChanges.subscribe(value => {
+      if (value === this.calculatorForm.get('toCurrency')?.value) {
+        // Auto-select a different currency for 'to'
+        const availableCurrencies = this.supportedCurrencies.filter(c => c !== value);
+        if (availableCurrencies.length > 0) {
+          this.calculatorForm.get('toCurrency')?.setValue(availableCurrencies[0]);
+        }
+      }
+    });
+
+    this.calculatorForm.get('toCurrency')?.valueChanges.subscribe(value => {
+      if (value === this.calculatorForm.get('fromCurrency')?.value) {
+        // Auto-select a different currency for 'from'
+        const availableCurrencies = this.supportedCurrencies.filter(c => c !== value);
+        if (availableCurrencies.length > 0) {
+          this.calculatorForm.get('fromCurrency')?.setValue(availableCurrencies[0]);
+        }
+      }
     });
   }
 
@@ -639,6 +675,128 @@ export class CustomerTransactionsComponent implements OnInit, OnChanges {
     this.generatePDFStatement();
   }
   // --- END: Statement Modal Methods ---
+
+  // --- START: Currency Calculator Methods ---
+  openCurrencyCalculator(): void {
+    this.calculatorResult = null;
+    this.calculatorError = '';
+    this.calculatorForm.patchValue({
+      fromCurrency: 'INR',
+      toCurrency: 'USD',
+      amount: 1000
+    });
+    const modalElement = document.getElementById('currencyCalculatorModal');
+    if (modalElement) {
+      const modal = new (window as any).bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  calculateCurrency(): void {
+    if (this.calculatorForm.invalid) return;
+    
+    this.calculatorLoading = true;
+    this.calculatorError = '';
+    this.calculatorResult = null;
+    
+    const formValue = this.calculatorForm.value;
+    const conversionDto: CurrencyConversionDto = {
+      fromCurrency: formValue.fromCurrency,
+      toCurrency: formValue.toCurrency,
+      amount: Number(formValue.amount)
+    };
+    
+    this.tx.calculateCurrencyConversion(conversionDto).subscribe({
+      next: (result) => {
+        this.calculatorLoading = false;
+        this.calculatorResult = result;
+        if (!result.supported) {
+          this.calculatorError = 'Currency pair not supported or exchange rate not available';
+        }
+      },
+      error: (err) => {
+        this.calculatorLoading = false;
+        this.calculatorError = err?.error?.message || 'Failed to calculate currency conversion';
+      }
+    });
+  }
+
+  swapCurrencies(): void {
+    const fromCurrency = this.calculatorForm.get('fromCurrency')?.value;
+    const toCurrency = this.calculatorForm.get('toCurrency')?.value;
+    
+    this.calculatorForm.patchValue({
+      fromCurrency: toCurrency,
+      toCurrency: fromCurrency
+    });
+    
+    // Clear previous result when swapping
+    this.calculatorResult = null;
+    this.calculatorError = '';
+  }
+
+  resetCalculator(): void {
+    this.calculatorForm.patchValue({
+      fromCurrency: 'INR',
+      toCurrency: 'USD',
+      amount: 1000
+    });
+    this.calculatorResult = null;
+    this.calculatorError = '';
+  }
+
+  getCurrencySymbol(currency: string): string {
+    const symbols: { [key: string]: string } = {
+      'EUR': '€',
+      'USD': '$',
+      'INR': '₹',
+      'GBP': '£',
+      'CAD': 'C$',
+      'AUD': 'A$',
+      'JPY': '¥'
+    };
+    return symbols[currency] || currency;
+  }
+
+  parseChargeBreakdown(breakdown: string): { baseCharge: number, fixedCharge: number, percentage: number } {
+    // Parse: "Base charge: 2.0000% of 1000 = 20.00 + Fixed charge: 3.00 = 23.00"
+    const result = { baseCharge: 0, fixedCharge: 0, percentage: 0 };
+    
+    try {
+      // Extract percentage
+      const percentageMatch = breakdown.match(/(\d+\.?\d*)%/);
+      if (percentageMatch) {
+        result.percentage = parseFloat(percentageMatch[1]);
+      }
+      
+      // Extract base charge amount
+      const baseChargeMatch = breakdown.match(/= (\d+\.?\d+) \+/);
+      if (baseChargeMatch) {
+        result.baseCharge = parseFloat(baseChargeMatch[1]);
+      }
+      
+      // Extract fixed charge
+      const fixedChargeMatch = breakdown.match(/Fixed charge: (\d+\.?\d+)/);
+      if (fixedChargeMatch) {
+        result.fixedCharge = parseFloat(fixedChargeMatch[1]);
+      }
+    } catch (error) {
+      console.warn('Error parsing charge breakdown:', error);
+    }
+    
+    return result;
+  }
+
+  getAvailableFromCurrencies(): string[] {
+    const toCurrency = this.calculatorForm?.get('toCurrency')?.value;
+    return this.supportedCurrencies.filter(currency => currency !== toCurrency);
+  }
+
+  getAvailableToCurrencies(): string[] {
+    const fromCurrency = this.calculatorForm?.get('fromCurrency')?.value;
+    return this.supportedCurrencies.filter(currency => currency !== fromCurrency);
+  }
+  // --- END: Currency Calculator Methods ---
 
   // --- START: Pagination Methods ---
   updatePagination(): void {
