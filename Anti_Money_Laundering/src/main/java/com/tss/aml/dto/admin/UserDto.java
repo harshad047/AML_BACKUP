@@ -1,6 +1,7 @@
 package com.tss.aml.dto.admin;
 
-import com.tss.aml.entity.Role;
+import com.tss.aml.entity.Enums.Role;
+
 import lombok.Data;
 
 @Data

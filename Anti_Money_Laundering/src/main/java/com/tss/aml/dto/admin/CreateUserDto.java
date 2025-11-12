@@ -1,7 +1,9 @@
 package com.tss.aml.dto.admin;
 
-import com.tss.aml.entity.Role;
 import lombok.Data;
+
+import com.tss.aml.entity.Enums.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
