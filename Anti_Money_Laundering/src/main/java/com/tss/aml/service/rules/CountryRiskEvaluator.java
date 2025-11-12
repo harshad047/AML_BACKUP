@@ -20,13 +20,56 @@ public class CountryRiskEvaluator implements RuleEvaluator {
 
     @Override
     public boolean evaluate(TransactionInputDto input, RuleCondition condition) {
+        // Check if both sender and receiver countries are available (for transfers)
+        boolean hasSenderCountry = input.getSenderCountryCode() != null && !input.getSenderCountryCode().trim().isEmpty();
+        boolean hasReceiverCountry = input.getCountryCode() != null && !input.getCountryCode().trim().isEmpty();
+        
+        // For transfers: check BOTH sender and receiver countries
+        if (hasSenderCountry && hasReceiverCountry) {
+            CountryRisk senderRisk = countryRepo.findByCountryCodeIgnoreCase(input.getSenderCountryCode());
+            CountryRisk receiverRisk = countryRepo.findByCountryCodeIgnoreCase(input.getCountryCode());
+            
+            if (senderRisk == null && receiverRisk == null) {
+                log.debug("CountryRiskEvaluator: No country risk data for sender {} or receiver {}, returning false", 
+                         input.getSenderCountryCode(), input.getCountryCode());
+                return false;
+            }
+            
+            // Check sender country risk
+            boolean senderMatch = false;
+            if (senderRisk != null) {
+                senderMatch = compareNumber(senderRisk.getRiskScore(), condition.getOperator(), condition.getValue());
+                log.debug("CountryRiskEvaluator [SENDER]: {} risk={} {} {} = {}", 
+                         input.getSenderCountryCode(), senderRisk.getRiskScore(), 
+                         condition.getOperator(), condition.getValue(), senderMatch);
+            }
+            
+            // Check receiver country risk
+            boolean receiverMatch = false;
+            if (receiverRisk != null) {
+                receiverMatch = compareNumber(receiverRisk.getRiskScore(), condition.getOperator(), condition.getValue());
+                log.debug("CountryRiskEvaluator [RECEIVER]: {} risk={} {} {} = {}", 
+                         input.getCountryCode(), receiverRisk.getRiskScore(), 
+                         condition.getOperator(), condition.getValue(), receiverMatch);
+            }
+            
+            // Return true if EITHER sender OR receiver matches the condition (OR logic)
+            boolean result = senderMatch || receiverMatch;
+            log.info("CountryRiskEvaluator [DUAL-CHECK]: Sender={} ({}), Receiver={} ({}), Result={}", 
+                    input.getSenderCountryCode(), senderMatch, 
+                    input.getCountryCode(), receiverMatch, result);
+            return result;
+        }
+        
+        // For deposits/withdrawals: check only receiver/customer country (existing logic)
         CountryRisk cr = countryRepo.findByCountryCodeIgnoreCase(input.getCountryCode());
         if (cr == null) {
             log.debug("CountryRiskEvaluator: No country risk data for {}, returning false", input.getCountryCode());
             return false;
         }
         boolean result = compareNumber(cr.getRiskScore(), condition.getOperator(), condition.getValue());
-        log.debug("CountryRiskEvaluator: {} risk={} {} {} = {}", input.getCountryCode(), cr.getRiskScore(), condition.getOperator(), condition.getValue(), result);
+        log.debug("CountryRiskEvaluator [SINGLE-CHECK]: {} risk={} {} {} = {}", 
+                 input.getCountryCode(), cr.getRiskScore(), condition.getOperator(), condition.getValue(), result);
         return result;
     }
 

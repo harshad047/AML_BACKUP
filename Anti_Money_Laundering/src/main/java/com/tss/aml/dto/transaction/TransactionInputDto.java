@@ -12,7 +12,8 @@ public class TransactionInputDto {
     private String txId;
     private String customerId;
     private BigDecimal amount;
-    private String countryCode;
+    private String countryCode;           // Receiver/Customer country (for backward compatibility)
+    private String senderCountryCode;     // Sender's country (for transfers)
     private int nlpScore;
     private String text;
     private Transaction.TransactionType transactionType;

@@ -259,11 +259,19 @@ public class TransactionServiceImpl {
                 .build();
         Transaction savedTx = txRepo.save(pendingTx);
 
+        // Get sender country code for transfers (when fromAccount exists)
+        String senderCountryCode = null;
+        if (from != null && type == Transaction.TransactionType.TRANSFER) {
+            senderCountryCode = getCountryCodeFromAccount(from);
+            System.out.println("Sender country code: " + senderCountryCode);
+        }
+
         var input = TransactionInputDto.builder()
                 .txId(savedTx.getId().toString())
                 .customerId(customer.getId().toString())
                 .amount(amount)
                 .countryCode(countryCode)
+                .senderCountryCode(senderCountryCode)
                 .nlpScore(nlp)
                 .text(desc)
                 .transactionType(type)
@@ -271,7 +279,7 @@ public class TransactionServiceImpl {
                 .toAccountNumber(to != null ? to.getAccountNumber() : null)
                 .build();
 
-        System.out.println("Calling rule engine with input: " + input.getCustomerId() + ", Amount: " + input.getAmount() + ", Country: " + countryCode);
+        System.out.println("Calling rule engine with input: " + input.getCustomerId() + ", Amount: " + input.getAmount() + ", Receiver Country: " + countryCode + ", Sender Country: " + senderCountryCode);
         EvaluationResultDto ruleResult = ruleEngine.evaluate(input);
         int ruleScore = ruleResult.getTotalRiskScore();
         System.out.println("Rule engine result - Total Risk Score: " + ruleScore);
@@ -888,11 +896,16 @@ public class TransactionServiceImpl {
             amountForRulesInInr = conversionResult.getConvertedAmount();
         }
 
+        // Get sender country code for intercurrency transfers
+        String senderCountryCode = getCountryCodeFromAccount(fromAccount);
+        System.out.println("Intercurrency - Sender country: " + senderCountryCode + ", Receiver country: " + countryCode);
+
         var input = TransactionInputDto.builder()
                 .txId(savedTransaction.getId().toString())
                 .customerId(customer.getId().toString())
                 .amount(amountForRulesInInr)
                 .countryCode(countryCode)
+                .senderCountryCode(senderCountryCode)
                 .nlpScore(nlp)
                 .text(description)
                 .transactionType(Transaction.TransactionType.INTERCURRENCY_TRANSFER)
