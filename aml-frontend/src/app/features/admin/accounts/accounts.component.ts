@@ -41,6 +41,9 @@ export class AccountsComponent implements OnInit {
   // All accounts for stats
   allAccountsForStats: BankAccountDto[] = [];
   
+  // Customer data for blocked status check
+  customers: any[] = [];
+  
   // Modal states
   showApproveModal = false;
   showRejectModal = false;
@@ -56,8 +59,9 @@ export class AccountsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadAllAccountsForStats();
     this.loadAccounts();
+    this.loadAllAccountsForStats();
+    this.loadCustomers();
   }
 
   loadAllAccountsForStats(): void {
@@ -382,5 +386,36 @@ export class AccountsComponent implements OnInit {
 
   get filteredCount(): number {
     return this.activeTab === 'pending' ? this.filteredPendingAccounts.length : this.filteredAllAccounts.length;
+  }
+
+  // Load customers to check blocked status
+  loadCustomers(): void {
+    // Load both active and blocked customers like in manage-users component
+    this.adminService.getActiveCustomers().subscribe({
+      next: (active) => {
+        const activeCustomers = active.map(u => ({ ...u, blocked: false }));
+        this.customers = [...activeCustomers];
+        
+        // Also load blocked customers
+        this.adminService.getBlockedCustomers().subscribe({
+          next: (blocked) => {
+            const blockedCustomers = blocked.map(u => ({ ...u, blocked: true }));
+            this.customers = [...activeCustomers, ...blockedCustomers];
+          },
+          error: () => {
+            // If blocked customers API fails, continue with just active customers
+          }
+        });
+      },
+      error: () => {
+        // Handle error silently as this is supplementary data
+      }
+    });
+  }
+
+  // Check if a customer is blocked
+  isCustomerBlocked(customerId: number): boolean {
+    const customer = this.customers.find(c => c.id === customerId);
+    return customer ? customer.blocked === true : false;
   }
 }

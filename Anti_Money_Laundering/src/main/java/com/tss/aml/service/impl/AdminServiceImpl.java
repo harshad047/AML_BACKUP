@@ -648,6 +648,26 @@ public class AdminServiceImpl implements IAdminService{
         
         user.setEnabled(true);
         User updatedUser = userRepository.save(user);
+
+        List<BankAccount> userAccounts = bankAccountRepository.findByUser(user);
+        for (BankAccount account : userAccounts) {
+            if (account.getApprovalStatus().equals(ApprovalStatus.PENDING)) {
+                account.setStatus(AccountStatus.PENDING);
+                account.setActivatedAt(LocalDateTime.now());               
+                bankAccountRepository.save(account);
+            }
+            else if(account.getApprovalStatus().equals(ApprovalStatus.APPROVED)) {
+            	account.setStatus(AccountStatus.ACTIVE);
+                account.setActivatedAt(LocalDateTime.now());               
+                bankAccountRepository.save(account);
+            	}
+            else if (account.getApprovalStatus().equals(ApprovalStatus.REJECTED)){
+            	account.setStatus(AccountStatus.SUSPENDED);
+                account.setActivatedAt(LocalDateTime.now());               
+                bankAccountRepository.save(account);
+            }
+            }
+        
         
         // Log customer unblocking
         auditLogService.logCustomerUnblocked("ADMIN", user.getUsername());
