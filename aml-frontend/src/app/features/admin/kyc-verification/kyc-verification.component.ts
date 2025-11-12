@@ -52,13 +52,19 @@ export class KycVerificationComponent implements OnInit {
     // Load all documents for stats
     this.adminService.getKycDocuments().subscribe({
       next: (allDocs) => {
-        this.allDocuments = allDocs;
+        // Sort all documents by uploadedAt in descending order (latest first)
+        this.allDocuments = allDocs.sort((a, b) => 
+          new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+        );
         
         // Load filtered documents
         this.adminService.getKycDocuments(this.selectedStatus === 'ALL' ? undefined : this.selectedStatus).subscribe({
           next: (documents) => {
-            this.pendingDocuments = documents;
-            this.filteredDocuments = documents;
+            // Sort filtered documents by uploadedAt in descending order (latest first)
+            this.pendingDocuments = documents.sort((a, b) => 
+              new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+            );
+            this.filteredDocuments = this.pendingDocuments;
             this.currentPage = 1;
             this.updatePagination();
             this.loading = false;
@@ -182,6 +188,10 @@ export class KycVerificationComponent implements OnInit {
         doc.docType?.toLowerCase().includes(term)
       );
     }
+    // Ensure filtered documents maintain the sort order (latest first)
+    this.filteredDocuments = this.filteredDocuments.sort((a, b) => 
+      new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+    );
     this.currentPage = 1;
     this.updatePagination();
   }

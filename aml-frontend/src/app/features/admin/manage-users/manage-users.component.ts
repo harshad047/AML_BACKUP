@@ -52,6 +52,7 @@ export class ManageUsersComponent implements OnInit {
   selectedCustomer: UserDto | null = null;
   customerDetails: AdminCustomerDetailsDto | null = null;
   loadingDetails = false;
+  bankAccountsExpanded = false;
   
   selectedOfficer: UserDto | null = null;
   blockReason = '';
@@ -398,6 +399,33 @@ export class ManageUsersComponent implements OnInit {
     this.toastService.info('Promote to Super Admin feature coming soon');
   }
 
+  getAccountStatusClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'ACTIVE': return 'bg-success';
+      case 'PENDING': return 'bg-warning text-dark';
+      case 'SUSPENDED': return 'bg-danger';
+      case 'CLOSED': return 'bg-secondary';
+      default: return 'bg-secondary';
+    }
+  }
+
+  getApprovalStatusClass(approvalStatus: string): string {
+    switch (approvalStatus?.toUpperCase()) {
+      case 'APPROVED': return 'bg-success';
+      case 'PENDING': return 'bg-warning text-dark';
+      case 'REJECTED': return 'bg-danger';
+      default: return 'bg-secondary';
+    }
+  }
+
+  toggleBankAccountsExpansion(): void {
+    this.bankAccountsExpanded = !this.bankAccountsExpanded;
+  }
+
+  isBankAccountsExpanded(): boolean {
+    return this.bankAccountsExpanded;
+  }
+
   closeAllModals(): void {
     this.showCustomerDetailsModal = false;
     this.showBlockCustomerModal = false;
@@ -407,5 +435,6 @@ export class ManageUsersComponent implements OnInit {
     this.selectedOfficer = null;
     this.customerDetails = null;
     this.blockReason = '';
+    this.bankAccountsExpanded = false;
   }
 }

@@ -163,23 +163,44 @@
               </td>
               <td>{{ account.createdAt | date:'short' }}</td>
               <td class="text-center">
-                <div class="btn-group btn-group-sm action-buttons">
-                  <button *ngIf="account.approvalStatus === 'PENDING'" 
-                          class="btn btn-success" (click)="openApproveModal(account)" title="Approve Account">
-                    <i class="fas fa-check"></i> Approve
-                  </button>
-                  <button *ngIf="account.approvalStatus === 'PENDING'" 
-                          class="btn btn-danger" (click)="openRejectModal(account)" title="Reject Account">
-                    <i class="fas fa-times"></i> Reject
-                  </button>
-                  <button *ngIf="account.status === 'ACTIVE'" 
-                          class="btn btn-warning" (click)="openSuspendModal(account)" title="Suspend Account">
-                    <i class="fas fa-ban"></i> Suspend
-                  </button>
-                  <button *ngIf="account.status === 'SUSPENDED'" 
-                          class="btn btn-success" (click)="openActivateModal(account)" title="Activate Account">
-                    <i class="fas fa-check-circle"></i> Activate
-                  </button>
+                <div class="action-buttons-container">
+                  <!-- Show "User is blocked" message only when customer is actually blocked -->
+                  <div *ngIf="isCustomerBlocked(account.customerId)" class="blocked-user-message">
+                    <span class="text-danger small fw-bold">
+                      <i class="fas fa-ban me-1"></i>User is blocked
+                    </span>
+                  </div>
+                  
+                  <!-- Show buttons only for non-blocked customers -->
+                  <ng-container *ngIf="!isCustomerBlocked(account.customerId) && (activeTab === 'pending' || (activeTab === 'all' && account.approvalStatus === 'APPROVED'))">
+                    <!-- Show only Activate button when status is SUSPENDED -->
+                    <div *ngIf="account.status === 'SUSPENDED'" class="single-action">
+                      <button class="btn btn-success btn-action" (click)="openActivateModal(account)" title="Activate Account">
+                        <i class="fas fa-check-circle me-1"></i>Activate
+                      </button>
+                    </div>
+                    
+                    <!-- Show other buttons when status is not SUSPENDED -->
+                    <div *ngIf="account.status !== 'SUSPENDED'" class="btn-group btn-group-sm action-buttons">
+                      <button *ngIf="account.approvalStatus === 'PENDING'" 
+                              class="btn btn-success btn-action" (click)="openApproveModal(account)" title="Approve Account">
+                        <i class="fas fa-check me-1"></i>Approve
+                      </button>
+                      <button *ngIf="account.approvalStatus === 'PENDING'" 
+                              class="btn btn-danger btn-action" (click)="openRejectModal(account)" title="Reject Account">
+                        <i class="fas fa-times me-1"></i>Reject
+                      </button>
+                      <button *ngIf="account.status === 'ACTIVE'" 
+                              class="btn btn-warning btn-action" (click)="openSuspendModal(account)" title="Suspend Account">
+                        <i class="fas fa-ban me-1"></i>Suspend
+                      </button>
+                    </div>
+                  </ng-container>
+                  
+                  <!-- Show "No Actions" message for non-approved accounts in All Accounts tab (only if customer is not blocked) -->
+                  <div *ngIf="!isCustomerBlocked(account.customerId) && activeTab === 'all' && account.approvalStatus !== 'APPROVED'" class="no-actions">
+                    <span class="text-muted small">No actions available</span>
+                  </div>
                 </div>
               </td>
             </tr>

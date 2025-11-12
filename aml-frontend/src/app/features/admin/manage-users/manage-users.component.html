@@ -390,26 +390,18 @@
                     </div>
                     <div class="col-md-6">
                       <div class="detail-item">
-                        <i class="fas fa-id-card text-primary me-2"></i>
-                        <span class="text-muted small">User ID:</span>
-                        <div class="fw-semibold">{{ customerDetails.userId }}</div>
+                        <i class="fas fa-shield-alt text-primary me-2"></i>
+                        <span class="text-muted small">KYC Status:</span>
+                        <div class="fw-semibold">
+                          <span class="badge" [ngClass]="customerDetails.kycStatus === 'APPROVED' ? 'bg-success' : 
+                                                         customerDetails.kycStatus === 'PENDING' ? 'bg-warning text-dark' : 'bg-danger'">
+                            {{ customerDetails.kycStatus }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- KYC Status -->
-            <div class="detail-section mb-4">
-              <h6 class="section-title">
-                <i class="fas fa-shield-alt me-2"></i>KYC Status
-              </h6>
-              <div class="detail-content">
-                <span class="badge" [ngClass]="customerDetails.kycStatus === 'APPROVED' ? 'bg-success' : 
-                                                 customerDetails.kycStatus === 'PENDING' ? 'bg-warning' : 'bg-danger'">
-                  {{ customerDetails.kycStatus }}
-                </span>
               </div>
             </div>
 
@@ -429,14 +421,14 @@
             </div>
 
             <!-- Account Statistics -->
-            <div class="row g-3">
+            <div class="row g-3 mb-4">
               <div class="col-md-6">
                 <div class="stat-card">
                   <div class="stat-icon bg-primary-soft">
                     <i class="fas fa-exchange-alt"></i>
                   </div>
                   <div class="stat-info">
-                    <h3 class="mb-0">0</h3>
+                    <h3 class="mb-0">{{ customerDetails.transactionCount }}</h3>
                     <p class="text-muted mb-0">Total Transactions</p>
                   </div>
                 </div>
@@ -447,10 +439,67 @@
                     <i class="fas fa-exclamation-triangle"></i>
                   </div>
                   <div class="stat-info">
-                    <h3 class="mb-0">0</h3>
+                    <h3 class="mb-0">{{ customerDetails.alertCount }}</h3>
                     <p class="text-muted mb-0">Total Alerts</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Bank Accounts -->
+            <div class="detail-section mb-4" *ngIf="customerDetails.accounts && customerDetails.accounts.length > 0">
+              <div class="bank-accounts-dropdown">
+                <!-- Bank Accounts Header (Clickable) -->
+                <div class="bank-accounts-header" 
+                     (click)="toggleBankAccountsExpansion()"
+                     [class.expanded]="isBankAccountsExpanded()">
+                  <h6 class="section-title mb-0">
+                    <i class="fas fa-university me-2"></i>Bank Accounts ({{ customerDetails.accounts.length }})
+                  </h6>
+                  <div class="dropdown-arrow">
+                    <i class="fas fa-chevron-down" 
+                       [class.rotated]="isBankAccountsExpanded()"></i>
+                  </div>
+                </div>
+                
+                <!-- Bank Accounts Content (Collapsible) -->
+                <div class="bank-accounts-content" 
+                     [class.expanded]="isBankAccountsExpanded()">
+                  <div class="accounts-grid">
+                    <div class="account-basic-card" *ngFor="let account of customerDetails.accounts">
+                      <div class="account-header">
+                        <h6 class="account-number">{{ account.accountNumber }}</h6>
+                        <span class="badge" [ngClass]="getAccountStatusClass(account.status)">
+                          {{ account.status }}
+                        </span>
+                      </div>
+                      <div class="account-basic-info">
+                        <div class="info-item">
+                          <span class="label">Type:</span>
+                          <span class="value">{{ account.accountType }}</span>
+                        </div>
+                        <div class="info-item">
+                          <span class="label">Balance:</span>
+                          <span class="value balance">${{ account.balance | number:'1.2-2' }}</span>
+                        </div>
+                        <div class="info-item">
+                          <span class="label">Currency:</span>
+                          <span class="value">{{ account.currency }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- No Accounts Message -->
+            <div class="detail-section mb-4" *ngIf="!customerDetails.accounts || customerDetails.accounts.length === 0">
+              <h6 class="section-title">
+                <i class="fas fa-university me-2"></i>Bank Accounts
+              </h6>
+              <div class="detail-content">
+                <p class="text-muted mb-0">No bank accounts found for this customer.</p>
               </div>
             </div>
           </div>
