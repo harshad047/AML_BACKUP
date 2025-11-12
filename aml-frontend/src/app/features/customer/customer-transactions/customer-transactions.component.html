@@ -103,13 +103,22 @@
         </select>
       </div>
 
-      <button class="btn btn-outline-primary ms-auto" 
-              (click)="openStatementModal()"
-              [disabled]="transactions.length === 0" 
-              title="Download statement as PDF">
-        <i class="fas fa-file-pdf me-2"></i>
-        Generate Statement
-      </button>
+      <div class="d-flex gap-2 ms-auto">
+        <button class="btn btn-outline-success" 
+                (click)="openCurrencyCalculator()"
+                title="Currency Conversion Calculator">
+          <i class="fas fa-calculator me-2"></i>
+          Currency Calculator
+        </button>
+        
+        <button class="btn btn-outline-primary" 
+                (click)="openStatementModal()"
+                [disabled]="transactions.length === 0" 
+                title="Download statement as PDF">
+          <i class="fas fa-file-pdf me-2"></i>
+          Generate Statement
+        </button>
+      </div>
 
     </div>
   </div>
@@ -450,6 +459,221 @@
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Currency Calculator Modal -->
+  <div class="modal fade" id="currencyCalculatorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content modern-modal">
+        <div class="modal-header bg-success text-white">
+          <div>
+            <h5 class="modal-title">
+              <i class="fas fa-calculator me-2"></i>Currency Conversion Calculator
+            </h5>
+            <p class="small mb-0">Calculate real-time currency conversion with charges</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Calculator Form -->
+          <form [formGroup]="calculatorForm" (ngSubmit)="calculateCurrency()">
+            <div class="row g-3 mb-4">
+              <!-- From Currency -->
+              <div class="col-md-5">
+                <label class="form-label fw-bold">From Currency</label>
+                <select class="form-select" formControlName="fromCurrency">
+                  <option *ngFor="let currency of getAvailableFromCurrencies()" [value]="currency">
+                    {{ getCurrencySymbol(currency) }} {{ currency }}
+                  </option>
+                </select>
+                <small class="text-muted">Select source currency</small>
+              </div>
+
+              <!-- Swap Button -->
+              <div class="col-md-2 d-flex align-items-end justify-content-center">
+                <button type="button" class="btn btn-outline-secondary" 
+                        (click)="swapCurrencies()" 
+                        title="Swap currencies">
+                  <i class="fas fa-exchange-alt"></i>
+                </button>
+              </div>
+
+              <!-- To Currency -->
+              <div class="col-md-5">
+                <label class="form-label fw-bold">To Currency</label>
+                <select class="form-select" formControlName="toCurrency">
+                  <option *ngFor="let currency of getAvailableToCurrencies()" [value]="currency">
+                    {{ getCurrencySymbol(currency) }} {{ currency }}
+                  </option>
+                </select>
+                <small class="text-muted">Select target currency</small>
+              </div>
+
+              <!-- Amount -->
+              <div class="col-12">
+                <label class="form-label fw-bold">Amount</label>
+                <div class="input-group">
+                  <span class="input-group-text">{{ getCurrencySymbol(calculatorForm.get('fromCurrency')?.value) }}</span>
+                  <input type="number" class="form-control" formControlName="amount" 
+                         placeholder="Enter amount" min="0.01" step="0.01">
+                </div>
+                <small class="text-muted">Minimum amount: 0.01</small>
+              </div>
+            </div>
+
+            <!-- Calculate Button -->
+            <div class="d-flex gap-2 mb-4">
+              <button type="submit" class="btn btn-success" 
+                      [disabled]="calculatorForm.invalid || calculatorLoading">
+                <span *ngIf="calculatorLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!calculatorLoading" class="fas fa-calculator me-2"></i>
+                {{ calculatorLoading ? 'Calculating...' : 'Calculate Conversion' }}
+              </button>
+              
+              <button type="button" class="btn btn-outline-secondary" (click)="resetCalculator()">
+                <i class="fas fa-undo me-2"></i>Reset
+              </button>
+            </div>
+          </form>
+
+          <!-- Error Message -->
+          <div class="alert alert-danger" *ngIf="calculatorError">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ calculatorError }}
+          </div>
+
+          <!-- Conversion Results -->
+          <div class="conversion-results" *ngIf="calculatorResult && calculatorResult.supported">
+            <div class="card bg-light">
+              <div class="card-header">
+                <h6 class="mb-0">
+                  <i class="fas fa-chart-line me-2"></i>Conversion Results
+                </h6>
+              </div>
+              <div class="card-body">
+                <!-- Main Conversion -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <div class="result-item">
+                      <label class="text-muted small">Original Amount</label>
+                      <div class="result-value h5 mb-0">
+                        {{ calculatorResult.originalAmount | currency:calculatorResult.originalCurrency:'symbol':'1.2-2' }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="result-item">
+                      <label class="text-muted small">Converted Amount</label>
+                      <div class="result-value h5 mb-0 text-success">
+                        {{ calculatorResult.convertedAmount | currency:calculatorResult.convertedCurrency:'symbol':'1.2-2' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Exchange Rate & Charges -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <div class="result-item">
+                      <label class="text-muted small">Exchange Rate</label>
+                      <div class="result-value">
+                        1 {{ calculatorResult.originalCurrency }} = {{ calculatorResult.exchangeRate }} {{ calculatorResult.convertedCurrency }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="result-item">
+                      <label class="text-muted small">Conversion Charges</label>
+                      <div class="result-value text-warning">
+                        {{ calculatorResult.conversionCharges | currency:calculatorResult.originalCurrency:'symbol':'1.2-2' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total Debit -->
+                <div class="row g-3 mb-3">
+                  <div class="col-12">
+                    <div class="result-item">
+                      <label class="text-muted small">Total Amount to be Debited</label>
+                      <div class="result-value h6 mb-0 text-primary">
+                        {{ calculatorResult.totalDebitAmount | currency:calculatorResult.originalCurrency:'symbol':'1.2-2' }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Charge Breakdown -->
+                <div class="charge-breakdown" *ngIf="calculatorResult.chargeBreakdown">
+                  <label class="text-muted small fw-bold">Charge Breakdown</label>
+                  <div class="bg-white p-3 rounded border">
+                    <div class="row g-2 small" *ngIf="parseChargeBreakdown(calculatorResult.chargeBreakdown) as breakdown">
+                      <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span class="text-muted">
+                            <i class="fas fa-percentage me-1"></i>
+                            Base Charge ({{ breakdown.percentage }}%):
+                          </span>
+                          <span class="fw-bold">
+                            {{ breakdown.baseCharge | currency:calculatorResult.originalCurrency:'symbol':'1.2-2' }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span class="text-muted">
+                            <i class="fas fa-plus me-1"></i>
+                            Fixed Charge:
+                          </span>
+                          <span class="fw-bold">
+                            {{ breakdown.fixedCharge | currency:calculatorResult.originalCurrency:'symbol':'1.2-2' }}
+                          </span>
+                        </div>
+                      </div>
+                      <hr class="my-2">
+                      <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span class="fw-bold text-dark">
+                            <i class="fas fa-equals me-1"></i>
+                            Total Charges:
+                          </span>
+                          <span class="fw-bold text-warning fs-6">
+                            {{ calculatorResult.conversionCharges | currency:calculatorResult.originalCurrency:'symbol':'1.2-2' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Calculation Formula -->
+                    <div class="mt-3 pt-2 border-top bg-light p-2 rounded">
+                      <small class="text-muted">
+                        <i class="fas fa-calculator me-1"></i>
+                        <strong>Calculation:</strong> {{ calculatorResult.chargeBreakdown }}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info Section -->
+          <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> This is a preview calculation. Actual rates may vary at the time of transaction. 
+            Exchange rates are updated regularly and include applicable conversion charges.
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Close
+          </button>
+          <a class="btn btn-primary" [routerLink]="['/customer/transactions/new']" data-bs-dismiss="modal">
+            <i class="fas fa-plus me-2"></i>Create Transaction
+          </a>
         </div>
       </div>
     </div>

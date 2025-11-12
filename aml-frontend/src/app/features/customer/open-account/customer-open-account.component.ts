@@ -27,6 +27,17 @@ export class CustomerOpenAccountComponent implements OnInit {
   accountFilter = 'all';
   isAccountsSectionExpanded = true;
 
+  // Supported currencies (same as currency calculator)
+  supportedCurrencies = [
+    { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺' },
+    { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
+    { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳' },
+    { code: 'GBP', name: 'British Pound', symbol: '£', flag: '🇬🇧' },
+    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', flag: '🇨🇦' },
+    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', flag: '🇦🇺' },
+    { code: 'JPY', name: 'Japanese Yen', symbol: '¥', flag: '🇯🇵' }
+  ];
+
   constructor(private fb: FormBuilder, private accounts: AccountService) {
     this.form = this.fb.group({
       accountType: ['SAVINGS', Validators.required],
@@ -225,6 +236,11 @@ export class CustomerOpenAccountComponent implements OnInit {
     }
 
     return 'Invalid input';
+  }
+
+  getCurrencySymbol(currencyCode: string): string {
+    const currency = this.supportedCurrencies.find(c => c.code === currencyCode);
+    return currency ? currency.symbol : currencyCode;
   }
 
   private getFieldLabel(fieldName: string): string {

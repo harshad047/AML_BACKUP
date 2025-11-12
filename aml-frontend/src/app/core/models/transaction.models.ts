@@ -58,11 +58,21 @@ export interface IntercurrencyTransferDto {
 }
 
 export interface CurrencyConversionDto {
+  // Request fields
   fromCurrency: string;
   toCurrency: string;
   amount: number;
+  
+  // Response fields
+  originalAmount?: number;
+  originalCurrency?: string;
   convertedAmount?: number;
+  convertedCurrency?: string;
   exchangeRate?: number;
+  conversionCharges?: number;
+  totalDebitAmount?: number;
+  chargeBreakdown?: string;
+  supported?: boolean;
 }
 
 export interface BalanceDto {
