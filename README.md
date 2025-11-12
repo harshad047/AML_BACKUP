@@ -1,6 +1,7 @@
 # Anti-Money Laundering (AML) Monitoring System
 
 A comprehensive Anti-Money Laundering monitoring system built with Spring Boot backend and Angular frontend, designed to detect, monitor, and manage suspicious financial activities in real-time.
+ For the full execution guide covering flows and role-specific features, see the [Full Execution Guide](docs/README_FULL.md).
 
 ## 🏗️ Architecture Overview
 
