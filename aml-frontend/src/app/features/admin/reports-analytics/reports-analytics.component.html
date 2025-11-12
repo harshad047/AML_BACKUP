@@ -320,7 +320,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let customer of analyticsData.topCustomersByVolume">
+
+                  <tr *ngFor="let customer of analyticsData.topCustomersByVolume | slice:0:2">
                     <td>{{ customer.name }}</td>
                     <td>{{ customer.transactions }}</td>
                     <td><strong>{{ customer.amount | number:'1.2-2' }}</strong></td>
