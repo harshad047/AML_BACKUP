@@ -286,4 +286,3 @@ Links:
 
 ---
 
-For a lighter overview, see the root README.md. This document is the detailed, execution-focused reference for developers and auditors.
