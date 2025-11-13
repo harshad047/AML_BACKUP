@@ -22,7 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByCustomerIdAndCreatedAtAfterOrderByCreatedAtAsc(Long customerId, LocalDateTime createdAt);
 
     
-    // Admin management methods
     List<Transaction> findAllByOrderByCreatedAtDesc();
     List<Transaction> findByStatusOrderByCreatedAtDesc(String status);
     List<Transaction> findByCombinedRiskScoreGreaterThanEqualOrderByCreatedAtDesc(Integer riskScore);
@@ -31,7 +30,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     
     List<Transaction> findTop20ByCustomerIdOrderByCreatedAtDesc(Long customerId);
 
-    // Velocity and frequency: count high-value transactions in a time window for a customer and type
     long countByCustomerIdAndTransactionTypeAndAmountGreaterThanEqualAndCreatedAtAfter(
             Long customerId,
             Transaction.TransactionType transactionType,
@@ -39,7 +37,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             LocalDateTime createdAtAfter
     );
 
-    // Mixed velocity across multiple transaction types
     long countByCustomerIdAndTransactionTypeInAndAmountGreaterThanEqualAndCreatedAtAfter(
             Long customerId,
             List<Transaction.TransactionType> transactionTypes,
@@ -47,7 +44,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             LocalDateTime createdAtAfter
     );
 
-    // Structuring: sum of amounts below a per-transaction threshold within a window and types
     @Query("select coalesce(sum(t.amount), 0) from Transaction t where t.customerId = :customerId and t.createdAt > :after and t.amount < :maxSingle and t.transactionType in :types")
     BigDecimal sumAmountsBelowThresholdInWindow(
             @Param("customerId") Long customerId,
@@ -56,7 +52,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("types") List<Transaction.TransactionType> types
     );
 
-    // Behavioral deviation: fetch historical amounts for percentile computation
     @Query("select t.amount from Transaction t where t.customerId = :customerId and t.createdAt > :after and t.createdAt < :before")
     List<BigDecimal> findHistoricalAmounts(
             @Param("customerId") Long customerId,
@@ -66,7 +61,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     
 
 
-    // Daily total across types in a time window
     @Query("select coalesce(sum(t.amount), 0) from Transaction t where t.customerId = :customerId and t.createdAt > :after and t.transactionType in :types")
     BigDecimal sumAmountsInWindow(
             @Param("customerId") Long customerId,
@@ -74,7 +68,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             @Param("types") List<Transaction.TransactionType> types
     );
 
-    // New counterparty: count transactions to the same toAccountNumber in a window (optionally filter by types)
     @Query("select count(t) from Transaction t where t.customerId = :customerId and t.toAccountNumber = :toAcc and t.createdAt > :after and t.transactionType in :types")
     long countToCounterpartyInWindow(
             @Param("customerId") Long customerId,

@@ -12,9 +12,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.tss.aml.dto.account.BankAccountDto;
+import com.tss.aml.dto.admin.AdminCustomerDetailsDto;
 import com.tss.aml.dto.admin.CreateUserDto;
 import com.tss.aml.dto.admin.UserDto;
-import com.tss.aml.dto.admin.AdminCustomerDetailsDto;
 import com.tss.aml.dto.compliance.CountryRiskDto;
 import com.tss.aml.dto.compliance.RuleConditionDto;
 import com.tss.aml.dto.compliance.RuleDto;
@@ -38,7 +38,6 @@ import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.RuleRepository;
 import com.tss.aml.repository.SuspiciousKeywordRepository;
 import com.tss.aml.repository.TransactionRepository;
-import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.repository.UserRepository;
 import com.tss.aml.service.IAdminService;
 

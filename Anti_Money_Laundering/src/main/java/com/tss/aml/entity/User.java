@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "users") // "user" is a reserved keyword in some databases
+@Table(name = "users")
 @Data
 @Builder
 @NoArgsConstructor

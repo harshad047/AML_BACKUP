@@ -21,7 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByIsEnabledFalse();
     List<User> findByIsEnabledTrue();
     
-    // Optimized query to fetch only email - faster than loading entire User entity
     @Query("SELECT u.email FROM User u WHERE u.username = :username")
     Optional<String> findEmailByUsername(@Param("username") String username);
 }

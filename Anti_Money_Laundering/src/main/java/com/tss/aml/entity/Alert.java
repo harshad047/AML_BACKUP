@@ -29,8 +29,8 @@ public class Alert {
 
     private LocalDateTime createdAt = LocalDateTime.now();
     
-    private String resolvedBy; // Officer who resolved the alert
-    private LocalDateTime resolvedAt; // When the alert was resolved
+    private String resolvedBy; 
+    private LocalDateTime resolvedAt; 
 
     public enum AlertStatus {
         OPEN, RESOLVED, ESCALATED

@@ -11,6 +11,6 @@ public class TransferDto {
     private BigDecimal amount;
     private String currency;
     private String description;
-    private String receiverCountryCode; // Country code where money is being sent
+    private String receiverCountryCode; 
 }
 

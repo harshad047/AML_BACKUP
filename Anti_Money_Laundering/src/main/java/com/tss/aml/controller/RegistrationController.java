@@ -34,7 +34,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/register")
-@CrossOrigin(origins = "*") // Allow requests from all origins
+@CrossOrigin(origins = "*")
 public class RegistrationController {
 
     @Autowired private RegistrationServiceImpl regService;

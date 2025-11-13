@@ -70,7 +70,7 @@ public class HelpdeskController {
         return ResponseEntity.ok(helpdeskService.getOpenTicketsForOfficers(page, size));
     }
 
-    // OFFICER/ADMIN: respond to a ticket
+    // OFFICER: respond to a ticket
     @PostMapping("/tickets/{ticketId}/respond")
     @PreAuthorize("hasAnyRole('OFFICER','ADMIN','SUPER_ADMIN')")
     public ResponseEntity<HelpdeskTicketDto> respondToTicket(@PathVariable Long ticketId,
@@ -80,7 +80,7 @@ public class HelpdeskController {
         return ResponseEntity.ok(helpdeskService.respondToTicket(ticketId, username, req));
     }
 
-    // OFFICER/ADMIN: resolve a ticket
+    // OFFICER: resolve a ticket
     @PostMapping("/tickets/{ticketId}/resolve")
     @PreAuthorize("hasAnyRole('OFFICER','ADMIN','SUPER_ADMIN')")
     public ResponseEntity<HelpdeskTicketDto> resolveTicket(@PathVariable Long ticketId,

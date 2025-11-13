@@ -23,17 +23,12 @@ public class CurrencyController {
 
     private final CurrencyExchangeService currencyExchangeService;
 
-    /**
-     * Get all supported currency pairs - Public endpoint
-     */
     @GetMapping("/supported-pairs")
     public ResponseEntity<List<String>> getSupportedCurrencyPairs() {
         return ResponseEntity.ok(currencyExchangeService.getSupportedCurrencyPairs());
     }
 
-    /**
-     * Calculate currency conversion with charges - Customer endpoint
-     */
+ 
     @PostMapping("/conversion/calculate")
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'CUSTOMER')")
     public ResponseEntity<CurrencyConversionDto> calculateConversion(@RequestBody CurrencyConversionDto conversionDto) {
@@ -63,9 +58,7 @@ public class CurrencyController {
         }
     }
 
-    /**
-     * Check if currency pair is supported
-     */
+
     @GetMapping("/supported/{fromCurrency}/{toCurrency}")
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'CUSTOMER')")
     public ResponseEntity<Boolean> isCurrencyPairSupported(

@@ -37,7 +37,6 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Name split
     @NotBlank @Size(max=100)
     @Column(name="first_name", nullable=false)
     private String firstName;
@@ -54,7 +53,6 @@ public class Customer {
     @Column(name="last_name", nullable=false)
     private String lastName;
 
-    // Contact
     @NotBlank @Email @Size(max=150)
     @Column(nullable=false)
     private String email;
@@ -63,7 +61,7 @@ public class Customer {
     private String username;
 
     @Size(max=20)
-    private String phone; // add pattern if needed
+    private String phone; 
 
     @jakarta.validation.constraints.NotBlank
     @jakarta.validation.constraints.Size(min = 8, max = 100)
@@ -72,12 +70,10 @@ public class Customer {
 
 
 
-    // Address as embeddable
     @Embedded
     private Address address;
 
     
-    // Other metadata
     @Enumerated(EnumType.STRING)
     @Column(name="kyc_status", nullable=false, length=20)
     private KycStatus kycStatus = KycStatus.PENDING;

@@ -1,5 +1,15 @@
 package com.tss.aml.service.impl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.tss.aml.dto.helpdesk.CreateMessageRequest;
 import com.tss.aml.dto.helpdesk.CreateTicketRequest;
 import com.tss.aml.dto.helpdesk.HelpdeskMessageDto;
@@ -12,24 +22,16 @@ import com.tss.aml.entity.HelpdeskTicket;
 import com.tss.aml.entity.Transaction;
 import com.tss.aml.entity.User;
 import com.tss.aml.entity.Enums.Role;
+import com.tss.aml.entity.Enums.TicketStatus;
 import com.tss.aml.repository.AlertRepository;
+import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.HelpdeskMessageRepository;
 import com.tss.aml.repository.HelpdeskTicketRepository;
 import com.tss.aml.repository.TransactionRepository;
-import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
 import com.tss.aml.service.IHelpDeskService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -77,7 +79,7 @@ public class HelpdeskServiceImpl implements IHelpDeskService{
                 .customer(customerUser)
                 .subject(req.getSubject())
                 .message(req.getMessage())
-                .status(HelpdeskTicket.TicketStatus.OPEN)
+                .status(TicketStatus.OPEN)
                 .build();
 
         // optional auto-assign: try assign to officer linked to alert, else first available officer
@@ -116,7 +118,7 @@ public class HelpdeskServiceImpl implements IHelpDeskService{
         Pageable pageable = PageRequest.of(page, size);
         Page<HelpdeskTicket> ticketsPage;
         if (status != null) {
-            ticketsPage = ticketRepository.findByCustomerAndStatusOrderByCreatedAtDesc(customer, HelpdeskTicket.TicketStatus.valueOf(status), pageable);
+            ticketsPage = ticketRepository.findByCustomerAndStatusOrderByCreatedAtDesc(customer, TicketStatus.valueOf(status), pageable);
         } else {
             ticketsPage = ticketRepository.findByCustomerOrderByCreatedAtDesc(customer, pageable);
         }
@@ -156,7 +158,7 @@ public class HelpdeskServiceImpl implements IHelpDeskService{
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
 
         ticket.setAssignedOfficer(officer);
-        ticket.setStatus(HelpdeskTicket.TicketStatus.RESPONDED);
+        ticket.setStatus(TicketStatus.RESPONDED);
 
         ticket = ticketRepository.save(ticket);
 
@@ -179,7 +181,7 @@ public class HelpdeskServiceImpl implements IHelpDeskService{
         }
         HelpdeskTicket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
-        ticket.setStatus(HelpdeskTicket.TicketStatus.RESOLVED);
+        ticket.setStatus(TicketStatus.RESOLVED);
         ticket = ticketRepository.save(ticket);
         return toDto(ticket);
     }
@@ -233,7 +235,7 @@ public class HelpdeskServiceImpl implements IHelpDeskService{
         // Mark ticket responded if officer posted
         if (senderType == HelpdeskMessage.SenderType.OFFICER) {
             ticket.setAssignedOfficer(author);
-            ticket.setStatus(HelpdeskTicket.TicketStatus.RESPONDED);
+            ticket.setStatus(TicketStatus.RESPONDED);
             ticketRepository.save(ticket);
         }
         return toDto(msg);
