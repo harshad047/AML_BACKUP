@@ -37,7 +37,6 @@ public class KeywordMatchEvaluator implements RuleEvaluator {
         } else if ("<".equals(operator)) {
             result = !cleanText.contains(keyword);
         } else {
-            // Default to CONTAINS for backward compatibility
             result = containsWholeWord(cleanText, keyword);
         }
         

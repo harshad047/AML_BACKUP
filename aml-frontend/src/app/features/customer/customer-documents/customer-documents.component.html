@@ -1,9 +1,7 @@
 <div class="container py-3">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">My Documents</h3>
-    <span class="badge" [ngClass]="getOverallStatusClass()">
-      {{ getOverallStatusText() }}
-    </span>
+   
   </div>
 
   <!-- Document Upload Section -->
@@ -44,9 +42,6 @@
             <option value="PASSPORT">🛂 Passport</option>
             <option value="DRIVING_LICENSE">🚗 Driving License</option>
             <option value="VOTER_ID">🗳️ Voter ID</option>
-            <option value="BANK_STATEMENT">🏦 Bank Statement</option>
-            <option value="UTILITY_BILL">📄 Utility Bill</option>
-            <option value="OTHER">📎 Other</option>
           </select>
           <div *ngIf="uploadForm.get('documentType')?.invalid && uploadForm.get('documentType')?.touched" class="error-message">
             <i class="fas fa-exclamation-circle me-1"></i>Document type is required

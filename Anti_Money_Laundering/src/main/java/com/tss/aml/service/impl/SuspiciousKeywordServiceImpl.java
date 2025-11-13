@@ -19,30 +19,22 @@ public class SuspiciousKeywordServiceImpl {
 
     private final SuspiciousKeywordRepository suspiciousKeywordRepository;
 
-    /**
-     * Get all active suspicious keywords
-     */
+  
     public List<SuspiciousKeyword> getAllActiveKeywords() {
         return suspiciousKeywordRepository.findByIsActiveTrueOrderByRiskScoreDesc();
     }
 
-    /**
-     * Get keywords by risk level
-     */
+
     public List<SuspiciousKeyword> getKeywordsByRiskLevel(SuspiciousKeyword.RiskLevel riskLevel) {
         return suspiciousKeywordRepository.findByRiskLevelAndIsActiveTrueOrderByRiskScoreDesc(riskLevel);
     }
 
-    /**
-     * Get keywords by category
-     */
+    
     public List<SuspiciousKeyword> getKeywordsByCategory(String category) {
         return suspiciousKeywordRepository.findByCategoryAndIsActiveTrueOrderByRiskScoreDesc(category);
     }
 
-    /**
-     * Add a new suspicious keyword
-     */
+    
     @Transactional
     public SuspiciousKeyword addKeyword(SuspiciousKeyword keyword) {
         // Check if keyword already exists
@@ -56,9 +48,7 @@ public class SuspiciousKeywordServiceImpl {
         return suspiciousKeywordRepository.save(keyword);
     }
 
-    /**
-     * Update an existing suspicious keyword
-     */
+    
     @Transactional
     public SuspiciousKeyword updateKeyword(Long id, SuspiciousKeyword updatedKeyword) {
         SuspiciousKeyword existingKeyword = suspiciousKeywordRepository.findById(id)
@@ -86,9 +76,7 @@ public class SuspiciousKeywordServiceImpl {
         return suspiciousKeywordRepository.save(existingKeyword);
     }
 
-    /**
-     * Deactivate a suspicious keyword
-     */
+    
     @Transactional
     public void deactivateKeyword(Long id, String deactivatedBy) {
         SuspiciousKeyword keyword = suspiciousKeywordRepository.findById(id)
@@ -119,16 +107,12 @@ public class SuspiciousKeywordServiceImpl {
         suspiciousKeywordRepository.deleteById(id);
     }
 
-    /**
-     * Get all available categories
-     */
+    
     public List<String> getAllCategories() {
         return suspiciousKeywordRepository.findDistinctCategories();
     }
 
-    /**
-     * Get keyword statistics
-     */
+    
     public Map<String, Long> getKeywordStatistics() {
         return Map.of(
             "CRITICAL", suspiciousKeywordRepository.countByRiskLevelAndIsActiveTrue(SuspiciousKeyword.RiskLevel.Critical),
@@ -138,9 +122,7 @@ public class SuspiciousKeywordServiceImpl {
         );
     }
 
-    /**
-     * Calculate risk score for a given text using database keywords
-     */
+    
     public int calculateRiskScore(String text) {
         if (text == null || text.trim().isEmpty()) {
             return 0;
@@ -178,9 +160,7 @@ public class SuspiciousKeywordServiceImpl {
     }
 
 
-    /**
-     * Get matched keywords from text
-     */
+    
     public List<SuspiciousKeyword> getMatchedKeywords(String text) {
         if (text == null || text.trim().isEmpty()) {
             return List.of();
@@ -194,9 +174,7 @@ public class SuspiciousKeywordServiceImpl {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Bulk import keywords
-     */
+    
     @Transactional
     public void bulkImportKeywords(List<SuspiciousKeyword> keywords, String importedBy) {
         for (SuspiciousKeyword keyword : keywords) {
@@ -208,9 +186,7 @@ public class SuspiciousKeywordServiceImpl {
         }
     }
 
-    /**
-     * Check if text contains a specific keyword based on its settings
-     */
+    
     private boolean containsKeyword(String text, SuspiciousKeyword keyword) {
         String searchText = keyword.isCaseSensitive() ? text : text.toLowerCase();
         String searchKeyword = keyword.isCaseSensitive() ? keyword.getKeyword() : keyword.getKeyword().toLowerCase();
@@ -225,9 +201,7 @@ public class SuspiciousKeywordServiceImpl {
         }
     }
 
-    /**
-     * Validate that risk score is within the range of the risk level
-     */
+    
     private void validateRiskScoreAndLevel(Integer riskScore, SuspiciousKeyword.RiskLevel riskLevel) {
         if (riskScore < riskLevel.getMinScore() || riskScore > riskLevel.getMaxScore()) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, 
