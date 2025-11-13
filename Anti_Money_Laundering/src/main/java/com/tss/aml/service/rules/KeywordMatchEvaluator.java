@@ -9,7 +9,7 @@ import com.tss.aml.entity.RuleCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component
+@Component("KEYWORD_MATCH")
 public class KeywordMatchEvaluator implements RuleEvaluator {
 
     private static final Logger log = LoggerFactory.getLogger(KeywordMatchEvaluator.class);

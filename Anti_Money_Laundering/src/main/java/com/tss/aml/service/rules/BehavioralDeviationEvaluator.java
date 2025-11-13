@@ -13,7 +13,7 @@ import com.tss.aml.repository.TransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@Component
+@Component("BEHAVIORAL_DEVIATION")
 @RequiredArgsConstructor
 public class BehavioralDeviationEvaluator implements RuleEvaluator {
 

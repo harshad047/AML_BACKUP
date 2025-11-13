@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component
+@Component("COUNTRY_RISK")
 @RequiredArgsConstructor
 public class CountryRiskEvaluator implements RuleEvaluator {
 

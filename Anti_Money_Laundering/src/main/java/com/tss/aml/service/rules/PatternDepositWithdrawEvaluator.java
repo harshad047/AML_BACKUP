@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Component
+@Component("PATTERN_DEPOSIT_WITHDRAW")
 @RequiredArgsConstructor
 public class PatternDepositWithdrawEvaluator implements RuleEvaluator {
 
