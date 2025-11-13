@@ -81,7 +81,6 @@ public class OtpService {
                     <body>
                         <div class="container">
                             <h2>Your Verification OTP</h2>
-                            <p>Use the OTP below to complete your registration:</p>
                             <div class="otp">""" + otp + """
                             <p class="note">This OTP is valid for 5 minutes.</p>
                         </div>

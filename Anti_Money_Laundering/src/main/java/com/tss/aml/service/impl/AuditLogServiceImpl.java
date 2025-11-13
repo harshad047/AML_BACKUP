@@ -61,7 +61,6 @@ public class AuditLogServiceImpl implements IAuditLogService{
                 ipAddress != null ? ipAddress : "unknown", LocalDateTime.now()));
     }
     
-    // Async version for login - doesn't block the login response
     @Async("taskExecutor")
     @Transactional
     public void logLoginAsync(String username, String ipAddress) {

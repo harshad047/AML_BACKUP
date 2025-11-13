@@ -34,21 +34,17 @@ public class DocumentServiceImpl implements IDocumentService{
 
     @Transactional
     public Document uploadAndSaveDocument(String username, MultipartFile file, String docType) throws IOException {
-        // 1. Find the customer associated with the logged-in user
         Customer customer = customerRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with username: " + username));
 
-        // 2. Upload the file to Cloudinary in a user-specific folder
         String folderName = "customer_" + customer.getId();
         String fileUrl = cloudinaryService.uploadFile(file, folderName);
 
-        // 3. Create and save the document entity
         Document document = new Document();
         document.setCustomer(customer);
         document.setDocType(docType.toUpperCase()); 
         document.setStoragePath(fileUrl);
         
-        // Move customer KYC to UNDER_REVIEW on any new upload
         if (customer.getKycStatus() != KycStatus.APPROVED) {
             customer.setKycStatus(KycStatus.UNDER_REVIEW);
             customerRepository.save(customer);

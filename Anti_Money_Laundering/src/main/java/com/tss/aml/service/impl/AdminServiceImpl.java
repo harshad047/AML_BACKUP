@@ -82,7 +82,6 @@ public class AdminServiceImpl implements IAdminService{
         dto.setCustomerId(customer.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        // Prefer customer entity names; fallback to user entity if null/blank
         String cFirst = customer.getFirstName();
         String cMiddle = customer.getMiddleName();
         String cLast = customer.getLastName();
@@ -95,17 +94,14 @@ public class AdminServiceImpl implements IAdminService{
         dto.setEnabled(user.isEnabled());
         dto.setCreatedAt(customer.getCreatedAt() != null ? customer.getCreatedAt().toString() : null);
 
-        // Counts
         long txCount = transactionRepository.countByCustomerId(customer.getId());
         dto.setTransactionCount(txCount);
 
-        // Alert count for all transactions of this customer
         var txList = transactionRepository.findByCustomerIdOrderByCreatedAtDesc(customer.getId());
         var txIds = txList.stream().map(t -> t.getId()).toList();
         long alertCount = txIds.isEmpty() ? 0 : alertRepository.countByTransactionIdIn(txIds);
         dto.setAlertCount(alertCount);
 
-        // Accounts list
         var accounts = bankAccountRepository.findByUser(user)
                 .stream()
                 .map(this::mapAccountToDto)
@@ -139,7 +135,6 @@ public class AdminServiceImpl implements IAdminService{
         user.setPassword(passwordEncoder.encode(createUserDto.getPassword()));
         User newUser = userRepository.save(user);
         
-        // Log user creation
         auditLogService.logUserCreation("ADMIN", newUser.getUsername(), newUser.getRole().toString());
         
         return modelMapper.map(newUser, UserDto.class);
@@ -166,7 +161,7 @@ public class AdminServiceImpl implements IAdminService{
         dto.setAction(rule.getAction());
         dto.setRiskWeight(rule.getRiskWeight());
         
-        dto.setActive(rule.isActive()); // Explicit mapping for boolean field
+        dto.setActive(rule.isActive()); 
         
         if (rule.getConditions() != null) {
             List<RuleConditionDto> conditionDtos = rule.getConditions().stream()
@@ -186,44 +181,39 @@ public class AdminServiceImpl implements IAdminService{
         dto.setOperator(condition.getOperator());
         dto.setValue(condition.getValue());
         
-        dto.setActive(condition.isActive()); // Explicit mapping for boolean field
+        dto.setActive(condition.isActive()); 
         return dto;
     }
 
     public RuleDto createRule(RuleDto ruleDto) {
-        // Create the Rule entity manually to handle relationships properly
-        // Note: New rules and conditions are always created as active (isActive = true)
+       
         Rule rule = Rule.builder()
                 .name(ruleDto.getName())
                 .description(ruleDto.getDescription())
                 .priority(ruleDto.getPriority())
                 .action(ruleDto.getAction())
                 .riskWeight(ruleDto.getRiskWeight())
-                .isActive(true)  // Force new rules to be active by default
+                .isActive(true) 
                 .build();
         
-        // Save the rule first to get the ID
         Rule savedRule = ruleRepository.save(rule);
         
-        // Now handle the conditions if they exist
         if (ruleDto.getConditions() != null && !ruleDto.getConditions().isEmpty()) {
             List<RuleCondition> conditions = ruleDto.getConditions().stream()
                     .map(conditionDto -> RuleCondition.builder()
-                            .rule(savedRule)  // Set the saved rule reference
+                            .rule(savedRule)  
                             .type(conditionDto.getType())
                             .field(conditionDto.getField())
                             .operator(conditionDto.getOperator())
                             .value(conditionDto.getValue())
-                            .isActive(true)  // Force new conditions to be active by default
+                            .isActive(true)  
                             .build())
                     .collect(Collectors.toList());
             
             savedRule.setConditions(conditions);
-            // Save again to persist the conditions
             ruleRepository.save(savedRule);
         }
         
-        // Log rule creation
         auditLogService.logRuleCreation("ADMIN", savedRule.getName());
         
         return mapRuleToDto(savedRule);
@@ -233,7 +223,6 @@ public class AdminServiceImpl implements IAdminService{
         Rule existing = ruleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
         
-        // Update basic rule properties
         existing.setName(ruleDto.getName());
         existing.setDescription(ruleDto.getDescription());
         existing.setPriority(ruleDto.getPriority());
@@ -241,38 +230,30 @@ public class AdminServiceImpl implements IAdminService{
         existing.setRiskWeight(ruleDto.getRiskWeight());
         existing.setActive(ruleDto.isActive());
         
-        // Handle conditions update - properly manage orphan removal
         if (ruleDto.getConditions() != null) {
-            // Remove all existing conditions properly to trigger orphan removal
             if (existing.getConditions() != null && !existing.getConditions().isEmpty()) {
-                // Create a copy to avoid ConcurrentModificationException
                 List<RuleCondition> conditionsToRemove = new ArrayList<>(existing.getConditions());
                 conditionsToRemove.forEach(condition -> {
                     existing.getConditions().remove(condition);
-                    condition.setRule(null); // Break the relationship
+                    condition.setRule(null); 
                 });
             }
             
-            // Flush to ensure deletions are processed before adding new ones
             ruleRepository.flush();
             
-            // Add new conditions with automatic activation/deactivation based on rule status
             List<RuleCondition> newConditions = ruleDto.getConditions().stream()
                     .map(conditionDto -> RuleCondition.builder()
-                            .rule(existing)  // Set the existing rule reference
+                            .rule(existing) 
                             .type(conditionDto.getType())
                             .field(conditionDto.getField())
                             .operator(conditionDto.getOperator())
                             .value(conditionDto.getValue())
-                            // Auto-activate/deactivate conditions based on rule status
                             .isActive(ruleDto.isActive() ? conditionDto.isActive() : false)
                             .build())
                     .collect(Collectors.toList());
             
-            // Add all new conditions to the existing collection
             existing.getConditions().addAll(newConditions);
         } else {
-            // If no conditions provided in update, just update existing conditions based on rule status
             if (existing.getConditions() != null) {
                 existing.getConditions().forEach(condition -> 
                     condition.setActive(ruleDto.isActive() ? condition.isActive() : false)
@@ -290,17 +271,13 @@ public class AdminServiceImpl implements IAdminService{
         Rule existing = ruleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Rule", "id", id));
         
-        // Update rule status
         existing.setActive(isActive);
         
-        // Auto-activate/deactivate all conditions based on rule status
         if (existing.getConditions() != null) {
             existing.getConditions().forEach(condition -> {
                 if (isActive) {
-                    // When activating rule, restore condition to active (you might want to store previous state)
                     condition.setActive(true);
                 } else {
-                    // When deactivating rule, deactivate all conditions
                     condition.setActive(false);
                 }
             });
@@ -343,7 +320,6 @@ public class AdminServiceImpl implements IAdminService{
         SuspiciousKeyword existing = suspiciousKeywordRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("SuspiciousKeyword", "id", id));
 
-        // Prevent overwriting ID
         modelMapper.typeMap(SuspiciousKeywordDto.class, SuspiciousKeyword.class)
                    .addMappings(mapper -> mapper.skip(SuspiciousKeyword::setId));
 
@@ -370,16 +346,13 @@ public class AdminServiceImpl implements IAdminService{
         }
 
         account.setApprovalStatus(ApprovalStatus.APPROVED);
-        account.setStatus(AccountStatus.ACTIVE); // Activate the account
+        account.setStatus(AccountStatus.ACTIVE); 
         account.setApprovedAt(LocalDateTime.now());
         
-        // Account balance is already set during creation, no need to process deposits
         BankAccount updatedAccount = bankAccountRepository.save(account);
         
-        // Log account approval
         auditLogService.logAccountApproval("ADMIN", account.getAccountNumber(), account.getUser().getUsername());
         
-        // Send approval email
         try {
             String customerName = account.getUser().getFirstName() + " " + account.getUser().getLastName();
             emailService.sendBankAccountApprovalEmail(account.getUser().getEmail(), account.getAccountNumber(), customerName);
@@ -390,7 +363,6 @@ public class AdminServiceImpl implements IAdminService{
         return mapAccountToDto(updatedAccount);
     }
 
-    // Country Risk Management
     public List<CountryRiskDto> getAllCountryRisks() {
         return countryRiskRepository.findAll().stream()
                 .map(cr -> modelMapper.map(cr, CountryRiskDto.class))
@@ -398,7 +370,6 @@ public class AdminServiceImpl implements IAdminService{
     }
 
     public CountryRiskDto createCountryRisk(CountryRiskDto dto) {
-        // Manual mapping to handle null riskScore safely
         CountryRisk entity = CountryRisk.builder()
                 .countryCode(dto.getCountryCode())
                 .countryName(dto.getCountryName())
@@ -414,7 +385,6 @@ public class AdminServiceImpl implements IAdminService{
                 .orElseThrow(() -> new ResourceNotFoundException("CountryRisk", "id", id));
         existing.setCountryCode(dto.getCountryCode());
         existing.setCountryName(dto.getCountryName());
-        // Handle null riskScore safely
         existing.setRiskScore(dto.getRiskScore() != null ? dto.getRiskScore() : 0);
         existing.setNotes(dto.getNotes());
         CountryRisk saved = countryRiskRepository.save(existing);
@@ -427,7 +397,6 @@ public class AdminServiceImpl implements IAdminService{
         countryRiskRepository.delete(existing);
     }
 
-    // Admin view transactions by account number
     public List<TransactionDto> getTransactionsByAccountNumber(String accountNumber) {
         return transactionRepository
                 .findByFromAccountNumberOrToAccountNumberOrderByCreatedAtDesc(accountNumber, accountNumber)
@@ -456,26 +425,22 @@ public class AdminServiceImpl implements IAdminService{
         }
 
         account.setApprovalStatus(ApprovalStatus.REJECTED);
-        account.setStatus(AccountStatus.SUSPENDED); // Deactivate the account
+        account.setStatus(AccountStatus.SUSPENDED); 
         account.setRejectedAt(LocalDateTime.now());
         
-        // Reset balance to zero for rejected accounts
         BigDecimal originalBalance = account.getBalance();
         account.setBalance(BigDecimal.ZERO);
         
         BankAccount updatedAccount = bankAccountRepository.save(account);
         
-        // Log the balance reset
         if (originalBalance.compareTo(BigDecimal.ZERO) > 0) {
             auditLogService.logAccountRejection("ADMIN", account.getAccountNumber(), 
                 account.getUser().getUsername(), 
                 "Account rejected - balance reset from " + originalBalance + " to 0");
         }
         
-        // Log account rejection
         auditLogService.logAccountRejection("ADMIN", account.getAccountNumber(), account.getUser().getUsername(), "Account rejected by admin");
         
-        // Send rejection email
         try {
             String customerName = account.getUser().getFirstName() + " " + account.getUser().getLastName();
             emailService.sendBankAccountRejectionEmail(account.getUser().getEmail(), account.getAccountNumber(), customerName, "Account did not meet compliance requirements");
@@ -510,10 +475,8 @@ public class AdminServiceImpl implements IAdminService{
         account.setSuspendedAt(LocalDateTime.now());
         BankAccount updatedAccount = bankAccountRepository.save(account);
         
-        // Log account suspension
         auditLogService.logAccountSuspension("ADMIN", account.getAccountNumber(), account.getUser().getUsername());
         
-        // Send suspension email
         try {
             String customerName = account.getUser().getFirstName() + " " + account.getUser().getLastName();
             emailService.sendAccountSuspensionEmail(account.getUser().getEmail(), account.getAccountNumber(), customerName, "Account suspended for compliance review");
@@ -540,10 +503,8 @@ public class AdminServiceImpl implements IAdminService{
         account.setActivatedAt(LocalDateTime.now());
         BankAccount updatedAccount = bankAccountRepository.save(account);
         
-        // Log account activation
         auditLogService.logAccountActivation("ADMIN", account.getAccountNumber(), account.getUser().getUsername());
         
-        // Send activation email
         try {
             String customerName = account.getUser().getFirstName() + " " + account.getUser().getLastName();
             emailService.sendAccountActivationEmail(account.getUser().getEmail(), account.getAccountNumber(), customerName);
@@ -554,7 +515,6 @@ public class AdminServiceImpl implements IAdminService{
         return mapAccountToDto(updatedAccount);
     }
     
-    // New methods for compliance officer management and customer blocking
     
     public UserDto addComplianceOfficer(Long userId) {
         User user = userRepository.findById(userId)
@@ -567,13 +527,10 @@ public class AdminServiceImpl implements IAdminService{
         user.setRole(Role.OFFICER);
         User updatedUser = userRepository.save(user);
         
-        // Log compliance officer addition
         auditLogService.logComplianceOfficerAdded("ADMIN", user.getUsername());
         
-        // Send email notification (Note: Cannot send password for existing users as it's already encrypted)
         try {
             String officerName = user.getFirstName() + " " + user.getLastName();
-            // For promoted users, we don't have access to plain password
             emailService.sendComplianceOfficerAddedEmail(user.getEmail(), officerName, user.getUsername(), "[Use your existing password]");
         } catch (Exception e) {
             System.err.println("Failed to send compliance officer added email: " + e.getMessage());
@@ -590,13 +547,11 @@ public class AdminServiceImpl implements IAdminService{
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "User is not a compliance officer.");
         }
         
-        user.setRole(Role.CUSTOMER); // Demote to customer
+        user.setRole(Role.CUSTOMER); 
         User updatedUser = userRepository.save(user);
         
-        // Log compliance officer removal
         auditLogService.logComplianceOfficerRemoved("ADMIN", user.getUsername());
         
-        // Send email notification
         try {
             String officerName = user.getFirstName() + " " + user.getLastName();
             emailService.sendComplianceOfficerRemovedEmail(user.getEmail(), officerName);
@@ -622,7 +577,6 @@ public class AdminServiceImpl implements IAdminService{
         user.setEnabled(false);
         User updatedUser = userRepository.save(user);
         
-        // Also suspend all user's bank accounts
         List<BankAccount> userAccounts = bankAccountRepository.findByUser(user);
         for (BankAccount account : userAccounts) {
             if (account.getStatus() != AccountStatus.SUSPENDED) {
@@ -632,7 +586,6 @@ public class AdminServiceImpl implements IAdminService{
             }
         }
         
-        // Log customer blocking
         auditLogService.logCustomerBlocked("ADMIN", user.getUsername(), reason != null ? reason : "Blocked by admin");
         
         return modelMapper.map(updatedUser, UserDto.class);
@@ -669,7 +622,6 @@ public class AdminServiceImpl implements IAdminService{
             }
         
         
-        // Log customer unblocking
         auditLogService.logCustomerUnblocked("ADMIN", user.getUsername());
         
         return modelMapper.map(updatedUser, UserDto.class);
@@ -687,35 +639,27 @@ public class AdminServiceImpl implements IAdminService{
                 .collect(Collectors.toList());
     }
     
-    /**
-     * Create a new compliance officer directly (not promoting existing user)
-     */
+
     public UserDto createComplianceOfficer(CreateUserDto createUserDto) {
-        // Check if email is already taken
         if (userRepository.findByEmail(createUserDto.getEmail()).isPresent()) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Email is already taken!");
         }
         
-        // Check if username is already taken
         if (userRepository.findByUsername(createUserDto.getUsername()).isPresent()) {
             throw new AmlApiException(HttpStatus.BAD_REQUEST, "Username is already taken!");
         }
         
-        // Force role to be OFFICER for compliance officer
         createUserDto.setRole(Role.OFFICER);
         
-        // Store plain password before encoding for email
         String plainPassword = createUserDto.getPassword();
         
         User user = modelMapper.map(createUserDto, User.class);
         user.setPassword(passwordEncoder.encode(createUserDto.getPassword()));
         User newOfficer = userRepository.save(user);
         
-        // Log compliance officer creation
         auditLogService.logUserCreation("ADMIN", newOfficer.getUsername(), "COMPLIANCE_OFFICER");
         auditLogService.logComplianceOfficerAdded("ADMIN", newOfficer.getUsername());
         
-        // Send welcome email to new compliance officer with credentials
         try {
             String officerName = newOfficer.getFirstName() + " " + newOfficer.getLastName();
             emailService.sendComplianceOfficerAddedEmail(newOfficer.getEmail(), officerName, newOfficer.getUsername(), plainPassword);

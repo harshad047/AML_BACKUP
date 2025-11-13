@@ -52,7 +52,6 @@ public class BankAccountServiceImpl implements IBankAccountService{
 	    public BankAccountDto createAccount(String usernameOrEmail, CreateAccountDto createAccountDto) {
         User user = findUserByUsernameOrEmail(usernameOrEmail);
 
-        // Enforce KYC approval before allowing account creation
         Customer customer = customerRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", "email", user.getEmail()));
         if (customer.getKycStatus() != KycStatus.APPROVED) {
@@ -67,15 +66,13 @@ public class BankAccountServiceImpl implements IBankAccountService{
         newAccount.setBalance(balanceToSet);
         newAccount.setStatus(AccountStatus.PENDING);       
         newAccount.setApprovalStatus(ApprovalStatus.PENDING);
-        newAccount.generateAccountNumber(); // Generate account number only once
+        newAccount.generateAccountNumber(); 
 
         BankAccount savedAccount = bankAccountRepository.save(newAccount);
         
-        // Log account creation with balance info
         String balanceInfo = initialBalance != null ? " with initial balance: " + initialBalance : " with zero balance";
         auditLogService.logAccountCreation(user.getUsername(), savedAccount.getAccountNumber() + balanceInfo);
         
-        // Send account creation request email
         try {
             emailService.sendBankAccountCreationRequestEmail(user.getEmail(), savedAccount.getAccountNumber());
         } catch (Exception e) {
@@ -91,13 +88,9 @@ public class BankAccountServiceImpl implements IBankAccountService{
 				.map(account -> modelMapper.map(account, BankAccountDto.class)).collect(Collectors.toList());
 	}
 
-	/**
-	 * Helper method to find user by username or email
-	 */
+
 	private User findUserByUsernameOrEmail(String usernameOrEmail) {
-		// First try to find by username
 		return userRepository.findByUsername(usernameOrEmail).orElseGet(() ->
-		// If not found by username, try by email
 		userRepository.findByEmail(usernameOrEmail)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "username/email", usernameOrEmail)));
 	}

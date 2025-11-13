@@ -51,12 +51,8 @@ public class AuthService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    /**
-     * Handles user login with improved performance.
-     * Returns JWT immediately; async tasks (audit + email) run in background.
-     */
+
     public AuthResponse login(LoginDto loginDto) {
-        // 1️⃣ Authenticate credentials
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
         );
@@ -64,27 +60,22 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // 2️⃣ Extract and normalize role
         String role = userDetails.getAuthorities().iterator().next().getAuthority();
         if (role.startsWith("ROLE_")) {
             role = role.substring(5);
         }
 
-        // 3️⃣ Get user ID (works for both User & CustomerUserDetails)
         Long userId = extractUserId(userDetails);
 
-        // 4️⃣ Generate JWT (non-blocking)
         String email = loginDto.getEmail();
         String token = (userId != null)
                 ? jwtUtil.generateToken(userDetails.getUsername(), role, userId, email)
                 : jwtUtil.generateToken(userDetails.getUsername(), role);
 
-        // 5️⃣ Build fast response
         AuthResponse response = new AuthResponse(
                 token, "Bearer", userDetails.getUsername(), "ROLE_" + role, userId
         );
 
-        // 6️⃣ Fire async background tasks after response is ready
         CompletableFuture.runAsync(() -> {
             auditLogService.logLoginAsync(userDetails.getUsername(), "127.0.0.1");
             sendLoginEmailAsync(userDetails.getUsername());
@@ -93,9 +84,7 @@ public class AuthService {
         return response;
     }
 
-    /**
-     * Extracts user ID safely for both application users and customers.
-     */
+
     private Long extractUserId(UserDetails userDetails) {
         if (userDetails instanceof User) {
             return ((User) userDetails).getId();
@@ -105,14 +94,11 @@ public class AuthService {
         return null;
     }
 
-    /**
-     * Sends login success email asynchronously — doesn’t block login flow.
-     */
+
     @Async("taskExecutor")
     protected void sendLoginEmailAsync(String username) {
         try {
             String userEmail = username;
-            // If username isn't an email, fetch only the email field
             if (!userEmail.contains("@")) {
                 userEmail = userRepository.findEmailByUsername(userEmail).orElse(userEmail);
             }

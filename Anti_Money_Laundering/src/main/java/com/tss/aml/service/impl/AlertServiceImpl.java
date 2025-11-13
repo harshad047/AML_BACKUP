@@ -35,23 +35,19 @@ public class AlertServiceImpl implements IAlertService{
     public List<AlertDto> getAlertsForCustomer(String usernameOrEmail) {
         User user = findUserByUsernameOrEmail(usernameOrEmail);
 
-        // Get user's account numbers
         List<BankAccount> userAccounts = bankAccountRepository.findByUserId(user.getId());
         List<String> userAccountNumbers = userAccounts.stream()
                 .map(BankAccount::getAccountNumber)
                 .collect(Collectors.toList());
 
-        // Get all transactions for this user's accounts
         List<Transaction> userTransactions = transactionRepository.findByFromAccountNumberInOrToAccountNumberInOrderByCreatedAtDesc(userAccountNumbers, userAccountNumbers);
 
-        // Get alerts for these transactions
         List<Long> transactionIds = userTransactions.stream()
                 .map(Transaction::getId)
                 .collect(Collectors.toList());
 
         return alertRepository.findByTransactionIdIn(transactionIds).stream()
                 .map(alert -> {
-                    // Create AlertDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
                     AlertDto dto = new AlertDto();
                     dto.setId(alert.getId());
                     dto.setTransactionId(alert.getTransactionId());
@@ -60,7 +56,6 @@ public class AlertServiceImpl implements IAlertService{
                     dto.setStatus(alert.getStatus());
                     dto.setCreatedAt(alert.getCreatedAt());
 
-                    // Add transaction details
                     Transaction transaction = userTransactions.stream()
                             .filter(tx -> tx.getId().equals(alert.getTransactionId()))
                             .findFirst()
@@ -79,11 +74,9 @@ public class AlertServiceImpl implements IAlertService{
         Alert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new ResourceNotFoundException("Alert", "id", alertId));
 
-        // Verify the alert belongs to a transaction owned by this user
         Transaction transaction = transactionRepository.findById(alert.getTransactionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", alert.getTransactionId()));
 
-        // Get user's account numbers
         List<BankAccount> userAccounts = bankAccountRepository.findByUserId(user.getId());
         List<String> userAccountNumbers = userAccounts.stream()
                 .map(BankAccount::getAccountNumber)
@@ -118,13 +111,11 @@ public class AlertServiceImpl implements IAlertService{
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", transactionId));
 
-        // Get user's account numbers
         List<BankAccount> userAccounts = bankAccountRepository.findByUserId(user.getId());
         List<String> userAccountNumbers = userAccounts.stream()
                 .map(BankAccount::getAccountNumber)
                 .collect(Collectors.toList());
 
-        // Verify transaction belongs to user
         boolean belongsToUser = false;
         if (transaction.getFromAccountNumber() != null && userAccountNumbers.contains(transaction.getFromAccountNumber())) {
             belongsToUser = true;
@@ -139,7 +130,6 @@ public class AlertServiceImpl implements IAlertService{
 
         return alertRepository.findByTransactionId(transactionId).stream()
                 .map(alert -> {
-                    // Create AlertDto manually to avoid ModelMapper trying to instantiate abstract BaseTransactionDto
                     AlertDto dto = new AlertDto();
                     dto.setId(alert.getId());
                     dto.setTransactionId(alert.getTransactionId());
@@ -154,9 +144,7 @@ public class AlertServiceImpl implements IAlertService{
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Helper method to find user by username or email
-     */
+
     private User findUserByUsernameOrEmail(String usernameOrEmail) {
         return userRepository.findByUsername(usernameOrEmail)
                 .orElseGet(() ->

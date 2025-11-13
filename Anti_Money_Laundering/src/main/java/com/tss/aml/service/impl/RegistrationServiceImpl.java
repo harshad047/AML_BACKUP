@@ -24,7 +24,6 @@ import com.tss.aml.repository.UserRepository;
 @Service
 public class RegistrationServiceImpl {
 
-    // Temporary storage for pending registrations (in production, use Redis or database)
     private final Map<String, RegistrationRequest> pendingRegistrations = new ConcurrentHashMap<>();
     
     private final CustomerRepository customerRepo;
@@ -50,7 +49,6 @@ public class RegistrationServiceImpl {
     }
 
     public void initiateEmailOtp(String email) {
-        // optionally check uniqueness before sending OTP
         otpService.sendOtpToEmail(email);
     }
 
@@ -58,27 +56,18 @@ public class RegistrationServiceImpl {
         return otpService.verifyOtp(email, otp);
     }
     
-    /**
-     * Store registration data temporarily (before email verification)
-     */
-    public void storePendingRegistration(RegistrationRequest req) {
-        // Verify reCaptcha (Temporarily Disabled for Testing)
-        /* if (!reCaptchaService.verifyRecaptcha(req.getRecaptchaToken())) {
-            throw new IllegalArgumentException("reCaptcha verification failed");
-        } */
 
-        // Check uniqueness in Customer and User tables
+    public void storePendingRegistration(RegistrationRequest req) {
+  
+
         if (customerRepo.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
         
-        // Store temporarily until email verification
         pendingRegistrations.put(req.getEmail(), req);
     }
     
-    /**
-     * Complete registration after email verification
-     */
+  
     @Transactional
     public Customer completeRegistrationAfterVerification(String email) {
         RegistrationRequest req = pendingRegistrations.get(email);
@@ -87,32 +76,24 @@ public class RegistrationServiceImpl {
         }
         
         try {
-            // Now actually save to database
             Customer savedCustomer = registerCustomer(req);
             
-            // Remove from temporary storage
             pendingRegistrations.remove(email);
             
             return savedCustomer;
         } catch (Exception e) {
-            // Keep in temporary storage if registration fails
             throw e;
         }
     }
 
     @Transactional
     public Customer registerCustomer(RegistrationRequest req) {
-        // Verify reCaptcha (Temporarily Disabled for Testing)
-        /* if (!reCaptchaService.verifyRecaptcha(req.getRecaptchaToken())) {
-            throw new IllegalArgumentException("reCaptcha verification failed");
-        } */
+        
 
-        // Check uniqueness in Customer and User tables
         if (customerRepo.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // 1️⃣ Create Customer entity
         Customer c = new Customer();
         c.setFirstName(req.getFirstName());
         c.setMiddleName(req.getMiddleName());
@@ -123,7 +104,6 @@ public class RegistrationServiceImpl {
         c.setDob(req.getDob());
         
         
-        // Auto-generate username as firstname_lastname
         String username = generateUsername(req.getFirstName(), req.getLastName());
         c.setUsername(username);
 
@@ -138,7 +118,6 @@ public class RegistrationServiceImpl {
 
         Customer savedCustomer = customerRepo.save(c);
 
-        // 2️⃣ Create corresponding User for Spring Security
         User user = User.builder()
                 .firstName(req.getFirstName())
                 .lastName(req.getLastName())
@@ -151,7 +130,6 @@ public class RegistrationServiceImpl {
 
         userRepo.save(user);
 
-        // Log user registration
         auditLogService.logUserAction(username, "USER_REGISTERED", 
             String.format("New customer registered: %s %s (%s)", 
                 req.getFirstName(), req.getLastName(), req.getEmail()));
@@ -172,25 +150,20 @@ public class RegistrationServiceImpl {
         d.setStatus(DocumentStatus.UPLOADED);
         d.setUploadedAt(Instant.now());
 
-        // Save document directly to generate ID
         Document savedDoc = docRepo.save(d);
 
-        // Optional: maintain bi-directional relationship
         c.addDocument(savedDoc);
         customerRepo.save(c);
 
         return savedDoc;
     }
     
-    /**
-     * Generate username as firstname_lastname with uniqueness handling
-     */
+    
     private String generateUsername(String firstName, String lastName) {
         String baseUsername = (firstName + "_" + lastName).toLowerCase().replaceAll("[^a-z0-9_]", "");
         String username = baseUsername;
         int counter = 1;
         
-        // Check for uniqueness in both Customer and User tables
         while (customerRepo.existsByUsername(username) || userRepo.existsByUsername(username)) {
             username = baseUsername + "_" + counter;
             counter++;
@@ -199,16 +172,12 @@ public class RegistrationServiceImpl {
         return username;
     }
     
-    /**
-     * Check if there's a pending registration for an email
-     */
+
     public boolean hasPendingRegistration(String email) {
         return pendingRegistrations.containsKey(email);
     }
     
-    /**
-     * Get pending registration count (for monitoring)
-     */
+ 
     public int getPendingRegistrationCount() {
         return pendingRegistrations.size();
     }
