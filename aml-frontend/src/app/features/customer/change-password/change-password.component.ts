@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 interface ResetPasswordRequest {
   email: string;
@@ -31,7 +32,8 @@ export class ChangePasswordComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -102,6 +104,10 @@ export class ChangePasswordComponent implements OnInit {
           this.isLoading = false;
           this.errorMessage = error.error?.message || 'Failed to change password. Please try again.';
           console.error('Password change error:', error);
+          // Show toast to inform wrong current password
+          this.toast.error('Current password is wrong', 6000);
+          // Redirect to verify step if change failed
+          this.router.navigate(['/customer/change-password/verify']);
         }
       });
     } else {

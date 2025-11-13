@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-enter-otp',
@@ -52,7 +53,7 @@ export class EnterOtpComponent implements OnInit {
   error = '';
   email = '';
 
-  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {}
+  constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -90,12 +91,18 @@ export class EnterOtpComponent implements OnInit {
           if (email) sessionStorage.setItem('reset_email', email);
           this.router.navigate(['/customer/change-password']);
         } else {
-          this.error = 'Invalid code. Please try again.';
+          this.error = 'Invalid or expired code.';
+          // Show toast and redirect to verify page when OTP is invalid or token missing
+          this.toast.error('OTP is invalid or expired', 6000);
+          this.router.navigate(['/customer/change-password/verify']);
         }
       },
       error: (err) => {
         this.isLoading = false;
         this.error = err.error?.message || 'Invalid or expired code.';
+        // Show toast and redirect to verify page on error (invalid/expired)
+        this.toast.error('OTP is invalid or expired', 6000);
+        this.router.navigate(['/customer/change-password/verify']);
       }
     });
   }

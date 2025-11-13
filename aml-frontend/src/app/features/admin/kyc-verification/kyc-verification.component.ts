@@ -34,7 +34,6 @@ export class KycVerificationComponent implements OnInit {
   showVerifyModal = false;
   showRejectModal = false;
   selectedDocument: DocumentDTO | null = null;
-  rejectionReason = '';
 
   constructor(
     private adminService: AdminService,
@@ -110,20 +109,18 @@ export class KycVerificationComponent implements OnInit {
 
   openRejectModal(document: DocumentDTO): void {
     this.selectedDocument = document;
-    this.rejectionReason = '';
     this.showRejectModal = true;
   }
 
   closeRejectModal(): void {
     this.showRejectModal = false;
     this.selectedDocument = null;
-    this.rejectionReason = '';
   }
 
   confirmReject(): void {
-    if (!this.selectedDocument || !this.rejectionReason.trim()) return;
+    if (!this.selectedDocument ) return;
     
-    this.adminService.rejectKycDocument(this.selectedDocument.id, this.rejectionReason).subscribe({
+    this.adminService.rejectKycDocument(this.selectedDocument.id).subscribe({
       next: () => {
         this.toastService.success(`Document rejected successfully`, 5000);
         this.closeRejectModal();
