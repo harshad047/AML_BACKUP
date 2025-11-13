@@ -31,9 +31,9 @@ import com.tss.aml.dto.document.DocumentDTO;
 import com.tss.aml.dto.transaction.TransactionDto;
 import com.tss.aml.entity.AuditLog;
 import com.tss.aml.entity.Enums.DocumentStatus;
-import com.tss.aml.service.impl.AdminServiceImpl;
-import com.tss.aml.service.impl.AuditLogServiceImpl;
-import com.tss.aml.service.impl.DocumentServiceImpl;
+import com.tss.aml.service.IAdminService;
+import com.tss.aml.service.IAuditLogService;
+import com.tss.aml.service.IDocumentService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,9 +43,9 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ADMIN', 'SUPER_ADMIN')")
 public class AdminController {
 
-    private final AdminServiceImpl adminService;
-    private final AuditLogServiceImpl auditLogService;
-    private final DocumentServiceImpl documentService;
+    private final IAdminService adminService;
+    private final IAuditLogService auditLogService;
+    private final IDocumentService documentService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserDto>> getAllUsers() {

@@ -6,4 +6,3 @@ import com.tss.aml.entity.RuleCondition;
 public interface RuleEvaluator {
     boolean evaluate(TransactionInputDto input, RuleCondition condition);
 }
-

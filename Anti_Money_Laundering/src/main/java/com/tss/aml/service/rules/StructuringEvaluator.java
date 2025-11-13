@@ -16,7 +16,7 @@ import com.tss.aml.repository.TransactionRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@Component
+@Component("STRUCTURING")
 @RequiredArgsConstructor
 public class StructuringEvaluator implements RuleEvaluator {
 

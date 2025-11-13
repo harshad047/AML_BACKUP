@@ -7,7 +7,7 @@ import com.tss.aml.entity.RuleCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component
+@Component("AMOUNT")
 public class AmountEvaluator implements RuleEvaluator {
 
     private static final Logger log = LoggerFactory.getLogger(AmountEvaluator.class);

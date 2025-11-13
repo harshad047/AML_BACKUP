@@ -13,3 +13,5 @@ aml-frontend/src/app_backup_*
 
 # Environment files
 aml-frontend/src/environments/environment.ts
+
+Anti_Money_Laundering/logs/

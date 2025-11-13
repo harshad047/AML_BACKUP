@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Component
+@Component("PAST_TRANSACTIONS")
 @RequiredArgsConstructor
 public class PastTransactionsEvaluator implements RuleEvaluator {
 
