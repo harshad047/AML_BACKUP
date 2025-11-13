@@ -38,8 +38,7 @@ public class ReCaptchaService {
 
             return response != null && response.isSuccess();
         } catch (Exception e) {
-            // Logging the error is crucial here!
-            // log.error("Error verifying reCAPTCHA", e);
+           
             return false;
         }
     }

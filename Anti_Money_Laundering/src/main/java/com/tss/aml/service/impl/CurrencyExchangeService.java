@@ -22,9 +22,7 @@ public class CurrencyExchangeService implements IInterCurrencyService{
 
     private final CurrencyExchangeRepository currencyExchangeRepository;
 
-    /**
-     * Check if intercurrency conversion is needed between two accounts
-     */
+   
     public boolean isIntercurrencyTransferRequired(BankAccount fromAccount, BankAccount toAccount) {
         if (fromAccount.getCurrency() == null || toAccount.getCurrency() == null) {
             return false;
@@ -32,9 +30,7 @@ public class CurrencyExchangeService implements IInterCurrencyService{
         return !fromAccount.getCurrency().equalsIgnoreCase(toAccount.getCurrency());
     }
 
-    /**
-     * Get active exchange rate for currency pair
-     */
+    
     public CurrencyExchange getActiveExchangeRate(String fromCurrency, String toCurrency) {
         return currencyExchangeRepository.findActiveExchangeRate(
                 fromCurrency.toUpperCase(), 
@@ -46,9 +42,6 @@ public class CurrencyExchangeService implements IInterCurrencyService{
         ));
     }
 
-    /**
-     * Calculate conversion details for intercurrency transfer
-     */
     public CurrencyConversionResult calculateConversion(
             String fromCurrency, 
             String toCurrency, 
@@ -56,15 +49,12 @@ public class CurrencyExchangeService implements IInterCurrencyService{
         
         CurrencyExchange exchangeRate = getActiveExchangeRate(fromCurrency, toCurrency);
         
-        // Calculate conversion charges in original currency
         BigDecimal conversionCharges = exchangeRate.calculateTotalCharge(amount);
         
-        // Calculate amount after deducting charges (amount available for conversion)
         BigDecimal amountAfterCharges = amount.subtract(conversionCharges);
         
         BigDecimal convertedAmount = exchangeRate.convertAmount(amountAfterCharges);
         
-        // Total amount to be debited from sender (original amount - no change needed)
         BigDecimal totalDebitAmount = amount;
         
         return CurrencyConversionResult.builder()
@@ -79,9 +69,7 @@ public class CurrencyExchangeService implements IInterCurrencyService{
                 .build();
     }
 
-    /**
-     * Validate if sufficient funds are available including conversion charges
-     */
+    
     public void validateSufficientFunds(BankAccount fromAccount, BigDecimal totalDebitAmount) {
         if (fromAccount.getBalance().compareTo(totalDebitAmount) < 0) {
             throw new AmlApiException(
@@ -93,9 +81,7 @@ public class CurrencyExchangeService implements IInterCurrencyService{
         }
     }
 
-    /**
-     * Check if currency pair is supported
-     */
+    
     public boolean isCurrencyPairSupported(String fromCurrency, String toCurrency) {
         return currencyExchangeRepository.isCurrencyPairSupported(
                 fromCurrency.toUpperCase(), 
@@ -104,16 +90,12 @@ public class CurrencyExchangeService implements IInterCurrencyService{
         );
     }
 
-    /**
-     * Get all supported currency pairs
-     */
+   
     public List<String> getSupportedCurrencyPairs() {
         return currencyExchangeRepository.findAllSupportedCurrencyPairs();
     }
 
-    /**
-     * Build detailed charge breakdown explanation
-     */
+    
     private String buildChargeBreakdown(CurrencyExchange exchangeRate, BigDecimal amount, BigDecimal totalCharge) {
         BigDecimal percentageCharge = amount.multiply(exchangeRate.getBaseChargePercentage());
         BigDecimal calculatedCharge = percentageCharge.add(exchangeRate.getFixedCharge());
@@ -146,9 +128,7 @@ public class CurrencyExchangeService implements IInterCurrencyService{
         return breakdown.toString();
     }
 
-    /**
-     * Inner class to hold conversion calculation results
-     */
+    
     @lombok.Data
     @lombok.Builder
     public static class CurrencyConversionResult {

@@ -29,188 +29,196 @@ import jakarta.validation.constraints.NotBlank;
 @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
 public class CustomerController {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+	@Autowired
+	private CustomerRepository customerRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private OtpService otpService;
+	@Autowired
+	private UserRepository userRepository;
 
-    @Autowired
-    private EmailService emailService;
+	@Autowired
+	private OtpService otpService;
 
-    @GetMapping("/profile")
-    public ResponseEntity<CustomerProfileDTO> getProfile(Authentication authentication) {
-        String username = authentication.getName();
-        Customer customer = customerRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
+	@Autowired
+	private EmailService emailService;
 
-        // Map Customer entity to DTO to avoid circular references and deep nesting
-        CustomerProfileDTO profileDTO = new CustomerProfileDTO();
-        profileDTO.setId(customer.getId());
-        profileDTO.setFirstName(customer.getFirstName());
-        profileDTO.setMiddleName(customer.getMiddleName());
-        profileDTO.setLastName(customer.getLastName());
-        profileDTO.setEmail(customer.getEmail());
-        profileDTO.setUsername(customer.getUsername());
-        profileDTO.setPhone(customer.getPhone());
-        profileDTO.setAddress(customer.getAddress());
-        profileDTO.setKycStatus(customer.getKycStatus());
-        profileDTO.setCreatedAt(customer.getCreatedAt().toString());
+	@GetMapping("/profile")
+	public ResponseEntity<CustomerProfileDTO> getProfile(Authentication authentication) {
+		String username = authentication.getName();
+		Customer customer = customerRepository.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        return ResponseEntity.ok(profileDTO);
-    }
+		// Map Customer entity to DTO to avoid circular references and deep nesting
+		CustomerProfileDTO profileDTO = new CustomerProfileDTO();
+		profileDTO.setId(customer.getId());
+		profileDTO.setFirstName(customer.getFirstName());
+		profileDTO.setMiddleName(customer.getMiddleName());
+		profileDTO.setLastName(customer.getLastName());
+		profileDTO.setEmail(customer.getEmail());
+		profileDTO.setUsername(customer.getUsername());
+		profileDTO.setPhone(customer.getPhone());
+		profileDTO.setAddress(customer.getAddress());
+		profileDTO.setKycStatus(customer.getKycStatus());
+		profileDTO.setCreatedAt(customer.getCreatedAt().toString());
 
-    @GetMapping("/kyc-status")
-    public ResponseEntity<KycStatusResponse> getKycStatus(Authentication authentication) {
-        String username = authentication.getName();
+		return ResponseEntity.ok(profileDTO);
+	}
 
-        // Use a custom query to get only the KYC status without loading the full entity
-        KycStatus kycStatus = customerRepository.findKycStatusByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
+	@GetMapping("/kyc-status")
+	public ResponseEntity<KycStatusResponse> getKycStatus(Authentication authentication) {
+		String username = authentication.getName();
 
-        KycStatusResponse response = new KycStatusResponse(
-            kycStatus.name(),
-            "Your KYC status is: " + kycStatus
-        );
-        return ResponseEntity.ok(response);
-    }
-    
-    @PutMapping("/profile")
-    public ResponseEntity<CustomerProfileDTO> updateProfile(@RequestBody ProfileUpdateRequest req, Authentication authentication) {
-        String username = authentication.getName();
-        Customer customer = customerRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
+		// Use a custom query to get only the KYC status without loading the full entity
+		KycStatus kycStatus = customerRepository.findKycStatusByUsername(username)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        if (req.firstName != null) customer.setFirstName(req.firstName);
-        if (req.middleName != null) customer.setMiddleName(req.middleName);
-        if (req.lastName != null) customer.setLastName(req.lastName);
-        if (req.phone != null) customer.setPhone(req.phone);
-        // Address fields if provided
-        if (req.address != null) {
-            Address addr = customer.getAddress();
-            if (addr == null) {
-                addr = new Address();
-                customer.setAddress(addr);
-            }
-        
-            
-            if (req.address.street != null) addr.setStreet(req.address.street);
-            if (req.address.city != null) addr.setCity(req.address.city);
-            if (req.address.state != null) addr.setState(req.address.state);
-            if (req.address.postalCode != null) addr.setPostalCode(req.address.postalCode);
-            if (req.address.country != null) addr.setCountry(req.address.country);
-        }
+		KycStatusResponse response = new KycStatusResponse(kycStatus.name(), "Your KYC status is: " + kycStatus);
+		return ResponseEntity.ok(response);
+	}
 
-        Customer saved = customerRepository.save(customer);
+	@PutMapping("/profile")
+	public ResponseEntity<CustomerProfileDTO> updateProfile(@RequestBody ProfileUpdateRequest req,
+			Authentication authentication) {
+		String username = authentication.getName();
+		Customer customer = customerRepository.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        // Map to DTO to avoid serialization issues
-        CustomerProfileDTO profileDTO = new CustomerProfileDTO();
-        profileDTO.setId(saved.getId());
-        profileDTO.setFirstName(saved.getFirstName());
-        profileDTO.setMiddleName(saved.getMiddleName());
-        profileDTO.setLastName(saved.getLastName());
-        profileDTO.setEmail(saved.getEmail());
-        profileDTO.setUsername(saved.getUsername());
-        profileDTO.setPhone(saved.getPhone());
-        profileDTO.setAddress(saved.getAddress());
-        profileDTO.setKycStatus(saved.getKycStatus());
-        profileDTO.setCreatedAt(saved.getCreatedAt().toString());
+		if (req.firstName != null)
+			customer.setFirstName(req.firstName);
+		if (req.middleName != null)
+			customer.setMiddleName(req.middleName);
+		if (req.lastName != null)
+			customer.setLastName(req.lastName);
+		if (customerRepository.existsByPhone(req.phone)) {
+			throw new IllegalArgumentException("Phone number already exists");
+		}
+		customer.setPhone(req.phone);
+		
+		if (req.address != null) {
+			Address addr = customer.getAddress();
+			if (addr == null) {
+				addr = new Address();
+				customer.setAddress(addr);
+			}
 
-        return ResponseEntity.ok(profileDTO);
-    }
+			if (req.address.street != null)
+				addr.setStreet(req.address.street);
+			if (req.address.city != null)
+				addr.setCity(req.address.city);
+			if (req.address.state != null)
+				addr.setState(req.address.state);
+			if (req.address.postalCode != null)
+				addr.setPostalCode(req.address.postalCode);
+			if (req.address.country != null)
+				addr.setCountry(req.address.country);
+		}
 
-    @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest req, Authentication authentication) {
-        String username = authentication.getName();
-        Customer customer = customerRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Customer not found"));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+		Customer saved = customerRepository.save(customer);
 
-        if (req == null || req.oldPassword == null || req.newPassword == null) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
-        }
+		CustomerProfileDTO profileDTO = new CustomerProfileDTO();
+		profileDTO.setId(saved.getId());
+		profileDTO.setFirstName(saved.getFirstName());
+		profileDTO.setMiddleName(saved.getMiddleName());
+		profileDTO.setLastName(saved.getLastName());
+		profileDTO.setEmail(saved.getEmail());
+		profileDTO.setUsername(saved.getUsername());
+		profileDTO.setPhone(saved.getPhone());
+		profileDTO.setAddress(saved.getAddress());
+		profileDTO.setKycStatus(saved.getKycStatus());
+		profileDTO.setCreatedAt(saved.getCreatedAt().toString());
 
-        // Verify either reset token (preferred) or OTP
-        boolean allowed = false;
-        if (req.token != null && !req.token.isBlank()) {
-            allowed = otpService.validateResetToken(user.getEmail(), req.token, true);
-        } else if (req.otp != null && !req.otp.isBlank()) {
-            allowed = otpService.verifyOtp(user.getEmail(), req.otp);
-            if (!allowed) {
-                otpService.consumeOtp(user.getEmail());
-            }
-        }
-        if (!allowed) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired verification. Please verify OTP again."));
-        }
+		return ResponseEntity.ok(profileDTO);
+	}
 
-        if (!passwordEncoder.matches(req.oldPassword, customer.getPassword())) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Current password is incorrect"));
-        }
+	@PostMapping("/change-password")
+	public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest req, Authentication authentication) {
+		String username = authentication.getName();
+		Customer customer = customerRepository.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
+		User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException("Customer not found"));
 
-        user.setPassword(passwordEncoder.encode(req.newPassword));
-        userRepository.save(user);
-        customer.setPassword(passwordEncoder.encode(req.newPassword));
-        customerRepository.save(customer);
-        // Send confirmation email
-        String fullName = (customer.getFirstName() != null ? customer.getFirstName() : "")
-                + (customer.getLastName() != null ? (" " + customer.getLastName()) : "");
-        emailService.sendPasswordChangeSuccessEmail(user.getEmail(), fullName.trim().isEmpty() ? null : fullName.trim());
-        return ResponseEntity.ok(java.util.Map.of("message", "Password changed successfully"));
-    }
+		if (req == null || req.oldPassword == null || req.newPassword == null) {
+			return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
+		}
 
-    /**
-     * Send OTP to user's registered email for password change verification
-     */
-    @PostMapping("/change-password/send-otp")
-    public ResponseEntity<?> sendChangePasswordOtp(Authentication authentication) {
-        String username = authentication.getName();
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        otpService.sendOtpToEmail(user.getEmail());
-        return ResponseEntity.ok(java.util.Map.of("sent", true, "message", "OTP sent to registered email."));
-    }
+		// Verify either reset token (preferred) or OTP
+		boolean allowed = false;
+		if (req.token != null && !req.token.isBlank()) {
+			allowed = otpService.validateResetToken(user.getEmail(), req.token, true);
+		} else if (req.otp != null && !req.otp.isBlank()) {
+			allowed = otpService.verifyOtp(user.getEmail(), req.otp);
+			if (!allowed) {
+				otpService.consumeOtp(user.getEmail());
+			}
+		}
+		if (!allowed) {
+			return ResponseEntity.badRequest()
+					.body(java.util.Map.of("error", "Invalid or expired verification. Please verify OTP again."));
+		}
 
-    // Simple DTOs for requests
-    public static class ProfileUpdateRequest {
-        public String firstName;
-        public String middleName;
-        public String lastName;
-        public String phone;
-        public AddressDto address;
-    }
+		if (!passwordEncoder.matches(req.oldPassword, customer.getPassword())) {
+			return ResponseEntity.badRequest().body(java.util.Map.of("error", "Current password is incorrect"));
+		}
 
-    public static class AddressDto {
-        public String street;
-        public String city;
-        public String state;
-        public String postalCode;
-        public String country;
-    }
+		user.setPassword(passwordEncoder.encode(req.newPassword));
+		userRepository.save(user);
+		customer.setPassword(passwordEncoder.encode(req.newPassword));
+		customerRepository.save(customer);
+		// Send confirmation email
+		String fullName = (customer.getFirstName() != null ? customer.getFirstName() : "")
+				+ (customer.getLastName() != null ? (" " + customer.getLastName()) : "");
+		emailService.sendPasswordChangeSuccessEmail(user.getEmail(),
+				fullName.trim().isEmpty() ? null : fullName.trim());
+		return ResponseEntity.ok(java.util.Map.of("message", "Password changed successfully"));
+	}
 
-    public static class ChangePasswordRequest {
-        @NotBlank
-        public String oldPassword;
-        @NotBlank
-        public String newPassword;
-        public String otp; 
-        public String token; 
-    }
-    
-    public static class KycStatusResponse {
-        public final String kycStatus;
-        public final String message;
-        
-        public KycStatusResponse(String kycStatus, String message) {
-            this.kycStatus = kycStatus;
-            this.message = message;
-        }
-    }
+	/**
+	 * Send OTP to user's registered email for password change verification
+	 */
+	@PostMapping("/change-password/send-otp")
+	public ResponseEntity<?> sendChangePasswordOtp(Authentication authentication) {
+		String username = authentication.getName();
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+		otpService.sendOtpToEmail(user.getEmail());
+		return ResponseEntity.ok(java.util.Map.of("sent", true, "message", "OTP sent to registered email."));
+	}
+
+	// Simple DTOs for requests
+	public static class ProfileUpdateRequest {
+		public String firstName;
+		public String middleName;
+		public String lastName;
+		public String phone;
+		public AddressDto address;
+	}
+
+	public static class AddressDto {
+		public String street;
+		public String city;
+		public String state;
+		public String postalCode;
+		public String country;
+	}
+
+	public static class ChangePasswordRequest {
+		@NotBlank
+		public String oldPassword;
+		@NotBlank
+		public String newPassword;
+		public String otp;
+		public String token;
+	}
+
+	public static class KycStatusResponse {
+		public final String kycStatus;
+		public final String message;
+
+		public KycStatusResponse(String kycStatus, String message) {
+			this.kycStatus = kycStatus;
+			this.message = message;
+		}
+	}
 }

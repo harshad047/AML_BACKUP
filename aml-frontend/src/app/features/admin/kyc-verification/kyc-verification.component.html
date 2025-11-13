@@ -311,14 +311,7 @@
             <strong><i class="fas fa-user me-2"></i>Customer:</strong> {{ selectedDocument.customerName || 'Customer #' + selectedDocument.customerId }}<br>
             <strong><i class="fas fa-file-alt me-2"></i>Document:</strong> {{ formatDocType(selectedDocument.docType) }}
           </div>
-          <div class="form-group">
-            <label class="form-label fw-semibold">Rejection Reason <span class="text-danger">*</span></label>
-            <textarea 
-              class="form-control" 
-              [(ngModel)]="rejectionReason" 
-              rows="3" 
-              placeholder="Enter reason for rejection..."></textarea>
-          </div>
+          
         </div>
         <div class="modal-footer border-0">
           <button type="button" class="btn btn-secondary" (click)="closeRejectModal()">
@@ -327,8 +320,7 @@
           <button 
             type="button" 
             class="btn btn-danger" 
-            (click)="confirmReject()"
-            [disabled]="!rejectionReason.trim()">
+            (click)="confirmReject()">
             <i class="fas fa-times-circle me-2"></i>Reject Document
           </button>
         </div>

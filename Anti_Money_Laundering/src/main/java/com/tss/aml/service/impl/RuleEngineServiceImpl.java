@@ -39,7 +39,7 @@ public class RuleEngineServiceImpl {
         List<RuleMatchDto> flaggedRules = new ArrayList<>();
         List<RuleMatchDto> blockedRules = new ArrayList<>();
 
-        // --- Probability-based aggregation ---
+        // Probability-based aggregation
         double productComplement = 1.0; // Start with full complement (for independence)
 
         for (Rule rule : rules) {
@@ -49,7 +49,7 @@ public class RuleEngineServiceImpl {
             boolean ruleMatched = true;
             List<String> conditionResults = new ArrayList<>();
 
-            // --- Evaluate rule conditions ---
+            // Evaluate rule conditions
             for (RuleCondition cond : rule.getConditions()) {
                 if (!cond.isActive()) {
                     log.trace("  Condition inactive: {}", cond.getType());
@@ -72,7 +72,7 @@ public class RuleEngineServiceImpl {
                 }
             }
 
-            // --- If rule matched, include its probability contribution ---
+            // If rule matched, include its probability contribution 
             if (ruleMatched) {
                 log.info("  Rule MATCHED: {}", rule.getName());
 
@@ -80,15 +80,10 @@ public class RuleEngineServiceImpl {
                 // Use the rule's configured risk weight regardless of action type
                 double ruleProb = Math.min(1.0, Math.max(0.0, rule.getRiskWeight() / 100.0));
 
-                // BLOCK rules can immediately push probability to 1.0
-//                if ("BLOCK".equalsIgnoreCase(rule.getAction())) {
-//                    ruleProb = 1.0;
-//                }
-
                 // Apply noisy-OR aggregation: P_total = 1 - Π(1 - p_i)
                 productComplement *= (1.0 - ruleProb);
 
-                // --- Logging and DTO creation ---
+                // Logging and DTO creation 
                 RuleExecutionLog entry = RuleExecutionLog.builder()
                         .rule(rule)
                         .transactionId(input.getTxId())
@@ -125,7 +120,7 @@ public class RuleEngineServiceImpl {
             }
         }
 
-        // --- Final probabilistic score computation ---
+        // Final probabilistic score computation 
         double finalProb = 1.0 - productComplement; // 1 - Π(1 - p_i)
         finalProb = Math.max(0.0, Math.min(1.0, finalProb)); // Clamp 0–1
         double combinedRiskScore = finalProb * 100.0;
