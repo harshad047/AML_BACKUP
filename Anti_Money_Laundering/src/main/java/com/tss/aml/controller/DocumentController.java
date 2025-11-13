@@ -21,7 +21,7 @@ import com.tss.aml.service.impl.DocumentServiceImpl;
 
 @RestController
 @RequestMapping("/api/documents")
-@CrossOrigin(origins = "http://127.0.0.1:5500") // Adjust to your frontend URL
+@CrossOrigin(origins = "http://127.0.0.1:5500") 
 @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER','CUSTOMER')")
 public class DocumentController {
 

@@ -21,7 +21,7 @@ public class InvestigationNote {
     @JoinColumn(name = "case_id")
     private Case caseEntity;
 
-    private String author; // Username of the officer who wrote the note
+    private String author; 
 
     @Column(columnDefinition = "TEXT")
     private String content;

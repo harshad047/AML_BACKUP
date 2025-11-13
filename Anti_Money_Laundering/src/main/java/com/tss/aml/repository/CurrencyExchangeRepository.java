@@ -13,9 +13,7 @@ import java.util.Optional;
 @Repository
 public interface CurrencyExchangeRepository extends JpaRepository<CurrencyExchange, Long> {
 
-    /**
-     * Find active exchange rate for currency pair
-     */
+    
     @Query("SELECT ce FROM CurrencyExchange ce WHERE " +
            "ce.fromCurrency = :fromCurrency AND ce.toCurrency = :toCurrency AND " +
            "ce.isActive = true AND ce.effectiveFrom <= :now AND " +
@@ -26,9 +24,6 @@ public interface CurrencyExchangeRepository extends JpaRepository<CurrencyExchan
             @Param("toCurrency") String toCurrency,
             @Param("now") LocalDateTime now);
 
-    /**
-     * Find all active exchange rates for a currency
-     */
     @Query("SELECT ce FROM CurrencyExchange ce WHERE " +
            "(ce.fromCurrency = :currency OR ce.toCurrency = :currency) AND " +
            "ce.isActive = true AND ce.effectiveFrom <= :now AND " +
@@ -37,15 +32,10 @@ public interface CurrencyExchangeRepository extends JpaRepository<CurrencyExchan
             @Param("currency") String currency,
             @Param("now") LocalDateTime now);
 
-    /**
-     * Find all supported currency pairs
-     */
+    
     @Query("SELECT DISTINCT CONCAT(ce.fromCurrency, '-', ce.toCurrency) FROM CurrencyExchange ce WHERE ce.isActive = true")
     List<String> findAllSupportedCurrencyPairs();
 
-    /**
-     * Check if currency pair is supported
-     */
     @Query("SELECT COUNT(ce) > 0 FROM CurrencyExchange ce WHERE " +
            "ce.fromCurrency = :fromCurrency AND ce.toCurrency = :toCurrency AND " +
            "ce.isActive = true AND ce.effectiveFrom <= :now AND " +

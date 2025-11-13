@@ -34,10 +34,7 @@ public class PasswordController {
 
     
 
-    /**
-     * Initiate forgot password by sending an OTP to the provided email.
-     * Always returns success to avoid email enumeration.
-     */
+   
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<?> sendForgotPasswordOtp(@RequestParam("email") String email) {
         String normalized = email == null ? null : email.trim().toLowerCase();
@@ -75,9 +72,7 @@ public class PasswordController {
         }
     }
 
-    /**
-     * Verify OTP for forgot password flow.
-     */
+    
     @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<?> verifyForgotPasswordOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
         String normalized = email == null ? null : email.trim().toLowerCase();
@@ -88,12 +83,10 @@ public class PasswordController {
         
         boolean otpValid = otpService.verifyOtp(normalized, otp);
         if (!otpValid) {
-            // Consume the OTP even if verification failed to prevent reuse
             otpService.consumeOtp(normalized);
             log.debug("OTP verification failed for email: {}", normalized);
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
         }
-        // Issue a short-lived reset token for step 2 (change password page)
         String resetToken = otpService.issueResetToken(normalized);
         log.debug("OTP verification successful for email: {}, token issued", normalized);
         return ResponseEntity.ok(java.util.Map.of(
@@ -103,9 +96,7 @@ public class PasswordController {
         ));
     }
 
-    /**
-     * Reset password using email + OTP. Requires newPassword and confirmPassword to match.
-     */
+  
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ForgotPasswordResetRequest req) {
         if (req == null || req.email == null || req.newPassword == null || req.confirmPassword == null) {
@@ -116,12 +107,10 @@ public class PasswordController {
         if (!req.newPassword.equals(req.confirmPassword)) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Passwords do not match"));
         }
-        // Two-step flow: prefer token validation; fallback to legacy OTP if token not provided
         boolean allowed = false;
         if (req.token != null && !req.token.isBlank()) {
             allowed = otpService.validateResetToken(email, req.token, true);
         } else if (req.otp != null && !req.otp.isBlank()) {
-            // Backward compatibility: validate OTP directly (single-step legacy)
             allowed = otpService.verifyOtp(email, req.otp);
             if (!allowed) {
                 otpService.consumeOtp(email);
@@ -135,7 +124,6 @@ public class PasswordController {
         User user = userRepository.findByEmail(email)
             .orElse(null);
         if (user == null) {
-            // To avoid enumeration, return generic error though OTP passed for this email
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "Unable to reset password for the specified email"));
         }
 
@@ -158,7 +146,6 @@ public class PasswordController {
         }
         emailService.sendPasswordChangeSuccessEmail(email, fullName);
 
-        // Consume/remove the OTP after successful password reset
         otpService.consumeOtp(email);
         log.debug("Password reset successful for email: {}", email);
 

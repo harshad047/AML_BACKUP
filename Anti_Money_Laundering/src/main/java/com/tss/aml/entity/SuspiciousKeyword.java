@@ -41,24 +41,23 @@ public class SuspiciousKeyword {
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     @Column(name = "description")
-    private String description; // Why this keyword is suspicious
+    private String description; 
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
     @Column(name = "case_sensitive", nullable = false)
-    private boolean caseSensitive = false; // Whether matching should be case-sensitive
+    private boolean caseSensitive = false;
 
     @Column(name = "whole_word_only", nullable = false)
-    private boolean wholeWordOnly = true; // Whether to match whole words only
-
+    private boolean wholeWordOnly = true; 
+    
     @Size(max = 100, message = "Created by cannot exceed 100 characters")
     @Column(name = "created_by")
-    private String createdBy; // Who added this keyword
-
+    private String createdBy; 
     @Size(max = 100, message = "Updated by cannot exceed 100 characters")
     @Column(name = "updated_by")
-    private String updatedBy; // Who last updated this keyword
+    private String updatedBy; 
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -72,11 +71,11 @@ public class SuspiciousKeyword {
         LOW(1, 25),
         Low(1, 25),
         Medium(26,50),
-        MEDIUM(26, 50),       // 26-50 points
+        MEDIUM(26, 50),      
         HIGH(51, 75),
-        High(51, 75),// 51-75 points
+        High(51, 75),
         CRITICAL(76, 100),
-    	Critical (76,100);// 76-100 points
+    	Critical (76,100);
 
         private final int minScore;
         private final int maxScore;
@@ -95,7 +94,7 @@ public class SuspiciousKeyword {
                     return level;
                 }
             } 
-            return LOW; // Default fallback
+            return LOW; 
         }
     }
 }

@@ -218,11 +218,16 @@ export class RegisterComponent implements OnInit {
       confirmPassword: ['', [
         Validators.required
       ]],
-      street: [''],
-      city: [''],
-      state: [''],
-      country: [''],
-      postalCode: [''],
+      street: ['', [Validators.required]],
+      city: ['', [Validators.required]],
+      state: ['', [Validators.required]],
+      country: ['', [Validators.required]],
+      postalCode: ['', [
+        Validators.required,
+        Validators.minLength(6),
+        Validators.maxLength(6),
+        Validators.pattern(/^\d{6}$/)
+      ]],
       agreeToTerms: [false, Validators.requiredTrue]
     }, {
       validators: CustomValidators.passwordMatch('password', 'confirmPassword')
@@ -288,6 +293,14 @@ export class RegisterComponent implements OnInit {
       return 'Password must contain at least one special character (!@#$%^&*...)';
     }
     
+    // Postal code errors
+    if (errors['pattern']) {
+      return 'Postal code must be exactly 6 digits';
+    }
+    if (errors['minlength'] || errors['maxlength']) {
+      return 'Postal code must be exactly 6 digits';
+    }
+    
     return 'Invalid input';
   }
 
@@ -316,7 +329,12 @@ export class RegisterComponent implements OnInit {
       email: 'Email',
       phone: 'Phone number',
       dob: 'Date of birth',
-      password: 'Password'
+      password: 'Password',
+      street: 'Street address',
+      city: 'City',
+      state: 'State/Province',
+      country: 'Country',
+      postalCode: 'Postal code'
     };
     return labels[fieldName] || fieldName;
   }
@@ -384,11 +402,6 @@ export class RegisterComponent implements OnInit {
       const field = this.registerForm.get(fieldName);
       if (field && field.invalid && fieldName !== 'middleName') {
         // middleName is optional, skip validation
-        if (fieldName === 'street' || fieldName === 'city' || fieldName === 'state' || 
-            fieldName === 'country' || fieldName === 'postalCode') {
-          // Address fields are optional
-          continue;
-        }
         return false;
       }
     }

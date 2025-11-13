@@ -61,20 +61,15 @@ public class CurrencyExchange {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /**
-     * Calculate total charge for a given amount
-     * Formula: max(min_charge, min(max_charge, (amount * percentage) + fixed_charge))
-     */
+    
     public BigDecimal calculateTotalCharge(BigDecimal amount) {
         BigDecimal percentageCharge = amount.multiply(baseChargePercentage);
         BigDecimal totalCharge = percentageCharge.add(fixedCharge);
         
-        // Apply minimum charge
         if (totalCharge.compareTo(minimumCharge) < 0) {
             totalCharge = minimumCharge;
         }
         
-        // Apply maximum charge if set
         if (maximumCharge != null && totalCharge.compareTo(maximumCharge) > 0) {
             totalCharge = maximumCharge;
         }
@@ -82,16 +77,12 @@ public class CurrencyExchange {
         return totalCharge;
     }
 
-    /**
-     * Convert amount from source currency to target currency
-     */
+    
     public BigDecimal convertAmount(BigDecimal amount) {
         return amount.multiply(exchangeRate);
     }
 
-    /**
-     * Check if this exchange rate is currently valid
-     */
+    
     public boolean isCurrentlyValid() {
         LocalDateTime now = LocalDateTime.now();
         return isActive && 
