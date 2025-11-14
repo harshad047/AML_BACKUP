@@ -71,7 +71,6 @@ public class NewCounterpartyEvaluator implements RuleEvaluator {
                     types
             );
             
-            // 🟩 ADD LOG HERE
             log.info(
                 "Evaluating NEW_COUNTERPARTY: customerId={}, toAcc={}, after={}, types={}, priorCount={}, amount={}, minAmount={}",
                 customerId,
