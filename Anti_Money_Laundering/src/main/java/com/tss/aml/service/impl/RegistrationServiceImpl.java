@@ -1,6 +1,7 @@
 package com.tss.aml.service.impl;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
@@ -10,24 +11,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tss.aml.dto.Auth.RegistrationRequest;
+import com.tss.aml.dto.CountryDto;
 import com.tss.aml.entity.Address;
+import com.tss.aml.entity.CountryRisk;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
 import com.tss.aml.entity.User;
 import com.tss.aml.entity.Enums.DocumentStatus;
 import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.entity.Enums.Role;
+import com.tss.aml.repository.CountryRiskRepository;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.DocumentRepository;
 import com.tss.aml.repository.UserRepository;
+import com.tss.aml.service.IRegistrationService;
 
 @Service
-public class RegistrationServiceImpl {
+public class RegistrationServiceImpl implements IRegistrationService {
 
 	private final Map<String, RegistrationRequest> pendingRegistrations = new ConcurrentHashMap<>();
 
 	private final CustomerRepository customerRepo;
 	private final DocumentRepository docRepo;
+	private final CountryRiskRepository countryRiskRepo;
 	private final OtpService otpService;
 	private final PasswordEncoder passwordEncoder;
 	private final ReCaptchaService reCaptchaService;
@@ -35,11 +41,12 @@ public class RegistrationServiceImpl {
 	private final AuditLogServiceImpl auditLogService;
 
 	@Autowired
-	public RegistrationServiceImpl(CustomerRepository customerRepo, DocumentRepository docRepo, OtpService otpService,
-			PasswordEncoder passwordEncoder, ReCaptchaService reCaptchaService, UserRepository userRepo,
+	public RegistrationServiceImpl(CustomerRepository customerRepo, DocumentRepository docRepo, CountryRiskRepository countryRiskRepo,
+			OtpService otpService, PasswordEncoder passwordEncoder, ReCaptchaService reCaptchaService, UserRepository userRepo,
 			AuditLogServiceImpl auditLogService) {
 		this.customerRepo = customerRepo;
 		this.docRepo = docRepo;
+		this.countryRiskRepo = countryRiskRepo;
 		this.otpService = otpService;
 		this.passwordEncoder = passwordEncoder;
 		this.reCaptchaService = reCaptchaService;
@@ -169,5 +176,14 @@ public class RegistrationServiceImpl {
 
 	public int getPendingRegistrationCount() {
 		return pendingRegistrations.size();
+	}
+
+	public List<CountryDto> getActiveCountries() {
+		List<CountryRisk> countries = countryRiskRepo.findAllByOrderByRiskScoreDesc();
+		
+		// Filter only active countries and map to response format
+		return countries.stream()
+			.map(country -> new CountryDto(country.getCountryCode(), country.getCountryName()))
+			.collect(java.util.stream.Collectors.toList());
 	}
 }

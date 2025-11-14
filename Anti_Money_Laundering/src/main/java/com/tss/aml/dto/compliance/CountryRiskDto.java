@@ -34,7 +34,6 @@ public class CountryRiskDto {
     private String notes;
 
 
-    // Helper method to get risk level based on score
     public String getRiskLevel() {
         if (riskScore >= 80) return "HIGH";
         if (riskScore >= 50) return "MEDIUM";

@@ -22,7 +22,7 @@ public class AmountEvaluator implements RuleEvaluator {
     private boolean compareNumber(Number actual, String operator, String expectedStr) {
         if (actual == null) return false;
         try {
-            double actualVal = actual.doubleValue();
+            double actualVal = actual.doubleValue();    
             double expected = Double.parseDouble(expectedStr);
             return switch (operator) {
                 case ">" -> actualVal > expected;
