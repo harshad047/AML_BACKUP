@@ -75,7 +75,18 @@ public class CustomerServiceImpl implements ICustomerService {
         if (req.firstName != null) customer.setFirstName(req.firstName);
         if (req.middleName != null) customer.setMiddleName(req.middleName);
         if (req.lastName != null) customer.setLastName(req.lastName);
-        if (req.phone != null) customer.setPhone(req.phone);
+        
+        // Validate phone number uniqueness before updating
+        if (req.phone != null) {
+            // Check if the new phone number is different from current phone number
+            if (!req.phone.equals(customer.getPhone())) {
+                // Check if phone number already exists for another customer
+                if (customerRepository.existsByPhone(req.phone)) {
+                    throw new IllegalArgumentException("Phone number already exists");
+                }
+            }
+            customer.setPhone(req.phone);
+        }
         
         if (req.address != null) {
             Address addr = customer.getAddress();
