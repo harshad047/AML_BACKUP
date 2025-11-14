@@ -254,7 +254,6 @@ export class AdminDashboardComponent implements OnInit {
     this.loadingCountries = true;
     this.adminService.getCountryRisks().subscribe({
       next: (countries) => {
-        // Filter countries with risk score > 70, sort by risk score
         this.highRiskCountries = countries
           .filter(c => c.riskScore > 70)
           .sort((a, b) => b.riskScore - a.riskScore)
