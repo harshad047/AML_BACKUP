@@ -16,7 +16,10 @@ import com.tss.aml.entity.User;
 import com.tss.aml.entity.Enums.KycStatus;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
+import com.tss.aml.repository.CountryRiskRepository;
 import com.tss.aml.service.ICustomerService;
+import com.tss.aml.service.OtpService;
+import com.tss.aml.service.EmailService;
 
 @Service
 public class CustomerServiceImpl implements ICustomerService {
@@ -26,6 +29,9 @@ public class CustomerServiceImpl implements ICustomerService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private CountryRiskRepository countryRiskRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -99,7 +105,18 @@ public class CustomerServiceImpl implements ICustomerService {
             if (req.address.city != null) addr.setCity(req.address.city);
             if (req.address.state != null) addr.setState(req.address.state);
             if (req.address.postalCode != null) addr.setPostalCode(req.address.postalCode);
-            if (req.address.country != null) addr.setCountry(req.address.country);
+            
+            // Validate country exists in database before updating
+            if (req.address.country != null) {
+                // Check if country exists in the CountryRisk table (by country name or code)
+                boolean countryExists = countryRiskRepository.findByCountryNameIgnoreCase(req.address.country).isPresent() ||
+                                      countryRiskRepository.existsByCountryCode(req.address.country);
+                
+                if (!countryExists) {
+                    throw new IllegalArgumentException("Invalid country: " + req.address.country + ". Country not found in database.");
+                }
+                addr.setCountry(req.address.country);
+            }
         }
 
         Customer saved = customerRepository.save(customer);
