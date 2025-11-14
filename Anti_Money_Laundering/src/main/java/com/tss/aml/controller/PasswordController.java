@@ -1,162 +1,65 @@
 package com.tss.aml.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tss.aml.entity.Customer;
-import com.tss.aml.entity.User;
-import com.tss.aml.repository.CustomerRepository;
-import com.tss.aml.repository.UserRepository;
-import com.tss.aml.service.impl.EmailService;
-import com.tss.aml.service.impl.OtpService;
-
-import jakarta.validation.constraints.NotBlank;
+import com.tss.aml.dto.customer.ForgotPasswordResetRequest;
+import com.tss.aml.dto.customer.ForgotPasswordResponse;
+import com.tss.aml.dto.customer.ForgotPasswordVerifyResponse;
+import com.tss.aml.service.IPasswordService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class PasswordController {
 
-    private static final Logger log = LoggerFactory.getLogger(PasswordController.class);
-
-    @Autowired private OtpService otpService;
-    @Autowired private EmailService emailService;
-    @Autowired private UserRepository userRepository;
-    @Autowired private CustomerRepository customerRepository;
-    @Autowired private PasswordEncoder passwordEncoder;
-
-    
-
+    @Autowired
+    private IPasswordService passwordService;
    
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<?> sendForgotPasswordOtp(@RequestParam("email") String email) {
-        String normalized = email == null ? null : email.trim().toLowerCase();
-        log.debug("Send OTP request - original: '{}', normalized: '{}'", email, normalized);
-        if (normalized == null || normalized.isBlank()) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email is required"));
-        }
-        
-        // Check if user exists
-        boolean userExists = userRepository.existsByEmail(normalized);
-        
-        if (!userExists) {
-            log.debug("Email not found in database: {}", normalized);
+        try {
+            ForgotPasswordResponse response = passwordService.sendForgotPasswordOtp(email);
             return ResponseEntity.ok(java.util.Map.of(
-                "sent", false,
-                "message", "No account found with this email address."
+                "sent", response.sent,
+                "message", response.message
             ));
-        }
-        
-        // Only send OTP if user exists
-        boolean otpSent = otpService.sendOtpToEmail(normalized);
-        
-        if (otpSent) {
-            log.debug("OTP sent to email: {}", normalized);
-            return ResponseEntity.ok(java.util.Map.of(
-                "sent", true,
-                "message", "OTP has been sent to your email."
-            ));
-        } else {
-            log.warn("Failed to send OTP to email: {}", normalized);
-            return ResponseEntity.ok(java.util.Map.of(
-                "sent", false,
-                "message", "Failed to send OTP. Please try again later."
-            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
     }
 
     
     @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<?> verifyForgotPasswordOtp(@RequestParam("email") String email, @RequestParam("otp") String otp) {
-        String normalized = email == null ? null : email.trim().toLowerCase();
-        log.debug("Verify OTP request - original: '{}', normalized: '{}', otp: '{}'", email, normalized, otp);
-        if (normalized == null || normalized.isBlank() || otp == null || otp.isBlank()) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Email and OTP are required"));
+        try {
+            ForgotPasswordVerifyResponse response = passwordService.verifyForgotPasswordOtp(email, otp);
+            return ResponseEntity.ok(java.util.Map.of(
+                "verified", response.verified,
+                "resetToken", response.resetToken,
+                "message", response.message
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
-        
-        boolean otpValid = otpService.verifyOtp(normalized, otp);
-        if (!otpValid) {
-            otpService.consumeOtp(normalized);
-            log.debug("OTP verification failed for email: {}", normalized);
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired OTP. Please request a new OTP."));
-        }
-        String resetToken = otpService.issueResetToken(normalized);
-        log.debug("OTP verification successful for email: {}, token issued", normalized);
-        return ResponseEntity.ok(java.util.Map.of(
-            "verified", true,
-            "resetToken", resetToken,
-            "message", "OTP verified successfully"
-        ));
     }
 
   
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ForgotPasswordResetRequest req) {
-        if (req == null || req.email == null || req.newPassword == null || req.confirmPassword == null) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid payload"));
+        try {
+            String message = passwordService.resetPassword(req);
+            return ResponseEntity.ok(java.util.Map.of("message", message));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
-        String email = req.email.trim().toLowerCase();
-        log.debug("Reset password request - email: '{}', otp: '{}'", email, req.otp);
-        if (!req.newPassword.equals(req.confirmPassword)) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Passwords do not match"));
-        }
-        boolean allowed = false;
-        if (req.token != null && !req.token.isBlank()) {
-            allowed = otpService.validateResetToken(email, req.token, true);
-        } else if (req.otp != null && !req.otp.isBlank()) {
-            allowed = otpService.verifyOtp(email, req.otp);
-            if (!allowed) {
-                otpService.consumeOtp(email);
-            }
-        }
-        if (!allowed) {
-            log.debug("Reset authorization failed for email: {}", email);
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid or expired token/OTP. Please verify again."));
-        }
-
-        User user = userRepository.findByEmail(email)
-            .orElse(null);
-        if (user == null) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", "Unable to reset password for the specified email"));
-        }
-
-        String encoded = passwordEncoder.encode(req.newPassword);
-        user.setPassword(encoded);
-        userRepository.save(user);
-        // Update customer password if customer exists with same email
-        customerRepository.findByEmail(email).ifPresent(c -> {
-            c.setPassword(encoded);
-            customerRepository.save(c);
-        });
-
-        String fullName = null;
-        Customer customer = customerRepository.findByEmail(email).orElse(null);
-        if (customer != null) {
-            String fn = customer.getFirstName() != null ? customer.getFirstName() : "";
-            String ln = customer.getLastName() != null ? customer.getLastName() : "";
-            fullName = (fn + (ln.isBlank()? "" : (" " + ln))).trim();
-            if (fullName.isBlank()) fullName = null;
-        }
-        emailService.sendPasswordChangeSuccessEmail(email, fullName);
-
-        otpService.consumeOtp(email);
-        log.debug("Password reset successful for email: {}", email);
-
-        return ResponseEntity.ok(java.util.Map.of("message", "Password reset successfully"));
     }
 
-    public static class ForgotPasswordResetRequest {
-        @NotBlank public String email;
-        public String otp; // legacy support
-        public String token; // preferred two-step flow
-        @NotBlank public String newPassword;
-        @NotBlank public String confirmPassword;
-    }
+    
 }

@@ -10,7 +10,6 @@ import java.util.List;
 public interface RuleRepository extends JpaRepository<Rule, Long> {
     List<Rule> findByIsActiveTrueOrderByPriorityAsc();
     
-    // Admin management methods
     List<Rule> findByIsActiveTrueOrderByRiskWeightDesc();
     List<Rule> findByIsActiveFalse();
     long countByIsActiveTrue();

@@ -18,16 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tss.aml.dto.Auth.RegistrationRequest;
 import com.tss.aml.dto.CountryDto;
-import com.tss.aml.entity.CountryRisk;
+import com.tss.aml.dto.Auth.RegistrationRequest;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.Document;
-import com.tss.aml.repository.CountryRiskRepository;
-import com.tss.aml.repository.CustomerRepository;
+import com.tss.aml.service.ICustomerService;
+import com.tss.aml.service.IRegistrationService;
 import com.tss.aml.service.impl.CloudinaryService;
 import com.tss.aml.service.impl.EmailService;
-import com.tss.aml.service.impl.RegistrationServiceImpl;
 import com.tss.aml.util.JwtUtil;
 
 import jakarta.validation.Valid;
@@ -37,12 +35,11 @@ import jakarta.validation.Valid;
 @CrossOrigin(origins = "*")
 public class RegistrationController {
 
-    @Autowired private RegistrationServiceImpl regService;
+    @Autowired private IRegistrationService regService;
     @Autowired private JwtUtil jwtUtil;
     @Autowired private EmailService emailService;
     @Autowired private CloudinaryService cloudinaryService;
-    @Autowired private CustomerRepository customerRepository;
-    @Autowired private CountryRiskRepository countryRiskRepository;
+    @Autowired private ICustomerService customerService;
 
     // 1. send OTP
     @PostMapping("/send-otp")
@@ -54,7 +51,7 @@ public class RegistrationController {
     @PostMapping("/check-status")
     public ResponseEntity<?> checkRegistrationStatus(@RequestParam String email) {
         boolean hasPending = regService.hasPendingRegistration(email);
-        boolean existsInDb = customerRepository.existsByEmail(email);
+        boolean existsInDb = customerService.existsByEmail(email);
         
         if (existsInDb) {
             return ResponseEntity.ok(Map.of(
@@ -75,17 +72,10 @@ public class RegistrationController {
     }
 
   
-
     // Get active countries for registration dropdown
     @GetMapping("/countries")
     public ResponseEntity<List<CountryDto>> getActiveCountries() {
-        List<CountryRisk> countries = countryRiskRepository.findAllByOrderByRiskScoreDesc();
-        
-        // Filter only active countries and map to response format
-        List<CountryDto> activeCountries = countries.stream()
-            .map(country -> new CountryDto(country.getCountryCode(), country.getCountryName()))
-            .collect(java.util.stream.Collectors.toList());
-        
+        List<CountryDto> activeCountries = regService.getActiveCountries();
         return ResponseEntity.ok(activeCountries);
     }
 

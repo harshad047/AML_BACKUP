@@ -9,9 +9,8 @@ public class IntercurrencyTransferDto {
     private String toAccountNumber;
     private BigDecimal amount;
     private String description;
-    private String receiverCountryCode; // Optional - will be auto-detected if not provided
+    private String receiverCountryCode; 
     
-    // Response fields for conversion details
     private BigDecimal originalAmount;
     private String originalCurrency;
     private BigDecimal convertedAmount;
