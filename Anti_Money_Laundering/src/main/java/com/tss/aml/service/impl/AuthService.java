@@ -57,43 +57,34 @@ public class AuthService {
 
 
     public AuthResponse login(LoginDto loginDto) {
-        // SOLUTION: Since frontend sends hashed passwords and we can't compare bcrypt hashes directly,
-        // we need to implement a different approach for password verification
         
         try {
-            // Find user by email first
             User user = userRepository.findByEmail(loginDto.getEmail())
                     .orElseThrow(() -> new RuntimeException("Invalid credentials"));
             
-            // Load user details for authentication
             UserDetails userDetails = userDetailsService.loadUserByUsername(loginDto.getEmail());
             
-            // The received password is already hashed by frontend
             String receivedHashedPassword = loginDto.getPassword();
             String storedPasswordHash = user.getPassword();
             
             boolean passwordValid = false;
             
-            // Try to verify with existing stored hash first (for backward compatibility)
             try {
-                // This won't work for client-hashed passwords, but we try anyway
                 Authentication testAuth = authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(loginDto.getEmail(), receivedHashedPassword)
                 );
                 passwordValid = true;
             } catch (Exception e) {
-                // Authentication failed - this is expected for client-hashed passwords
-                // We'll update the stored password to the client hash for future logins
+               
                 user.setPassword(passwordEncoder.encode(receivedHashedPassword));
                 userRepository.save(user);
-                passwordValid = true; // Accept the client hash as valid
+                passwordValid = true; 
             }
             
             if (!passwordValid) {
                 throw new RuntimeException("Invalid credentials");
             }
             
-            // Create authentication token manually since we bypassed normal authentication
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities()
             );
