@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService, ChangePasswordRequest, ChangePasswordResponse, ApiResponse } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PasswordHashService } from '../../../core/services/password-hash.service';
 
 interface ResetPasswordRequest {
   email: string;
@@ -33,7 +34,8 @@ export class ChangePasswordComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toast: ToastService
+    private toast: ToastService,
+    private passwordHashService: PasswordHashService
   ) {}
 
   ngOnInit(): void {
@@ -68,48 +70,61 @@ export class ChangePasswordComponent implements OnInit {
     return null;
   }
 
-  changePassword(): void {
+  async changePassword(): Promise<void> {
     if (this.passwordForm.valid) {
       this.isLoading = true;
       this.successMessage = '';
       this.errorMessage = '';
 
-      const formValue = this.passwordForm.value;
-      const token = sessionStorage.getItem('reset_token') || '';
-      const payload = {
-        oldPassword: formValue.oldPassword,
-        newPassword: formValue.newPassword,
-        token
-      };
+      try {
+        const formValue = this.passwordForm.value;
+        const token = sessionStorage.getItem('reset_token') || '';
+        
+        // Hash passwords before sending
+        const hashedOldPassword = await this.passwordHashService.hashPassword(formValue.oldPassword);
+        const hashedNewPassword = await this.passwordHashService.hashPassword(formValue.newPassword);
+        
+        const payload: ChangePasswordRequest = {
+          currentPassword: hashedOldPassword,
+          newPassword: hashedNewPassword,
+          confirmPassword: hashedNewPassword,
+          otp: token
+        };
 
-      this.authService.changePassword(payload).subscribe({
-        next: (response: any) => {
-          this.isLoading = false;
-          // Handle both direct response and wrapped response formats
-          const responseData = response.data || response;
+        this.authService.changePassword(payload).subscribe({
+          next: (response: ApiResponse<ChangePasswordResponse>) => {
+            this.isLoading = false;
+            // Handle both direct response and wrapped response formats
+            const responseData = response.data || response;
 
-          if (responseData?.message || response?.message) {
-            this.successMessage = responseData.message || response.message || 'Password changed successfully!';
-          } else {
-            this.successMessage = 'Password changed successfully!';
+            if (responseData?.message || response?.message) {
+              this.successMessage = responseData.message || response.message || 'Password changed successfully!';
+            } else {
+              this.successMessage = 'Password changed successfully!';
+            }
+
+            // Redirect to profile page after successful password change
+            setTimeout(() => {
+              sessionStorage.removeItem('reset_token');
+              this.router.navigate(['/customer/profile']);
+            }, 2000);
+          },
+          error: (error: any) => {
+            this.isLoading = false;
+            this.errorMessage = error.error?.message || 'Failed to change password. Please try again.';
+            console.error('Password change error:', error);
+            // Show toast to inform wrong current password
+            this.toast.error('Current password is wrong', 6000);
+            // Redirect to verify step if change failed
+            this.router.navigate(['/customer/change-password/verify']);
           }
-
-          // Redirect to profile page after successful password change
-          setTimeout(() => {
-            sessionStorage.removeItem('reset_token');
-            this.router.navigate(['/customer/profile']);
-          }, 2000);
-        },
-        error: (error: any) => {
-          this.isLoading = false;
-          this.errorMessage = error.error?.message || 'Failed to change password. Please try again.';
-          console.error('Password change error:', error);
-          // Show toast to inform wrong current password
-          this.toast.error('Current password is wrong', 6000);
-          // Redirect to verify step if change failed
-          this.router.navigate(['/customer/change-password/verify']);
-        }
-      });
+        });
+      } catch (error) {
+        this.isLoading = false;
+        this.errorMessage = 'Failed to process password change. Please try again.';
+        console.error('Password hashing error:', error);
+        this.toast.error('Failed to process password change', 6000);
+      }
     } else {
       this.markFormGroupTouched();
     }

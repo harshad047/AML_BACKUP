@@ -14,12 +14,10 @@ import com.tss.aml.entity.Address;
 import com.tss.aml.entity.Customer;
 import com.tss.aml.entity.User;
 import com.tss.aml.entity.Enums.KycStatus;
+import com.tss.aml.repository.CountryRiskRepository;
 import com.tss.aml.repository.CustomerRepository;
 import com.tss.aml.repository.UserRepository;
-import com.tss.aml.repository.CountryRiskRepository;
 import com.tss.aml.service.ICustomerService;
-import com.tss.aml.service.OtpService;
-import com.tss.aml.service.EmailService;
 
 @Service
 public class CustomerServiceImpl implements ICustomerService {
@@ -181,13 +179,34 @@ public class CustomerServiceImpl implements ICustomerService {
             throw new IllegalArgumentException("Invalid or expired verification. Please verify OTP again.");
         }
 
-        if (!passwordEncoder.matches(req.oldPassword, customer.getPassword())) {
+        // Frontend now sends hashed passwords
+        // req.oldPassword and req.newPassword are already hashed by the frontend
+        String clientHashedOldPassword = req.oldPassword;
+        String clientHashedNewPassword = req.newPassword;
+        
+        // For old password verification, we need to check against the stored password
+        // Since the stored password might be double-hashed (client hash + server hash),
+        // we need to handle both cases
+        
+        boolean oldPasswordValid = false;
+        try {
+            // Try to match the client-hashed old password against stored password
+            oldPasswordValid = passwordEncoder.matches(clientHashedOldPassword, customer.getPassword());
+        } catch (Exception e) {
+            // If that fails, the stored password might be in old format
+            // This is part of the migration strategy
+            oldPasswordValid = false;
+        }
+        
+        if (!oldPasswordValid) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
 
-        user.setPassword(passwordEncoder.encode(req.newPassword));
+        // Store the new client-hashed password (double-hashed for extra security)
+        String encodedNewPassword = passwordEncoder.encode(clientHashedNewPassword);
+        user.setPassword(encodedNewPassword);
         userRepository.save(user);
-        customer.setPassword(passwordEncoder.encode(req.newPassword));
+        customer.setPassword(encodedNewPassword);
         customerRepository.save(customer);
         
         String fullName = (customer.getFirstName() != null ? customer.getFirstName() : "")

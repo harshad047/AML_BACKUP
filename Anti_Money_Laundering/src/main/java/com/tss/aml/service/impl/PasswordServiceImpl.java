@@ -118,7 +118,12 @@ public class PasswordServiceImpl implements IPasswordService {
             throw new RuntimeException("Unable to reset password for the specified email");
         }
 
-        String encoded = passwordEncoder.encode(req.newPassword);
+        // Frontend now sends hashed passwords, so we need to handle them properly
+        // The newPassword is already hashed by the frontend
+        String clientHashedPassword = req.newPassword;
+        
+        // Store the client-hashed password (double-hashed for extra security)
+        String encoded = passwordEncoder.encode(clientHashedPassword);
         user.setPassword(encoded);
         userRepository.save(user);
         

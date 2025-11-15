@@ -6,6 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PasswordHashService } from '../../../core/services/password-hash.service';
 import { CountryDto } from '../../../core/models/auth.models';
 
 // Custom Validators
@@ -156,7 +157,8 @@ export class RegisterComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private toastService: ToastService,
-    private http: HttpClient
+    private http: HttpClient,
+    private passwordHashService: PasswordHashService
   ) {
     // Set max date to today (prevent future dates)
     const today = new Date();
@@ -469,49 +471,59 @@ export class RegisterComponent implements OnInit {
     this.showTermsModal = false;
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.registerForm.valid) {
       this.isLoading = true;
 
-      // Prepare registration data matching backend RegistrationRequest
-      const registrationData = {
-        firstName: this.registerForm.value.firstName,
-        middleName: this.registerForm.value.middleName || '',
-        lastName: this.registerForm.value.lastName,
-        email: this.registerForm.value.email,
-        phone: this.registerForm.value.phone || '',
-        dob: this.registerForm.value.dob,
-        password: this.registerForm.value.password,
-        street: this.registerForm.value.street || '',
-        city: this.registerForm.value.city || '',
-        state: this.registerForm.value.state || '',
-        country: this.registerForm.value.country || '',
-        postalCode: this.registerForm.value.postalCode || '',
-        role: 'CUSTOMER'
-      };
+      try {
+        // Hash password before sending
+        const plainPassword = this.registerForm.value.password;
+        const hashedPassword = await this.passwordHashService.hashPassword(plainPassword);
 
-      // Submit registration - backend will store temporarily and send OTP
-      this.authService.register(registrationData).subscribe({
-        next: (response: any) => {
-          this.isLoading = false;
-          console.log('Registration response:', response);
-          
-          // Navigate to OTP verification page
-          this.router.navigate(['/auth/otp-verification'], {
-            queryParams: { 
-              email: registrationData.email,
-              name: `${registrationData.firstName} ${registrationData.lastName}`,
-              type: 'registration'
-            }
-          });
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Registration error:', error);
-          const errorMessage = error.error?.error || error.error?.message || 'Registration failed. Please try again.';
-          this.toastService.error(errorMessage, 6000);
-        }
-      });
+        // Prepare registration data matching backend RegistrationRequest
+        const registrationData = {
+          firstName: this.registerForm.value.firstName,
+          middleName: this.registerForm.value.middleName || '',
+          lastName: this.registerForm.value.lastName,
+          email: this.registerForm.value.email,
+          phone: this.registerForm.value.phone || '',
+          dob: this.registerForm.value.dob,
+          password: hashedPassword,
+          street: this.registerForm.value.street || '',
+          city: this.registerForm.value.city || '',
+          state: this.registerForm.value.state || '',
+          country: this.registerForm.value.country || '',
+          postalCode: this.registerForm.value.postalCode || '',
+          role: 'CUSTOMER'
+        };
+
+        // Submit registration - backend will store temporarily and send OTP
+        this.authService.register(registrationData).subscribe({
+          next: (response: any) => {
+            this.isLoading = false;
+            console.log('Registration response:', response);
+            
+            // Navigate to OTP verification page
+            this.router.navigate(['/auth/otp-verification'], {
+              queryParams: { 
+                email: registrationData.email,
+                name: `${registrationData.firstName} ${registrationData.lastName}`,
+                type: 'registration'
+              }
+            });
+          },
+          error: (error) => {
+            this.isLoading = false;
+            console.error('Registration error:', error);
+            const errorMessage = error.error?.error || error.error?.message || 'Registration failed. Please try again.';
+            this.toastService.error(errorMessage, 6000);
+          }
+        });
+      } catch (error) {
+        this.isLoading = false;
+        this.toastService.error('Failed to process registration. Please try again.');
+        console.error('Password hashing error:', error);
+      }
     } else {
       this.markFormGroupTouched();
     }

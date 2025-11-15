@@ -4,10 +4,46 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError, map, timeout } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest } from '../models/auth.models';
+import { 
+  User, 
+  LoginRequest, 
+  AuthResponse, 
+  RegistrationRequest, 
+  ApiResponse, 
+  ForgotPasswordRequest,
+  CustomerProfile,
+  ProfileUpdateRequest,
+  OtpResponse,
+  OtpVerificationResponse,
+  RegistrationResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+  ForgotPasswordResponse,
+  ForgotPasswordVerifyResponse,
+  ResetPasswordResponse,
+  BackendLoginResponse
+} from '../models/auth.models';
 
 // Re-export types for easier importing
-export type { User, LoginRequest, AuthResponse, RegistrationRequest, ApiResponse, ForgotPasswordRequest };
+export type { 
+  User, 
+  LoginRequest, 
+  AuthResponse, 
+  RegistrationRequest, 
+  ApiResponse, 
+  ForgotPasswordRequest,
+  CustomerProfile,
+  ProfileUpdateRequest,
+  OtpResponse,
+  OtpVerificationResponse,
+  RegistrationResponse,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+  ForgotPasswordResponse,
+  ForgotPasswordVerifyResponse,
+  ResetPasswordResponse,
+  BackendLoginResponse
+};
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +77,7 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<any>(`${this.API_URL}/auth/login`, credentials)
+    return this.http.post<BackendLoginResponse>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         timeout(15000), // 15 second timeout for login
         map(response => this.transformBackendResponse(response)),
@@ -52,34 +88,33 @@ export class AuthService {
       );
   }
 
-  register(userData: RegistrationRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/register`, userData);
+  register(userData: RegistrationRequest): Observable<ApiResponse<RegistrationResponse>> {
+    return this.http.post<ApiResponse<RegistrationResponse>>(`${this.API_URL}/register`, userData);
   }
 
-  sendOtp(email: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/register/send-otp`, null, {
+  sendOtp(email: string): Observable<ApiResponse<OtpResponse>> {
+    return this.http.post<ApiResponse<OtpResponse>>(`${this.API_URL}/register/send-otp`, null, {
       params: { email }
     });
   }
 
-  verifyOtp(email: string, otp: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/register/verify-otp`, null, {
+  verifyOtp(email: string, otp: string): Observable<ApiResponse<OtpVerificationResponse>> {
+    return this.http.post<ApiResponse<OtpVerificationResponse>>(`${this.API_URL}/register/verify-otp`, null, {
       params: { email, otp }
     });
   }
 
-  sendLoginOtp(email: string): Observable<ApiResponse<any>> {
-    return this.http.post<any>(`${this.API_URL}/auth/send-login-otp`, null, {
-      params: { email },
-      responseType: 'text' as 'json'
+  sendLoginOtp(email: string): Observable<ApiResponse<OtpResponse>> {
+    return this.http.post<ApiResponse<OtpResponse>>(`${this.API_URL}/auth/send-login-otp`, null, {
+      params: { email }
     });
   }
 
   verifyLoginOtp(email: string, otp: string): Observable<AuthResponse> {
-    return this.http.post<any>(`${this.API_URL}/auth/verify-login-otp`, null, {
+    return this.http.post<BackendLoginResponse>(`${this.API_URL}/auth/verify-login-otp`, null, {
       params: { email, otp }
     }).pipe(
-      map((response: any) => {
+      map((response: BackendLoginResponse) => {
         const hasToken = !!(response?.token || response?.data?.token);
         if (hasToken) {
           return this.transformBackendResponse(response);
@@ -97,20 +132,20 @@ export class AuthService {
     );
   }
 
-  getProfile(): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.API_URL}/customer/profile`, {
+  getProfile(): Observable<ApiResponse<CustomerProfile>> {
+    return this.http.get<ApiResponse<CustomerProfile>>(`${this.API_URL}/customer/profile`, {
       headers: this.getAuthHeaders()
     });
   }
 
-  updateProfile(profileData: any): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.API_URL}/customer/profile`, profileData, {
+  updateProfile(profileData: ProfileUpdateRequest): Observable<ApiResponse<CustomerProfile>> {
+    return this.http.put<ApiResponse<CustomerProfile>>(`${this.API_URL}/customer/profile`, profileData, {
       headers: this.getAuthHeaders()
     }).pipe(
       tap((response) => {
         // Handle both wrapped and direct response formats
-        const data = response.data || response;
-        if (data && (data.id || data.firstName)) {
+        const data = response.data || (response as unknown as CustomerProfile);
+        if (data && ('id' in data || 'firstName' in data)) {
           // Update stored user data if profile update includes user info
           const currentUser = this.getCurrentUser();
           if (currentUser) {
@@ -123,39 +158,39 @@ export class AuthService {
     );
   }
 
-  sendChangePasswordOtp(): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/customer/change-password/send-otp`, {}, {
+  sendChangePasswordOtp(): Observable<ApiResponse<OtpResponse>> {
+    return this.http.post<ApiResponse<OtpResponse>>(`${this.API_URL}/customer/change-password/send-otp`, {}, {
       headers: this.getAuthHeaders()
     });
   }
 
-  changePassword(passwordData: any): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.API_URL}/customer/change-password`, passwordData, {
+  changePassword(passwordData: ChangePasswordRequest): Observable<ApiResponse<ChangePasswordResponse>> {
+    return this.http.post<ApiResponse<ChangePasswordResponse>>(`${this.API_URL}/customer/change-password`, passwordData, {
       headers: this.getAuthHeaders()
     });
   }
 
   // Forgot Password Methods
-  sendForgotPasswordOtp(email: string): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/auth/forgot-password/send-otp`, null, {
+  sendForgotPasswordOtp(email: string): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(`${this.API_URL}/auth/forgot-password/send-otp`, null, {
       params: { email }
     });
   }
 
-  verifyForgotPasswordOtp(email: string, otp: string): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/auth/forgot-password/verify-otp`, null, {
+  verifyForgotPasswordOtp(email: string, otp: string): Observable<ForgotPasswordVerifyResponse> {
+    return this.http.post<ForgotPasswordVerifyResponse>(`${this.API_URL}/auth/forgot-password/verify-otp`, null, {
       params: { email, otp }
     });
   }
 
-  resetPassword(request: ForgotPasswordRequest): Observable<any> {
+  resetPassword(request: ForgotPasswordRequest): Observable<ResetPasswordResponse> {
     console.log('Making reset password request:', {
       url: `${this.API_URL}/auth/forgot-password/reset`,
       method: 'POST',
       data: request
     });
 
-    return this.http.post<any>(`${this.API_URL}/auth/forgot-password/reset`, request, {
+    return this.http.post<ResetPasswordResponse>(`${this.API_URL}/auth/forgot-password/reset`, request, {
       headers: new HttpHeaders({
         'Content-Type': 'application/json'
       })
@@ -168,10 +203,18 @@ export class AuthService {
   }
 
   logout(): void {
+    // Clear all authentication data
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
+    
+    // Clear any session storage items that might contain sensitive data
+    sessionStorage.removeItem('reset_token');
+    
+    // Clear the current user state
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    
+    // Navigate to login page
+    this.router.navigate(['/auth/login']);
   }
 
   isAuthenticated(): boolean {
@@ -224,7 +267,7 @@ export class AuthService {
     });
   }
 
-  private transformBackendResponse(backendResponse: any): AuthResponse {
+  private transformBackendResponse(backendResponse: BackendLoginResponse): AuthResponse {
     // Backend response format:
     // { token: "jwt-token", type: "Bearer", email: "user@example.com", role: "ROLE_CUSTOMER", userId: 8 }
 
@@ -238,7 +281,7 @@ export class AuthService {
     const nameParts = this.extractNameFromEmail(safeEmail);
 
     const user: User = {
-      id: payload.userId,
+      id: payload.userId || 0,
       firstName: nameParts.firstName,
       lastName: nameParts.lastName,
       email: safeEmail,

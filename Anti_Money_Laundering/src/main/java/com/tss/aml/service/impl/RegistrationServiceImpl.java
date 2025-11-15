@@ -106,6 +106,7 @@ public class RegistrationServiceImpl implements IRegistrationService {
 		c.setLastName(req.getLastName());
 		c.setEmail(req.getEmail());
 		c.setPhone(req.getPhone());
+		// Frontend now sends hashed passwords, so we double-hash for extra security
 		c.setPassword(passwordEncoder.encode(req.getPassword()));
 		c.setDob(req.getDob());
 
@@ -125,7 +126,7 @@ public class RegistrationServiceImpl implements IRegistrationService {
 
 		User user = User.builder().firstName(req.getFirstName()).lastName(req.getLastName()).email(req.getEmail())
 				.username(username) // Use the same generated username
-				.password(passwordEncoder.encode(req.getPassword())).role(Role.CUSTOMER) // assuming you have a CUSTOMER
+				.password(passwordEncoder.encode(req.getPassword())).role(Role.CUSTOMER) // Frontend sends hashed password, double-hash for security
 																							// role
 				.isEnabled(true).build();
 

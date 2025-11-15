@@ -66,3 +66,98 @@ export interface CountryDto {
   code: string;
   name: string;
 }
+
+// Profile Management DTOs
+export interface CustomerProfile {
+  id: number;
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  email: string;
+  username: string;
+  phone: string;
+  address: Address;
+  kycStatus: string;
+  createdAt: string;
+}
+
+export interface ProfileUpdateRequest {
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+  };
+}
+
+// OTP and Authentication DTOs
+export interface OtpResponse {
+  sent: boolean;
+  message: string;
+  expiresIn?: number;
+}
+
+export interface OtpVerificationResponse {
+  verified: boolean;
+  message: string;
+  token?: string;
+}
+
+export interface RegistrationResponse {
+  success: boolean;
+  message: string;
+  userId?: number;
+}
+
+// Password Management DTOs
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+  otp?: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  token?: string;
+}
+
+export interface ForgotPasswordVerifyResponse {
+  success: boolean;
+  message: string;
+  token: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+// Backend Raw Response DTOs (for transformation)
+export interface BackendLoginResponse {
+  token?: string;
+  type?: string;
+  email?: string;
+  username?: string;
+  role?: string;
+  userId?: number;
+  data?: {
+    token?: string;
+    type?: string;
+    email?: string;
+    username?: string;
+    role?: string;
+    userId?: number;
+  };
+}

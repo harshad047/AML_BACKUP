@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PasswordHashService } from '../../../core/services/password-hash.service';
 
 @Component({
   selector: 'app-login',
@@ -30,7 +31,8 @@ export class LoginComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private passwordHashService: PasswordHashService
   ) {}
 
   ngOnInit(): void {
@@ -167,7 +169,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.loginForm.valid) {
       // Validate captcha first
       const captchaValue = this.loginForm.get('captcha')?.value;
@@ -182,34 +184,45 @@ export class LoginComponent implements OnInit, AfterViewInit {
       this.errorMessage = '';
       this.captchaError = false;
 
-      const credentials = {
-        email: this.loginForm.value.email,
-        password: this.loginForm.value.password
-      };
+      try {
+        // Hash password before sending
+        const plainPassword = this.loginForm.value.password;
+        const hashedPassword = await this.passwordHashService.hashPassword(plainPassword);
 
-      // Authenticate user credentials
-      this.authService.login(credentials).subscribe({
-        next: (response) => {
-          const user = response?.user;
-          if (user) {
-            // Navigate immediately for better UX - don't wait for isLoading
-            const route = this.getRouteForRole(user.role);
-            this.router.navigate([route]).then(() => {
+        const credentials = {
+          email: this.loginForm.value.email,
+          password: hashedPassword
+        };
+
+        // Authenticate user credentials
+        this.authService.login(credentials).subscribe({
+          next: (response) => {
+            const user = response?.user;
+            if (user) {
+              // Navigate immediately for better UX - don't wait for isLoading
+              const route = this.getRouteForRole(user.role);
+              this.router.navigate([route]).then(() => {
+                this.isLoading = false;
+              });
+            } else {
               this.isLoading = false;
-            });
-          } else {
+              this.toastService.error('Login succeeded but user data is missing.');
+              this.generateCaptcha();
+            }
+          },
+          error: (error) => {
             this.isLoading = false;
-            this.toastService.error('Login succeeded but user data is missing.');
+            this.toastService.error(error.error?.message || 'Login failed. Please try again.', 5000);
             this.generateCaptcha();
+            console.error('Login error:', error);
           }
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.toastService.error(error.error?.message || 'Login failed. Please try again.', 5000);
-          this.generateCaptcha();
-          console.error('Login error:', error);
-        }
-      });
+        });
+      } catch (error) {
+        this.isLoading = false;
+        this.toastService.error('Failed to process login. Please try again.');
+        this.generateCaptcha();
+        console.error('Password hashing error:', error);
+      }
     } else {
       this.markFormGroupTouched();
     }

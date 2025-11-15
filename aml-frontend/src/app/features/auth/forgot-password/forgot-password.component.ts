@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { PasswordHashService } from '../../../core/services/password-hash.service';
 
 interface ForgotPasswordResetRequest {
   email: string;
@@ -50,7 +51,8 @@ export class ForgotPasswordComponent implements OnDestroy {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private passwordHashService: PasswordHashService
   ) {
     this.emailForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
@@ -173,7 +175,7 @@ export class ForgotPasswordComponent implements OnDestroy {
   }
 
   // Step 3: Reset Password
-  resetPassword(): void {
+  async resetPassword(): Promise<void> {
     if (this.passwordForm.invalid) {
       this.passwordForm.markAllAsTouched();
       return;
@@ -182,30 +184,40 @@ export class ForgotPasswordComponent implements OnDestroy {
     this.loading = true;
     this.error = '';
     this.success = '';
-    const { newPassword, confirmPassword } = this.passwordForm.value;
-    
-    const resetRequest: ForgotPasswordResetRequest = {
-      email: this.verifiedEmail,
-      otp: '',
-      newPassword,
-      confirmPassword
-    } as any;
-    // Prefer token-based reset (as backend issues a short-lived token upon OTP verify)
-    (resetRequest as any).token = this.resetToken;
 
-    this.http.post(`${this.API_URL}/forgot-password/reset`, resetRequest).subscribe({
-      next: (response: any) => {
-        this.success = response.message || 'Password reset successfully. Redirecting to login...';
-        this.loading = false;
-        this.error = '';
-        setTimeout(() => this.router.navigate(['/auth/login']), 2000);
-      },
-      error: (err) => {
-        this.error = err.error?.error || 'Failed to reset password. Please try again.';
-        this.loading = false;
-        this.success = '';
-      }
-    });
+    try {
+      const { newPassword, confirmPassword } = this.passwordForm.value;
+      
+      // Hash password before sending (only hash once, use same hash for both fields)
+      const hashedPassword = await this.passwordHashService.hashPassword(newPassword);
+      
+      const resetRequest: ForgotPasswordResetRequest = {
+        email: this.verifiedEmail,
+        otp: '',
+        newPassword: hashedPassword,
+        confirmPassword: hashedPassword
+      } as any;
+      // Prefer token-based reset (as backend issues a short-lived token upon OTP verify)
+      (resetRequest as any).token = this.resetToken;
+
+      this.http.post(`${this.API_URL}/forgot-password/reset`, resetRequest).subscribe({
+        next: (response: any) => {
+          this.success = response.message || 'Password reset successfully. Redirecting to login...';
+          this.loading = false;
+          this.error = '';
+          setTimeout(() => this.router.navigate(['/auth/login']), 2000);
+        },
+        error: (err) => {
+          this.error = err.error?.error || 'Failed to reset password. Please try again.';
+          this.loading = false;
+          this.success = '';
+        }
+      });
+    } catch (error) {
+      this.loading = false;
+      this.error = 'Failed to process password reset. Please try again.';
+      console.error('Password hashing error:', error);
+    }
   }
 
   // Navigation helpers
